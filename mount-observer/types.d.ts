@@ -1,7 +1,5 @@
 // Core types for MountObserver v2 - Polyfill Supported Scenario I
 
-import {EnhancementConfig} from '../assign-gingerly/types';
-
 export type Constructor = new (...args: any[]) => any;
 
 export type EventConstructor = {new(...args: any[]): Event};
@@ -34,7 +32,6 @@ export interface MountConfig {
     //allow handler classes or functions
     //to be passed some custom information
     customData?: unknown;
-    enhancementConfig?: EnhancementConfig | EnhancementConfig[];
 }
 
 

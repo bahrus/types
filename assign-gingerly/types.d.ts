@@ -182,3 +182,11 @@ export declare function assignGingerly(
 ): any;
 
 export default assignGingerly;
+
+export declare class ElementEnhancementGateway{
+  enh: ElementEnhancement;
+}
+
+export interface ElementEnhancement{
+  dispose(regItem: EnhancementConfig): void;
+}

@@ -25,16 +25,18 @@ type DisposeEvent =
     //reference count outside any enhancements goes to zero
     | 'dispose'
 
+export type Spawner<T = any, Obj = Element> = {
+  new (obj?: Obj, ctx?: SpawnContext<T>, initVals?: Partial<T>): T;
+  canSpawn?: (obj: any, ctx?: SpawnContext<T>) => boolean;
+}
+
 /**
  * Configuration for enhancing elements with class instances
  * Defines how to spawn and initialize enhancement classes
  */
 export interface EnhancementConfig<T = any, Obj = Element> {
   
-  spawn: { 
-    new (obj: Obj, ctx: SpawnContext<T>, initVals: Partial<T>): T;
-    canSpawn?: (obj: any, ctx?: SpawnContext<T>) => boolean;
-  };
+  spawn: Spawner<T, Obj>;
   
   //Applicable to passing in the initVals during the spawn lifecycle event
   withAttrs?: AttrPatterns<T>;

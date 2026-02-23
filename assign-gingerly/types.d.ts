@@ -29,10 +29,10 @@ type DisposeEvent =
  * Configuration for enhancing elements with class instances
  * Defines how to spawn and initialize enhancement classes
  */
-export interface EnhancementConfig<T = any> {
+export interface EnhancementConfig<T = any, Obj = Element> {
   
   spawn: { 
-    new (obj?: any, ctx?: SpawnContext<T>, initVals?: Partial<T>): T;
+    new (obj: Obj, ctx: SpawnContext<T>, initVals: Partial<T>): T;
     canSpawn?: (obj: any, ctx?: SpawnContext<T>) => boolean;
   };
   

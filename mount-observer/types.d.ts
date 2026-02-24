@@ -13,6 +13,7 @@ export interface EventConfig {
 
 export type DismountReason = 
     | 'media-query-failed'
+    | 'root-size-failed'
     | 'with-matching-failed';
 
 export interface MountConfig {
@@ -20,6 +21,7 @@ export interface MountConfig {
     withInstance?: Constructor | Constructor[];
     withMediaMatching?: string | MediaQueryList;
     withScopePerimeter?: string;
+    whereObservedRootSizeMatches?: string;
     import?: string | ImportSpec | Array<string | ImportSpec>;
     do?: string | DoCallback | (string | DoCallback)[];
     loadingEagerness?: 'eager' | 'lazy';

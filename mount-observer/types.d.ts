@@ -15,7 +15,15 @@ export type DismountReason =
     | 'media-query-failed'
     | 'root-size-failed'
     | 'intersection-failed'
+    | 'connection-failed'
     | 'with-matching-failed';
+
+export interface ConnectionCondition {
+    effectiveTypeIn?: string[];
+    downlinkMin?: number;
+    downlinkMax?: number;
+    rttMax?: number;
+}
 
 export interface MountConfig {
     matching?: string;
@@ -24,6 +32,7 @@ export interface MountConfig {
     withScopePerimeter?: string;
     whereObservedRootSizeMatches?: string;
     whereElementIntersectsWith?: IntersectionObserverInit;
+    whereConnectionHas?: ConnectionCondition;
     import?: string | ImportSpec | Array<string | ImportSpec>;
     do?: string | DoCallback | (string | DoCallback)[];
     loadingEagerness?: 'eager' | 'lazy';

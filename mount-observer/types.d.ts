@@ -27,7 +27,7 @@ export interface ConnectionCondition {
 
 export interface MountConfig {
     matching?: string;
-    withInstance?: Constructor | Constructor[];
+    whereInstanceOf?: Constructor | Constructor[];
     withMediaMatching?: string | MediaQueryList;
     withScopePerimeter?: string;
     whereObservedRootSizeMatches?: string;

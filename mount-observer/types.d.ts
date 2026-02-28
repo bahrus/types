@@ -89,6 +89,11 @@ export interface WeakDual<T extends Object>{
     setWeak: Set<WeakRef<T>>
 }
 
+export interface WeakMapDual<T extends Object, R extends Object>{
+    weakMap: WeakMap<T, R>,
+    setWeak: Set<WeakRef<T>> 
+}
+
 export interface IMountObserver extends EventTarget {
     observe(observedNode: Node): Promise<void>;
     disconnect(): void;

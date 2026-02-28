@@ -73,7 +73,7 @@ export type DoCallback = (mountedElement: Element, context: MountContext) => voi
 // }
 
 export type MountScope = 
-    | 'registry'     // getRootRegistryContainer (default)
+    | 'registryRoot' // getRegistryRoot - finds highest node with matching customElementRegistry (default)
     | 'self'         // this element
     | 'root'         // getRootNode()
     | 'shadow'       // shadowRoot (throws if none)

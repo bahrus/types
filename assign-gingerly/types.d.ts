@@ -151,20 +151,20 @@ export interface SpawnContext<T = any, TMountContext = any> {
 /**
  * @deprecated Use EnhancementConfig instead
  */
-export type IBaseRegistryItem<T = any> = EnhancementConfig<T>;
+export type IEnhancementRegistryItem<T = any> = EnhancementConfig<T>;
 
 /**
  * Interface for the options passed to assignGingerly
  */
 export interface IAssignGingerlyOptions {
-  registry?: typeof BaseRegistry | BaseRegistry;
+  registry?: typeof EnhancementRegistry | EnhancementRegistry;
   bypassChecks?: boolean;
 }
 
 /**
  * Base registry class for managing enhancement configurations
  */
-export declare class BaseRegistry {
+export declare class EnhancementRegistry {
   private items;
   push(items: EnhancementConfig | EnhancementConfig[]): void;
   getItems(): EnhancementConfig[];

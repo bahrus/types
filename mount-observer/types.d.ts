@@ -90,7 +90,7 @@ export interface WeakDual<T extends Object>{
 }
 
 export interface IMountObserver extends EventTarget {
-    observe(rootNode: Node): Promise<void>;
+    observe(anchorNode: Node): Promise<void>;
     disconnect(): void;
     disconnectedSignal: AbortSignal;
     assignGingerly(config: Record<string, any> | undefined): Promise<void>;

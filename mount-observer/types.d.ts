@@ -41,7 +41,7 @@ export interface MountConfig {
     stageOnMount?: Record<string, any>;
     getPlayByPlay?: boolean;
     mountedElemEmits?: EventConfig | EventConfig[];
-    reference?: number | number[];
+    configFrom?: string | string[];
     //allow handler classes or functions
     //to be passed some custom information
     customData?: unknown;

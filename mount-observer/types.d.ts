@@ -25,26 +25,143 @@ export interface ConnectionCondition {
     rttMax?: number;
 }
 
+/**
+ * Configuration object for MountObserver that defines what elements to observe and how to handle them.
+ * All `where*` properties form an AND condition - elements must satisfy ALL specified conditions to mount.
+ */
 export interface MountConfig {
+    /**
+     * CSS selector string to match elements.
+     * Only elements matching this selector will be considered for mounting.
+     * @example 'button.fancy' or 'div > p.highlight'
+     */
     matching?: string;
+    
+    /**
+     * Constructor or array of constructors to filter elements by instance type.
+     * Elements must be instances of at least one of the specified constructors (OR logic for arrays).
+     * @example HTMLButtonElement or [HTMLInputElement, HTMLTextAreaElement]
+     */
     whereInstanceOf?: Constructor | Constructor[];
+    
+    /**
+     * Media query string or MediaQueryList for conditional mounting based on viewport/media conditions.
+     * Elements only mount when the media query matches.
+     * @example '(min-width: 768px)' or '(prefers-color-scheme: dark)'
+     */
     withMediaMatching?: string | MediaQueryList;
+    
+    /**
+     * CSS selector defining a "donut hole" scope perimeter.
+     * Excludes elements that are descendants of elements matching this selector.
+     * Useful for preventing observation of nested scopes.
+     * @example '.no-observe' to exclude elements inside .no-observe containers
+     */
     withScopePerimeter?: string;
+    
+    /**
+     * Container query string for conditional mounting based on observed root element size.
+     * Elements only mount when the root node matches this size condition.
+     * @example '(min-width: 500px)' to only mount when root is at least 500px wide
+     */
     whereObservedRootSizeMatches?: string;
+    
+    /**
+     * IntersectionObserver configuration for conditional mounting based on element visibility.
+     * Elements only mount when they intersect with the viewport according to these options.
+     * @example { rootMargin: '50px', threshold: 0.5 }
+     */
     whereElementIntersectsWith?: IntersectionObserverInit;
+    
+    /**
+     * Network connection conditions for conditional mounting.
+     * Elements only mount when network conditions match the specified criteria.
+     * Useful for adaptive loading based on connection quality.
+     */
     whereConnectionHas?: ConnectionCondition;
+    
+    /**
+     * When true, inverts the default registry matching behavior.
+     * Default (false): Only mount elements with the SAME customElementRegistry as the root node.
+     * When true: Only mount elements with a DIFFERENT customElementRegistry than the root node.
+     * Useful for cross-registry observation scenarios.
+     * @example true to observe elements from other shadow DOM scopes
+     */
     whereDifferentCustomElementRegistry?: boolean;
+    
+    /**
+     * Module(s) to import before mounting elements.
+     * Can be a URL string, ImportSpec object, or array of either.
+     * Modules are loaded based on loadingEagerness setting.
+     * @example './my-component.js' or [{ url: './styles.css', type: 'css' }]
+     */
     import?: string | ImportSpec | Array<string | ImportSpec>;
+    
+    /**
+     * Handler(s) to execute when elements mount.
+     * Can be:
+     * - String: Name of a registered handler (e.g., 'builtIns.defineCustomElement')
+     * - Function: Inline callback function
+     * - Array: Multiple handlers to execute in order
+     * @example 'builtIns.defineCustomElement' or (el, ctx) => { el.classList.add('mounted') }
+     */
     do?: string | DoCallback | (string | DoCallback)[];
+    
+    /**
+     * Controls when imports are loaded.
+     * - 'eager': Load imports immediately when MountObserver is created
+     * - 'lazy': Load imports only when first matching element is found (default)
+     */
     loadingEagerness?: 'eager' | 'lazy';
+    
+    /**
+     * Properties to assign to elements when they mount.
+     * Uses assign-gingerly for safe property assignment.
+     * @example { disabled: false, tabIndex: 0 }
+     */
     assignOnMount?: Record<string, any>;
+    
+    /**
+     * Properties to assign to elements when they dismount.
+     * Uses assign-gingerly for safe property assignment.
+     * @example { disabled: true }
+     */
     assignOnDismount?: Record<string, any>;
+    
+    /**
+     * Properties to tentatively assign on mount with automatic reversal on dismount.
+     * Original values are saved and restored when element dismounts.
+     * @example { hidden: false } - will restore original hidden value on dismount
+     */
     stageOnMount?: Record<string, any>;
+    
+    /**
+     * When true, enables detailed event dispatching for debugging and monitoring.
+     * Provides granular lifecycle events for observation.
+     */
     getPlayByPlay?: boolean;
+    
+    /**
+     * Event(s) to emit from mounted elements.
+     * Can be a single EventConfig or array of EventConfigs.
+     * Allows elements to dispatch custom events when mounted.
+     * @example { event: 'ready', args: { detail: 'mounted' } }
+     */
     mountedElemEmits?: EventConfig | EventConfig[];
+    
+    /**
+     * External module(s) to import MountConfig from.
+     * Allows separating JSON-serializable config from non-serializable handlers.
+     * Loaded configs are merged left-to-right, with inline config taking final precedence.
+     * @example './config.js' or ['./base-config.js', './override-config.js']
+     */
     configFrom?: string | string[];
-    //allow handler classes or functions
-    //to be passed some custom information
+    
+    /**
+     * Custom data to pass to handler classes or functions.
+     * Allows handlers to receive additional context-specific information.
+     * Not used by MountObserver itself, but available in MountContext.
+     */
     customData?: unknown;
 }
 

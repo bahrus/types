@@ -90,6 +90,15 @@ export interface MountConfig {
     whereDifferentCustomElementRegistry?: boolean;
     
     /**
+     * Regular expression or string pattern to match against element's localName.
+     * Only elements whose localName matches this pattern will mount.
+     * String values are converted to RegExp.
+     * @example /^my-/ to match elements starting with 'my-'
+     * @example 'button|input' to match button or input elements
+     */
+    whereLocalNameMatches?: string | RegExp;
+    
+    /**
      * Module(s) to import before mounting elements.
      * Can be a URL string, ImportSpec object, or array of either.
      * Modules are loaded based on loadingEagerness setting.

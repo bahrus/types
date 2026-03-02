@@ -33,6 +33,7 @@ export interface MountConfig {
     whereObservedRootSizeMatches?: string;
     whereElementIntersectsWith?: IntersectionObserverInit;
     whereConnectionHas?: ConnectionCondition;
+    whereDifferentCustomElementRegistry?: boolean;
     import?: string | ImportSpec | Array<string | ImportSpec>;
     do?: string | DoCallback | (string | DoCallback)[];
     loadingEagerness?: 'eager' | 'lazy';

@@ -119,6 +119,18 @@ export interface MountConfig<TKeys extends string = string> {
     do?: string | DoCallback | (string | DoCallback)[];
     
     /**
+     * Custom JavaScript check that runs after all declarative where* conditions pass.
+     * This is the final gate before mounting occurs.
+     * 
+     * If shouldMount returns false, the element is not mounted (no do callback, no mount event).
+     * If shouldMount throws an error, it is treated as returning false and the error is logged.
+     * 
+     * @example (el) => currentUser.hasRole('admin')
+     * @example (el) => el.dataset.apiKey && el.dataset.apiEndpoint
+     */
+    shouldMount?: ShouldMountCallback;
+    
+    /**
      * Controls when imports are loaded.
      * - 'eager': Load imports immediately when MountObserver is created
      * - 'lazy': Load imports only when first matching element is found (default)
@@ -244,6 +256,16 @@ export interface MountContext<TKeys extends string = string> {
 
 
 export type DoCallback<TKeys extends string = string> = (mountedElement: Element, context: MountContext<TKeys>) => void;
+
+/**
+ * Callback function that performs a final check before mounting an element.
+ * Called after all declarative where* conditions have passed.
+ * 
+ * @param mountedElement - The element being considered for mounting
+ * @param context - The mount context containing modules, observer, config, etc.
+ * @returns true to allow mounting, false to prevent it
+ */
+export type ShouldMountCallback<TKeys extends string = string> = (mountedElement: Element, context: MountContext<TKeys>) => boolean;
 
 // export interface DoCallbacks {
 //     mount?: (mountedElement: Element, context: MountContext) => void;

@@ -28,8 +28,10 @@ export interface ConnectionCondition {
 /**
  * Configuration object for MountObserver that defines what elements to observe and how to handle them.
  * All `where*` properties form an AND condition - elements must satisfy ALL specified conditions to mount.
+ * 
+ * @template TKeys - String literal type for sub-observer keys when using the `with` property
  */
-export interface MountConfig {
+export interface MountConfig<TKeys extends string = string> {
     /**
      * CSS selector string to match elements.
      * Only elements matching this selector will be considered for mounting.
@@ -172,6 +174,29 @@ export interface MountConfig {
      * Not used by MountObserver itself, but available in MountContext.
      */
     customData?: unknown;
+    
+    /**
+     * Sub-observer configurations for hierarchical composition.
+     * Each key-value pair defines a sub-observer that will observe the same root node as the parent.
+     * Sub-observers are created when the parent's observe() method is called and automatically
+     * disconnected when the parent disconnects.
+     * 
+     * Sub-observers operate independently with their own configurations and do not inherit
+     * properties from the parent observer. Each sub-observer can have its own `with` property
+     * for unlimited nesting depth.
+     * 
+     * @example
+     * ```typescript
+     * const observer = new MountObserver({
+     *   matching: '.parent',
+     *   with: {
+     *     registry: { matching: 'my-element', do: 'builtIns.defineCustomElement' },
+     *     styles: { import: './styles.css' }
+     *   }
+     * });
+     * ```
+     */
+    with?: {[K in TKeys]: MountConfig};
 }
 
 
@@ -181,16 +206,44 @@ export interface ImportSpec {
     type?: 'js' | 'css' | 'json' | 'html';
 }
 
-export interface MountContext {
+/**
+ * Context object passed to mount handlers containing information about the mounted element and observer state.
+ * 
+ * @template TKeys - String literal type for sub-observer keys when using the `with` property
+ */
+export interface MountContext<TKeys extends string = string> {
     modules: any[];
     observer: IMountObserver;
     rootNode: Node;
-    MountConfig: MountConfig
+    
+    /**
+     * The configuration object for this observer.
+     * Contains all the settings that define what elements to observe and how to handle them.
+     */
+    mountConfig: MountConfig<TKeys>;
+    
+    /**
+     * Map of sub-observers created from the `with` property in mountConfig.
+     * Only present when the parent observer has sub-observers defined.
+     * Keys match the keys from the `with` property, providing type-safe access to sub-observers.
+     * 
+     * @example
+     * ```typescript
+     * do: (el, ctx) => {
+     *   // Access sub-observers with type safety
+     *   const registryObserver = ctx.withObservers?.registry;
+     *   if (registryObserver) {
+     *     console.log('Registry observer:', registryObserver);
+     *   }
+     * }
+     * ```
+     */
+    withObservers?: {[K in TKeys]: IMountObserver};
 }
 
 
 
-export type DoCallback = (mountedElement: Element, context: MountContext) => void;
+export type DoCallback<TKeys extends string = string> = (mountedElement: Element, context: MountContext<TKeys>) => void;
 
 // export interface DoCallbacks {
 //     mount?: (mountedElement: Element, context: MountContext) => void;
@@ -233,14 +286,14 @@ export interface IMountObserver extends EventTarget {
 export interface IMountEvent extends Event {
     mountedElement: Element;
     modules: any[];
-    MountConfig: MountConfig;
+    mountConfig: MountConfig;
     mountContext: MountContext;
 }
 
 export interface IDismountEvent extends Event {
     mountedElement: Element;
     reason: DismountReason;
-    MountConfig: MountConfig;
+    mountConfig: MountConfig;
 }
 
 

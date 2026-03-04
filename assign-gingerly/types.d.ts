@@ -173,13 +173,49 @@ export declare class EnhancementRegistry {
 }
 
 /**
+ * Constructor signature for ItemScope Manager classes
+ */
+export type ItemscopeManager<T = any> = {
+  new (element: HTMLElement, initVals?: Partial<T>): T;
+}
+
+/**
+ * Configuration for ItemScope Manager registration
+ */
+export interface ItemscopeManagerConfig<T = any> {
+  /**
+   * Manager class constructor
+   */
+  manager: ItemscopeManager<T>;
+  
+  /**
+   * Optional lifecycle method keys
+   * - dispose: Method name to call when manager is disposed
+   * - resolved: Property/event name indicating manager is ready
+   */
+  lifecycleKeys?: {
+    dispose?: string | symbol;
+    resolved?: string | symbol;
+  };
+}
+
+/**
+ * Registry for ItemScope Manager configurations
+ * Extends EventTarget to support lazy registration via events
+ */
+export declare class ItemscopeRegistry extends EventTarget {
+  define(name: string, config: ItemscopeManagerConfig): void;
+  get(name: string): ItemscopeManagerConfig | undefined;
+}
+
+/**
  * Main assignGingerly function
  */
 export declare function assignGingerly(
   target: any,
   source: Record<string | symbol, any>,
   options?: IAssignGingerlyOptions
-): any;
+): Promise<any>;
 
 export default assignGingerly;
 

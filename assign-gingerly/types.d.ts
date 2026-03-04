@@ -206,6 +206,7 @@ export interface ItemscopeManagerConfig<T = any> {
 export declare class ItemscopeRegistry extends EventTarget {
   define(name: string, config: ItemscopeManagerConfig): void;
   get(name: string): ItemscopeManagerConfig | undefined;
+  whenDefined(name: string): Promise<void>;
 }
 
 /**

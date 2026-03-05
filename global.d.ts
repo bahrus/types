@@ -23,3 +23,7 @@ interface WeakMap<K extends object, V> {
    */
   getOrInsertComputed(key: K, insert: () => V): V;
 }
+
+interface HTMLTemplateElement {
+  remoteContent?: Node;
+}

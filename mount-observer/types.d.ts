@@ -40,6 +40,15 @@ export interface MountConfig<TKeys extends string = string> {
     matching?: string;
     
     /**
+     * Custom element tag name(s) that must be defined before mounting occurs.
+     * Waits for customElements.whenDefined() to resolve for each specified tag.
+     * Uses the customElementRegistry of the observed root node.
+     * This check happens first, before any other where* conditions.
+     * @example 'my-button' or ['my-button', 'my-input']
+     */
+    whenDefined?: string | string[];
+    
+    /**
      * Constructor or array of constructors to filter elements by instance type.
      * Elements must be instances of at least one of the specified constructors (OR logic for arrays).
      * @example HTMLButtonElement or [HTMLInputElement, HTMLTextAreaElement]

@@ -66,6 +66,9 @@ export type Constructor = new (...args: any[]) => any;
 
 export type pathString = `?.${string}`;
 
+export type CustomElementName = string;
+export type CustomElementConstructorStaticMethodName = string;
+
 export interface AttrConfig<T = any> {
   /**
    * Type of the property value (JSON-serializable string format)
@@ -92,12 +95,14 @@ export interface AttrConfig<T = any> {
   /**
    * Parser to transform attribute string value
    * - Function: Inline parser function (not JSON serializable)
-   * - String: Named parser reference (JSON serializable)
-   *   - Simple name: Looks up in global parser registry (e.g., 'timestamp', 'csv')
-   *   - Dot notation: Looks up static method on custom element (e.g., 'my-widget.parseSpecial')
-   *     Falls back to global registry if custom element not found
+   * - String: Named parser reference (JSON serializable) - looks up in global parser registry (e.g., 'timestamp', 'csv')
+   * - Tuple: [CustomElementName, StaticMethodName] - looks up static method on custom element constructor (e.g., ['my-widget', 'parseSpecial'])
    */
-  parser?: ((attrValue: string | null) => any) | string;
+  parser?: 
+    | ((attrValue: string | null) => any) 
+    | string 
+    | [CustomElementName, CustomElementConstructorStaticMethodName]
+  ;
   
   /**
    * Default value to use when attribute is missing

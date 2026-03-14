@@ -167,9 +167,19 @@ export interface IAssignGingerlyOptions {
 }
 
 /**
- * Base registry class for managing enhancement configurations
+ * Event dispatched when enhancement configs are registered
  */
-export declare class EnhancementRegistry {
+export declare class EnhancementRegisteredEvent extends Event {
+  static eventName: string;
+  config: EnhancementConfig | EnhancementConfig[];
+  constructor(config: EnhancementConfig | EnhancementConfig[]);
+}
+
+/**
+ * Base registry class for managing enhancement configurations
+ * Extends EventTarget to dispatch events when configs are registered
+ */
+export declare class EnhancementRegistry extends EventTarget {
   private items;
   push(items: EnhancementConfig | EnhancementConfig[]): void;
   getItems(): EnhancementConfig[];

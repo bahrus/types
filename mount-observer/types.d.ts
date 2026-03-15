@@ -294,6 +294,7 @@ export type MountScope =
 export interface MountObserverOptions {
     disconnectedSignal?: AbortSignal;
     scope?: MountScope;
+    mose?: WeakRef<HTMLScriptElement>;
 }
 
 export interface WeakDual<T extends Object>{

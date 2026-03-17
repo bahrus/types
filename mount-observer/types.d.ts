@@ -31,7 +31,7 @@ export interface ConnectionCondition {
  * Configuration for enhancing elements with class instances
  * Defines how to spawn and initialize enhancement classes
  */
-export interface LazyEnhancementConfig<T = any, Obj = Element> extends EnhancementConfigBase<T, Obj> {
+export interface EMC<T = any, Obj = Element> extends EnhancementConfigBase<T, Obj> {
   
     // bare import specifier path
     spawn: string;

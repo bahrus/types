@@ -30,35 +30,40 @@ export type Spawner<T = any, Obj = Element> = {
   canSpawn?: (obj: any, ctx?: SpawnContext<T>) => boolean;
 }
 
+export interface EnhancementConfigBase<T = any> {
+    //Allow unprefixed attributes for custom elements and SVG when element tag name matches pattern
+    allowUnprefixed?: string | RegExp;
+    
+    //keys of type symbol are used for dependency injection
+    //and are used by assign-gingerly
+    symlinks?: { [key: symbol]: keyof T };
+    
+    lifecycleKeys?: 
+    | true  // Use standard names: "dispose" method, "resolved" property/event
+    | {
+        dispose?: string | symbol,
+        resolved?: string | symbol
+      }
+    //used by mount-observer, not by assign-gingerly
+    //impossible to polyfill, but will always be disposed
+    //when oElement's reference count goes to zero
+    disposeOn?: DisposeEvent | DisposeEvent[]
+}
+
 /**
  * Configuration for enhancing elements with class instances
  * Defines how to spawn and initialize enhancement classes
  */
-export interface EnhancementConfig<T = any, Obj = Element> {
+export interface EnhancementConfig<T = any, Obj = Element> extends EnhancementConfigBase<T> {
   
   spawn: Spawner<T, Obj>;
   
   //Applicable to passing in the initVals during the spawn lifecycle event
   withAttrs?: AttrPatterns<T>;
   
-  //Allow unprefixed attributes for custom elements and SVG when element tag name matches pattern
-  allowUnprefixed?: string | RegExp;
-  
-  //keys of type symbol are used for dependency injection
-  //and are used by assign-gingerly
-  symlinks?: { [key: symbol]: keyof T };
+
   //only applicable when spawning from a DOM Element reference
   enhKey?: EnhKey;
-  lifecycleKeys?: 
-    | true  // Use standard names: "dispose" method, "resolved" property/event
-    | {
-        dispose?: string | symbol,
-        resolved?: string | symbol
-      }
-  //used by mount-observer, not by assign-gingerly
-  //impossible to polyfill, but will always be disposed
-  //when oElement's reference count goes to zero
-  disposeOn?: DisposeEvent | DisposeEvent[]
     
 }
 

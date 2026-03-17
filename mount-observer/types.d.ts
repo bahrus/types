@@ -1,5 +1,7 @@
 // Core types for MountObserver v2 - Polyfill Supported Scenario I
 
+import {Spawner, EnhancementConfigBase, EnhKey} from '../assign-gingerly/types';
+
 export type Constructor = new (...args: any[]) => any;
 
 export type EventConstructor = {new(...args: any[]): Event};
@@ -24,6 +26,26 @@ export interface ConnectionCondition {
     downlinkMax?: number;
     rttMax?: number;
 }
+
+/**
+ * Configuration for enhancing elements with class instances
+ * Defines how to spawn and initialize enhancement classes
+ */
+export interface LazyEnhancementConfig<T = any, Obj = Element> extends EnhancementConfigBase<T, Obj> {
+  
+    // bare import specifier path
+    spawn: string;
+  
+    enhKey: EnhKey;
+
+    //Applicable to passing in the initVals during the spawn lifecycle event
+    withAttrs?: AttrPatterns<T>;
+    
+}
+
+
+
+
 
 /**
  * Configuration object for MountObserver that defines what elements to observe and how to handle them.
@@ -218,6 +240,8 @@ export interface MountConfig<TKeys extends string = string> {
      * ```
      */
     with?: {[K in TKeys]: MountConfig};
+
+    enHint:
 }
 
 

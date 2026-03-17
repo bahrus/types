@@ -31,7 +31,7 @@ export interface ConnectionCondition {
  * Configuration for enhancing elements with class instances
  * Defines how to spawn and initialize enhancement classes
  */
-export interface EMC<T = any, Obj = Element> extends EnhancementConfigBase<T, Obj> {
+export interface EnhConfig<T = any, Obj = Element> extends EnhancementConfigBase<T, Obj> {
   
     // bare import specifier path
     spawn: string;
@@ -241,7 +241,14 @@ export interface MountConfig<TKeys extends string = string> {
      */
     with?: {[K in TKeys]: MountConfig};
 
-    enHint:
+    
+}
+
+export interface EMC<
+    TKeys extends string = string,
+    T = any, Obj = Element
+> extends MountConfig<TKeys>{
+    enhConfig: EnhConfig<T, Obj>
 }
 
 

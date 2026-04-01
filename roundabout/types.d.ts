@@ -118,7 +118,9 @@ export interface RoundaboutReady{
 
     awake(): Promise<void>;
 
+    //make the value sleep 1 step closer to be falsy
     nudge(): void;
 
+    //make the value of sleep 1 step further away from being falsy
     rock(): void;
 }

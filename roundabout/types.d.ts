@@ -83,6 +83,26 @@ export interface roundaboutOptions<TProps = any, TActions = TProps, ETProps = TP
     hitch?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
     //mountObservers?: Set<IMountObserver>
+    
+    /**
+     * Enable internal routing optimization for actions (default: false)
+     * 
+     * When true: Action results are batched and cascaded before firing events.
+     * - Eliminates redundant action calls in diamond dependency patterns
+     * - More predictable: actions run once per logical change
+     * - Best for: Complex cascades, multiple properties returned from actions
+     * 
+     * When false: Uses traditional approach with immediate event firing.
+     * - Simpler execution model, easier to debug
+     * - Slightly faster for simple linear cascades
+     * - Best for: Simple cascades, performance-critical paths
+     * 
+     * Enable if you have:
+     * - Actions that return multiple properties
+     * - Multiple actions monitoring the same properties
+     * - Diamond dependencies (A→B, A→C, B→D, C→D)
+     */
+    internalRouting?: boolean,
 }
 
 export interface RoundaboutReady{

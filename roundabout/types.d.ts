@@ -80,7 +80,7 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps>
     positractions?: Positractions<TProps>,
 }
 
-export interface roundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {
+export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {
     vm?: TProps & TActions & RoundaboutReady,
     //for enhanced elements, pass in the container, referenced via $0.
     container?: EventTarget,

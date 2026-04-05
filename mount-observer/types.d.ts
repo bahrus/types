@@ -1,6 +1,6 @@
 // Core types for MountObserver v2 - Polyfill Supported Scenario I
 
-import {Spawner, EnhancementConfigBase, EnhKey} from '../assign-gingerly/types';
+import {Spawner, EnhancementConfigBase, EnhKey, AttrPatterns} from '../assign-gingerly/types';
 
 export type Constructor = new (...args: any[]) => any;
 
@@ -53,7 +53,7 @@ export interface EnhConfig<T = any, Obj = Element> extends EnhancementConfigBase
  * 
  * @template TKeys - String literal type for sub-observer keys when using the `with` property
  */
-export interface MountConfig<TKeys extends string = string> {
+export interface MountConfig<TKeys extends string = string, TCustomData = unknown> {
     /**
      * CSS selector string to match elements.
      * Only elements matching this selector will be considered for mounting.
@@ -216,7 +216,7 @@ export interface MountConfig<TKeys extends string = string> {
      * Allows handlers to receive additional context-specific information.
      * Not used by MountObserver itself, but available in MountContext.
      */
-    customData?: unknown;
+    customData?: TCustomData;
     
     /**
      * Sub-observer configurations for hierarchical composition.
@@ -246,8 +246,8 @@ export interface MountConfig<TKeys extends string = string> {
 
 export interface EMC<
     TKeys extends string = string,
-    T = any, Obj = Element
-> extends MountConfig<TKeys>{
+    T = unknown, Obj = Element, TCustomData = unknown
+> extends MountConfig<TKeys, TCustomData>{
     enhConfig: EnhConfig<T, Obj>
 }
 

@@ -71,17 +71,21 @@ export interface Positraction<TProps = any, TActions = TProps> extends LogicOp<T
     assignTo?: Array<null | (keyof TProps & string)>
 }
 
-export interface roundaboutOptions<TProps = any, TActions = TProps, ETProps = TProps> {
-    vm?: TProps & TActions & RoundaboutReady,
-    //for enhanced elements, pass in the container, referenced via $0.
-    container?: EventTarget,
-    propagate?: keyof TProps & string | Array<keyof TProps & string>,
+export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps> {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
     //onsets?: Onsets<TProps, TActions>,
     handlers?: Handlers<ETProps, TActions>,
     hitch?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
+}
+
+export interface roundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {
+    vm?: TProps & TActions & RoundaboutReady,
+    //for enhanced elements, pass in the container, referenced via $0.
+    container?: EventTarget,
+    propagate?: keyof TProps & string | Array<keyof TProps & string>,
+    
     //mountObservers?: Set<IMountObserver>
     
     /**

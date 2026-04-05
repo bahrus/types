@@ -14,7 +14,7 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
-export type BAP = AllProps & BEAllProps & RoundaboutReady;
+export type BAP = AllProps // & BEAllProps & RoundaboutReady;
 
 export interface Actions{
     hydrate(self: BAP): ProPAP;

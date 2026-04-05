@@ -1,6 +1,6 @@
 export interface EndUserProps{
     to: string;
-    nudges: boolean;
+    nudge: boolean;
     on: string;
 }
 

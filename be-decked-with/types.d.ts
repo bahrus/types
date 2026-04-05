@@ -20,5 +20,5 @@ export interface Actions{
     act(self: BAP): PAP
     fetchRemoteTemplate(self: BAP): ProPAP
     upShadowSearch(self: BAP): PAP
-    init(self: BAP): Promise<void>
+    init(self: BAP, initVals: PAP): Promise<void>
 }

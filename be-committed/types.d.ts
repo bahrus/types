@@ -5,7 +5,8 @@ export interface EndUserProps{
 }
 
 export interface AllProps extends EndUserProps {
-
+    enhancedElement: Element;
+    resolved: boolean;
 }
 
 export type AP = AllProps;

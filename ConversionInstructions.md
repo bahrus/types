@@ -56,6 +56,22 @@ The first step is to move your project's type definitions from the `ts-refs` sub
 
 **Result:** You should now have your type definitions at `types/[project-name]/types.d.ts` and the `ts-refs` submodule should be removed.
 
+### Step 2: Archive Legacy Implementation
+
+Before converting to the new architecture, preserve the existing implementation in a `legacy` folder for reference.
+
+**Why this step?** Keeping the original implementation allows you to compare the old and new approaches, verify behavior during conversion, and provides a fallback if needed. It also serves as documentation for others learning about the architectural changes.
+
+**Instructions:**
+
+1. Create a `legacy` folder in your project root if it doesn't exist
+2. If the `legacy` folder already exists, empty its contents: `Remove-Item -Path legacy/* -Force` (or `rm -rf legacy/*` on Unix-like systems)
+3. Copy all `.js`, `.mjs`, and `.json` files from the root directory to the `legacy` folder, excluding `package.json` and `package-lock.json`
+   - Example: `Copy-Item -Path *.js -Destination legacy/`
+   - For .json files: `Get-ChildItem -Filter *.json | Where-Object { $_.Name -notlike 'package*.json' } | Copy-Item -Destination legacy/`
+
+**Result:** Your `legacy` folder should now contain copies of all implementation files that will be converted in subsequent steps.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

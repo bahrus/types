@@ -97,9 +97,12 @@ Update the package.json to use the modern architecture's dependencies and build 
    ```json
    "dependencies": {
      "be-hive": "0.1.9",
+     "mount-observer": "0.0.16",
      "roundabout-lib": "0.0.2"
    }
    ```
+   
+   **Note:** Including `mount-observer` as a direct dependency ensures it's installed at the root `node_modules/` level, making it accessible via the import map and available for direct use in your code.
 
 3. Update the `devDependencies` section:
    ```json

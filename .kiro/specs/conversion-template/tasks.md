@@ -18,7 +18,7 @@
 
 - [ ] 3. Update package.json
   - [ ] 3.1 Update scripts section with build, serve, test, safari, update
-  - [ ] 3.2 Update dependencies to be-hive and roundabout-lib
+  - [ ] 3.2 Update dependencies to be-hive, mount-observer, and roundabout-lib
   - [ ] 3.3 Update devDependencies to @playwright/test and spa-ssi
   - [ ] 3.4 Run npm run update
   - [ ] 3.5 Verify npm install succeeds

@@ -36,7 +36,7 @@ Complete conversion instructions: `#[[file:../../ConversionInstructions.md]]`
 **So that** the project uses the new architecture
 
 **Acceptance Criteria:**
-- package.json has be-hive and roundabout-lib dependencies
+- package.json has be-hive, mount-observer, and roundabout-lib dependencies
 - Legacy dependencies (be-enhanced, trans-render) are removed
 - Build scripts use the new pattern (node emc.mjs > emc.json)
 - `npm run update` successfully updates to latest versions

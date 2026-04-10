@@ -173,6 +173,60 @@ Create a coding standards steering document to guide development practices.
 
 **Result:** Your project now has documented coding standards that will be automatically included in Kiro's context when working on the codebase.
 
+### Step 6: Update Type Definitions to be Standalone
+
+Modernize the type definitions to be self-contained without external dependencies.
+
+**Why this step?** The legacy types relied on imports from trans-render and be-enhanced packages. The modern approach makes type files standalone, improving portability and reducing coupling between packages.
+
+**Instructions:**
+
+1. Open `types/[project-name]/types.d.ts`
+2. Remove the import statement: `import { IEnhancement, BEAllProps } from '../trans-render/be/types';`
+3. Remove `extends IEnhancement` from the `EndUserProps` interface
+4. Add `enhancedElement: Element;` to the `AllProps` interface (this is the key property that was previously inherited)
+5. Remove the `BAP` type alias entirely
+6. Replace all occurrences of `BAP` with `AP` in the `Actions` interface method signatures
+
+**Example transformation:**
+
+Before:
+```typescript
+import { IEnhancement, BEAllProps } from '../trans-render/be/types';
+
+export interface EndUserProps extends IEnhancement{
+    triggerInsertPosition: InsertPosition;
+}
+
+export interface AllProps extends EndUserProps{
+    byob?: boolean;
+}
+
+export type BAP = AP & BEAllProps;
+
+export interface Actions{
+    addCloneBtn(self: BAP): ProPAP;
+}
+```
+
+After:
+```typescript
+export interface EndUserProps{
+    triggerInsertPosition: InsertPosition;
+}
+
+export interface AllProps extends EndUserProps{
+    enhancedElement: Element;
+    byob?: boolean;
+}
+
+export interface Actions{
+    addCloneBtn(self: AP): ProPAP;
+}
+```
+
+**Result:** Your type definitions are now standalone and don't depend on external type packages.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

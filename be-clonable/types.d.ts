@@ -1,16 +1,14 @@
-import { IEnhancement, BEAllProps } from '../trans-render/be/types';
-
-export interface EndUserProps extends IEnhancement{
+export interface EndUserProps{
     triggerInsertPosition: InsertPosition;
     cloneInsertPosition?: InsertPosition;
     buttonContent: string;
 }
 
 export interface AllProps extends EndUserProps{
-    byob?: boolean,
-    trigger?: WeakRef<HTMLButtonElement>
+    enhancedElement: Element;
+    byob?: boolean;
+    trigger?: WeakRef<HTMLButtonElement>;
 }
-
 
 export type AP = AllProps;
 
@@ -18,11 +16,8 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
-export type BAP = AP & BEAllProps;
-
-
 export interface Actions{
-    addCloneBtn(self: BAP): ProPAP;
-    setBtnContent(self: BAP): void;
-    beCloned(self: BAP): void;
+    addCloneBtn(self: AP): ProPAP;
+    setBtnContent(self: AP): void;
+    beCloned(self: AP): void;
 }

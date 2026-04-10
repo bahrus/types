@@ -83,7 +83,7 @@ Update the package.json to use the modern architecture's dependencies and build 
 1. Update the `scripts` section:
    ```json
    "scripts": {
-     "build": "node build-emc.mjs > emc.json && node build-[emoji].mjs > [emoji].json",
+     "build": "node emc.mjs > emc.json && node [emoji].mjs > [emoji].json",
      "serve": "node ./node_modules/spa-ssi/serve.js",
      "test": "playwright test",
      "safari": "npx playwright wk http://localhost:8000",
@@ -91,7 +91,7 @@ Update the package.json to use the modern architecture's dependencies and build 
    }
    ```
    - Replace `[emoji]` with the emoji from your README.md title (e.g., `⿻` for be-clonable)
-   - If there's no emoji in the README title, omit the `&& node build-[emoji].mjs > [emoji].json` part
+   - If there's no emoji in the README title, omit the `&& node [emoji].mjs > [emoji].json` part
 
 2. Update the `dependencies` section:
    ```json
@@ -358,6 +358,8 @@ export const emc = {
 export function render(){
     return JSON.stringify(emc, null, 4);
 }
+
+console.log(render());
 ```
 
 **Result:** You now have a build-time configuration file that will generate emc.json when you run the build script.

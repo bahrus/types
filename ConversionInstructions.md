@@ -227,6 +227,141 @@ export interface Actions{
 
 **Result:** Your type definitions are now standalone and don't depend on external type packages.
 
+### Step 7: Create emc.mjs Build Configuration
+
+Transform the legacy browser-based emc.js into a build-time emc.mjs configuration file that generates emc.json.
+
+**Why this step?** The legacy architecture used emc.js as a browser module that imported be-hive and registered enhancements at runtime. The modern approach uses emc.mjs as a build script that generates a static JSON configuration file, improving performance and separating build-time concerns from runtime code.
+
+**Key Changes:**
+
+1. **withAttrs replaces base/branches/map**: The new assign-gingerly withAttrs pattern provides a cleaner, more intuitive way to map HTML attributes to properties using template syntax
+2. **Static config moves to customData**: Configuration from the legacy be-*.js static config section (actions, handlers, compacts) moves into the customData section of emc.mjs
+3. **Property inference**: propDefaults and propInfo are no longer needed - the roundabout library automatically infers property names from actions, handlers, and compacts
+4. **Build-time only**: emc.mjs is used only for generating JSON, not loaded in the browser
+
+**Instructions:**
+
+1. Create `emc.mjs` in your project root
+2. Start with the basic structure:
+
+```javascript
+//@ts-check
+
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {AllProps, Actions} from './types/[project-name]/types' */
+/** @import {RAConfig} from './types/roundabout/types' */
+
+/**
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions> >}
+ */
+export const emc = {
+    enhConfig: {
+        enhKey: '[EnhancementKey]',
+        spawn: '[project-name]/[project-name].js',
+        withAttrs: {
+            base: '[project-name]',
+            // Map each property to an attribute using ${base} template
+            propertyName: '${base}-property-name',
+            // For boolean properties, add instanceOf
+            _booleanProp: {
+                instanceOf: 'Boolean'
+            }
+        }
+    },
+    customData: {
+        actions: {
+            // Copy from legacy static config
+        },
+        handlers: {
+            // Copy from legacy static config
+        },
+        compacts: {
+            // Copy from legacy static config
+        }
+    }
+}
+
+export function render(){
+    return JSON.stringify(emc, null, 4);
+}
+```
+
+3. **Configure withAttrs**: For each EndUserProps property in your types file:
+   - Add `propertyName: '${base}-property-name'` for string/number properties
+   - For boolean properties, use the underscore prefix and instanceOf pattern:
+     ```javascript
+     _nudge: {
+         instanceOf: 'Boolean'
+     }
+     ```
+   - The `${base}` template variable references the base attribute name
+
+4. **Migrate static config to customData**: 
+   - Copy `actions`, `handlers`, and `compacts` from the legacy be-*.js static config
+   - Do NOT copy `propDefaults` or `propInfo` - these are automatically inferred by roundabout
+   - Remove any `positractions` - these are handled differently in the new architecture
+
+**Example Transformation:**
+
+Legacy emc.js:
+```javascript
+export const emc = {
+    base: 'be-committed',
+    branches: ['', 'to', 'nudges'],
+    map: {
+        '0.0': { instanceOf: 'Object', mapsTo: '.' },
+        '1.0': { instanceOf: 'String', mapsTo: 'to' },
+        '2.0': { instanceOf: 'Boolean', mapsTo: 'nudges' }
+    },
+    enhPropKey: 'beCommitted',
+    importEnh: async () => {
+        const {BeCommitted} = await import('./be-committed.js');
+        return BeCommitted;
+    },
+};
+```
+
+Legacy be-committed.js static config:
+```javascript
+static config = {
+    propDefaults: { on: 'keyup' },
+    propInfo: { to: {}, nudges: {} },
+    compacts: { when_on_changes_call_hydrate: 0 },
+    positractions: [resolved, rejected]
+}
+```
+
+Modern emc.mjs:
+```javascript
+export const emc = {
+    enhConfig: {
+        enhKey: 'BeCommitted',
+        spawn: 'be-committed/be-committed.js',
+        withAttrs: {
+            base: 'be-committed',
+            to: '${base}-to',
+            nudge: '${base}-nudge',
+            _nudge: { instanceOf: 'Boolean' }
+        }
+    },
+    customData: {
+        actions: {
+            hydrate: { ifAllOf: ['on', 'to'] }
+        },
+        compacts: {
+            when_resolved_changes_dispatch: 'resolved',
+        }
+    }
+}
+
+export function render(){
+    return JSON.stringify(emc, null, 4);
+}
+```
+
+**Result:** You now have a build-time configuration file that will generate emc.json when you run the build script.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

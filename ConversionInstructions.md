@@ -364,6 +364,33 @@ console.log(render());
 
 **Result:** You now have a build-time configuration file that will generate emc.json when you run the build script.
 
+### Step 8: Configure VS Code File Nesting
+
+Set up VS Code to nest generated .json files under their corresponding .mjs source files for better project organization.
+
+**Why this step?** The build process generates .json files from .mjs files (e.g., emc.mjs → emc.json). File nesting in VS Code's explorer keeps these related files grouped together, reducing visual clutter and making it clear which JSON files are generated artifacts.
+
+**Instructions:**
+
+1. Create a `.vscode` folder in your project root if it doesn't exist
+2. Create or open `.vscode/settings.json`
+3. Add the following settings (merge with existing settings if the file already has content):
+
+```json
+{
+    "explorer.fileNesting.patterns": {
+        "*.mjs": "${capture}.json"
+    },
+    "explorer.fileNesting.enabled": true
+}
+```
+
+**What this does:**
+- `"*.mjs": "${capture}.json"` - Nests any .json file under its matching .mjs file (e.g., emc.json nests under emc.mjs)
+- `"explorer.fileNesting.enabled": true` - Enables the file nesting feature in VS Code's explorer
+
+**Result:** In VS Code's file explorer, generated JSON files will appear nested under their source .mjs files, making the project structure cleaner and more intuitive.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

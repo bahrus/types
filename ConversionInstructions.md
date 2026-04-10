@@ -66,11 +66,52 @@ Before converting to the new architecture, preserve the existing implementation 
 
 1. Create a `legacy` folder in your project root if it doesn't exist
 2. If the `legacy` folder already exists, empty its contents: `Remove-Item -Path legacy/* -Force` (or `rm -rf legacy/*` on Unix-like systems)
-3. Copy all `.js`, `.mjs`, and `.json` files from the root directory to the `legacy` folder, excluding `package.json` and `package-lock.json`
-   - Example: `Copy-Item -Path *.js -Destination legacy/`
-   - For .json files: `Get-ChildItem -Filter *.json | Where-Object { $_.Name -notlike 'package*.json' } | Copy-Item -Destination legacy/`
+3. Move all `.js`, `.mjs`, and `.json` files from the root directory to the `legacy` folder, excluding `package.json` and `package-lock.json`
+   - Example: `Move-Item -Path *.js -Destination legacy/`
+   - For .json files: `Get-ChildItem -Filter *.json | Where-Object { $_.Name -notlike 'package*.json' } | Move-Item -Destination legacy/`
 
 **Result:** Your `legacy` folder should now contain copies of all implementation files that will be converted in subsequent steps.
+
+### Step 3: Update package.json Dependencies and Scripts
+
+Update the package.json to use the modern architecture's dependencies and build scripts.
+
+**Why this step?** The new architecture uses a simplified dependency set with be-hive for enhancement management and roundabout-lib for utilities. The build process also changes to generate configuration files for both the full name and emoji shorthand versions.
+
+**Instructions:**
+
+1. Update the `scripts` section:
+   ```json
+   "scripts": {
+     "build": "node build-emc.mjs > emc.json && node build-[emoji].mjs > [emoji].json",
+     "serve": "node ./node_modules/spa-ssi/serve.js",
+     "test": "playwright test",
+     "safari": "npx playwright wk http://localhost:8000",
+     "update": "ncu -u && npm install"
+   }
+   ```
+   - Replace `[emoji]` with the emoji from your README.md title (e.g., `⿻` for be-clonable)
+   - If there's no emoji in the README title, omit the `&& node build-[emoji].mjs > [emoji].json` part
+
+2. Update the `dependencies` section:
+   ```json
+   "dependencies": {
+     "be-hive": "0.1.9",
+     "roundabout-lib": "0.0.2"
+   }
+   ```
+
+3. Update the `devDependencies` section:
+   ```json
+   "devDependencies": {
+     "@playwright/test": "1.59.1",
+     "spa-ssi": "0.0.27"
+   }
+   ```
+
+4. Run `npm run update` to fetch the latest versions of all dependencies
+
+**Result:** Your package.json should now use the modern dependency set, and running the update script will ensure you have the latest compatible versions.
 
 ---
 

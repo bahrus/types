@@ -1,6 +1,6 @@
 export interface EndUserProps{
     triggerInsertPosition: InsertPosition;
-    cloneInsertPosition?: InsertPosition;
+    cloneInsertPosition: InsertPosition;
     buttonContent: string;
 }
 

@@ -41,7 +41,20 @@ The process involves updating:
 
 ## Conversion Steps
 
-The following sections will walk through each step of the conversion process in detail. We'll update this document incrementally as we work through the conversion together.
+### Step 1: Migrate Type Definitions to New Submodule
+
+The first step is to move your project's type definitions from the `ts-refs` submodule to the `types` submodule.
+
+**Why this step?** The legacy architecture used a git submodule called `ts-refs` to share type definitions across all be-* projects. The modern approach uses a renamed submodule called `types` with a clearer, more intuitive name that better communicates its purpose.
+
+**Instructions:**
+
+1. Check if a `ts-refs` folder exists in your project root (it's a git submodule)
+2. If it exists, locate the subfolder matching your project name (e.g., `ts-refs/be-clonable` for the be-clonable project)
+3. Copy that folder and its contents into the `types` folder (e.g., copy `ts-refs/be-clonable/` to `types/be-clonable/`)
+4. Delete the entire `ts-refs` folder using `Remove-Item -Recurse -Force ts-refs` (or `rm -rf ts-refs` on Unix-like systems)
+
+**Result:** You should now have your type definitions at `types/[project-name]/types.d.ts` and the `ts-refs` submodule should be removed.
 
 ---
 

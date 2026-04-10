@@ -68,7 +68,7 @@
 
 - [ ] 9. Create Modern Enhancement Class
   - [ ] 9.1 Create be-[project-name].js file
-  - [ ] 9.2 Add imports (emc, types)
+  - [ ] 9.2 Add imports (emc.json with type annotation, types)
   - [ ] 9.3 Add class declaration
   - [ ] 9.4 Add #enhancedElementRef private field
   - [ ] 9.5 Add enhancedElement getter

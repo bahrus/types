@@ -418,12 +418,19 @@ Transform the legacy enhancement class to use the modern architecture with round
 
 ```javascript
 // @ts-check
-import {emc} from './emc.mjs';
+/**
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
+ */
+import emc from './emc.json' with {type: 'json'};
 
 /** @import {Actions, PAP, AllProps, AP} from './types/[project-name]/types' */;
 /** @import {RoundaboutOptions} from './types/roundabout/types' */;
 /** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {RAConfig} from './types/roundabout/types' */;
 ```
+
+**Important:** The class imports the generated `emc.json` file (not `emc.mjs`). This is the runtime configuration that was built from emc.mjs.
 
 3. Add the class with the standard boilerplate:
 
@@ -523,7 +530,10 @@ export { BeClonable }
 
 Modern class:
 ```javascript
-import {emc} from './emc.mjs';
+/**
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
+ */
+import emc from './emc.json' with {type: 'json'};
 
 class BeClonable {
     #enhancedElementRef;

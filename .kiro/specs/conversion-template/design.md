@@ -126,7 +126,10 @@ console.log(render());
 **Structure:**
 ```javascript
 // @ts-check
-import {emc} from './emc.mjs';
+/**
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
+ */
+import emc from './emc.json' with {type: 'json'};
 
 class Be[ClassName] {
     // Private field for element reference

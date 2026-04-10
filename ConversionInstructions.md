@@ -391,6 +391,168 @@ Set up VS Code to nest generated .json files under their corresponding .mjs sour
 
 **Result:** In VS Code's file explorer, generated JSON files will appear nested under their source .mjs files, making the project structure cleaner and more intuitive.
 
+### Step 9: Create Modern Enhancement Class
+
+Transform the legacy enhancement class to use the modern architecture with roundabout and assign-gingerly.
+
+**Why this step?** The legacy class extended BE (be-enhanced) and used a static config object. The modern approach uses a standalone class with constructor-based initialization, leveraging roundabout for reactive property management and assign-gingerly for property assignment.
+
+**Key Changes:**
+
+1. **No base class**: Class doesn't extend anything - it's a plain JavaScript class
+2. **No static config**: Configuration is now in emc.mjs, not in the class
+3. **Constructor pattern**: Uses constructor with enhancedElement, ctx, and initVals parameters
+4. **WeakRef for element**: Stores enhancedElement as a WeakRef to prevent memory leaks
+5. **Roundabout integration**: The init method sets up roundabout for reactive property management
+6. **Default values in init**: Property defaults are set in the init method via assignGingerly
+7. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
+8. **BAP → AP**: Replace all BAP type references with AP
+
+**Instructions:**
+
+1. Create `be-[project-name].js` in your project root
+2. Start with the required imports:
+
+```javascript
+// @ts-check
+import {emc} from './emc.mjs';
+
+/** @import {Actions, PAP, AllProps, AP} from './types/[project-name]/types' */;
+/** @import {RoundaboutOptions} from './types/roundabout/types' */;
+/** @import {ElementEnhancementGateway} from './types/mount-observer/types' */;
+```
+
+3. Add the class with the standard boilerplate:
+
+```javascript
+/**
+ * @implements {Actions}
+ */
+class Be[ClassName] {
+    /**
+     * @type {WeakRef<Element & ElementEnhancementGateway>}
+     */
+    #enhancedElementRef;
+
+    get enhancedElement(){
+        const ref = this.#enhancedElementRef.deref();
+        if(ref === undefined) throw 404;
+        return ref;
+    }
+
+    /**
+     * 
+     * @param {Element & ElementEnhancementGateway} enhancedElement 
+     * @param {*} ctx 
+     * @param {AllProps} initVals 
+     */
+    constructor(enhancedElement, ctx, initVals){
+        this.#enhancedElementRef = new WeakRef(enhancedElement);
+        const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
+        self.init(self, initVals);
+    }
+
+    /**
+     * @this {AllProps & Actions}
+     * @param {AllProps} self 
+     * @param {PAP} initVals 
+     */
+    async init(self, initVals){
+        const {customData} = emc;
+        /**
+         * @type {RoundaboutOptions}
+         */
+        const raOptions = {
+            ...customData,
+            vm: this,
+        };
+        await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
+        (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
+            //set default prop values below
+            defaultProp1: 'value1',
+            defaultProp2: true,
+            ...initVals
+        });
+    }
+
+    // Copy your action methods here, replacing BAP with AP
+}
+
+export { Be[ClassName] }
+```
+
+4. **Copy action methods** from the legacy class:
+   - Remove the static config section entirely
+   - Copy all action methods (like addCloneBtn, setBtnContent, etc.)
+   - Replace all `BAP` type annotations with `AP`
+   - Keep the method implementations the same
+
+5. **Set default values** in the init method:
+   - Copy default values from the legacy static config's propDefaults
+   - Add them to the assignGingerly call in the init method
+   - Place them before `...initVals` so initVals can override them
+
+6. **Remove legacy code**:
+   - Remove `await BeClonable.bootUp();` at the bottom
+   - Remove imports from be-enhanced (BE, resolved, rejected, propInfo)
+   - Remove imports from trans-render that were only used in static config
+
+**Example Transformation:**
+
+Legacy class:
+```javascript
+import { BE } from 'be-enhanced/BE.js';
+
+class BeClonable extends BE {
+    static config = {
+        propDefaults: { byob: true },
+        actions: { addCloneBtn: { ifAllOf: ['triggerInsertPosition'] } }
+    };
+
+    async addCloneBtn(self) {
+        // method implementation
+    }
+}
+
+await BeClonable.bootUp();
+export { BeClonable }
+```
+
+Modern class:
+```javascript
+import {emc} from './emc.mjs';
+
+class BeClonable {
+    #enhancedElementRef;
+    
+    get enhancedElement(){ /* ... */ }
+    
+    constructor(enhancedElement, ctx, initVals){
+        this.#enhancedElementRef = new WeakRef(enhancedElement);
+        const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
+        self.init(self, initVals);
+    }
+
+    async init(self, initVals){
+        const {customData} = emc;
+        const raOptions = { ...customData, vm: this };
+        await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
+        (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
+            byob: true,
+            ...initVals
+        });
+    }
+
+    async addCloneBtn(self) {
+        // same method implementation
+    }
+}
+
+export { BeClonable }
+```
+
+**Result:** You now have a modern enhancement class that uses roundabout for reactive properties and integrates with the emc.mjs configuration.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

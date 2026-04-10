@@ -553,6 +553,88 @@ export { BeClonable }
 
 **Result:** You now have a modern enhancement class that uses roundabout for reactive properties and integrates with the emc.mjs configuration.
 
+### Step 10: Create Emoji Shorthand Configuration (Optional)
+
+If your project has an emoji shorthand in the README title, create a corresponding .mjs file that generates a variant configuration using the emoji as the base attribute.
+
+**Why this step?** Many be-* projects support both a full name (e.g., `be-clonable`) and an emoji shorthand (e.g., `⿻`) for brevity. This step creates a separate JSON configuration that uses the emoji as the base attribute name, allowing users to write `<div ⿻>` instead of `<div be-clonable>`.
+
+**When to do this:** Only if your README.md title includes an emoji in parentheses, like `# be-clonable (⿻)`.
+
+**Instructions:**
+
+1. Identify the emoji from your README.md title (the character in parentheses)
+2. Create `[emoji].mjs` in your project root (e.g., `⿻.mjs`)
+3. Use this template:
+
+```javascript
+import myJSON from './emc.json' with {type: 'json'};
+
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {AllProps} from './types/[project-name]/types' */
+
+/**
+ * @type {EMC<any, AllProps> }
+ */
+const emc = {
+    enhConfig: {
+        ...myJSON.enhConfig,
+        enhKey: '[emoji]',
+        withAttrs: {
+            ...myJSON.enhConfig.withAttrs,
+            base: '[emoji]'
+        }
+    }
+}
+
+export function render(){
+    return JSON.stringify(emc, null, 4);
+}
+
+console.log(render());
+```
+
+4. Replace `[emoji]` with your actual emoji character
+5. Replace `[project-name]` with your project name in the import
+
+**What this does:**
+- Imports the base emc.json configuration
+- Creates a variant that overrides the `enhKey` and `base` attribute to use the emoji
+- Generates a separate JSON file (e.g., `⿻.json`) when the build script runs
+
+**Example:**
+
+For be-clonable with emoji `⿻`:
+
+```javascript
+import myJSON from './emc.json' with {type: 'json'};
+
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {AllProps} from './types/be-clonable/types' */
+
+/**
+ * @type {EMC<any, AllProps> }
+ */
+const emc = {
+    enhConfig: {
+        ...myJSON.enhConfig,
+        enhKey: '⿻',
+        withAttrs: {
+            ...myJSON.enhConfig.withAttrs,
+            base: '⿻'
+        }
+    }
+}
+
+export function render(){
+    return JSON.stringify(emc, null, 4);
+}
+
+console.log(render());
+```
+
+**Result:** When you run `npm run build`, both `emc.json` and `⿻.json` will be generated, allowing users to use either the full name or emoji shorthand.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

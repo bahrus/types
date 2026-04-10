@@ -113,6 +113,66 @@ Update the package.json to use the modern architecture's dependencies and build 
 
 **Result:** Your package.json should now use the modern dependency set, and running the update script will ensure you have the latest compatible versions.
 
+### Step 4: Update imports.html
+
+Create or update the imports.html file to use the modern import map pattern.
+
+**Why this step?** The import map provides a clean way to map bare module specifiers to their locations, enabling browser-native ES module imports without bundling. This approach follows web standards and improves development experience.
+
+**Instructions:**
+
+1. Create or replace the `imports.html` file in your project root with the following structure:
+   ```html
+   <script type=importmap >
+       {
+           "imports": {
+               "assign-gingerly/": "/node_modules/assign-gingerly/",
+               "[project-name]/": "/",
+               "be-hive/":  "/node_modules/be-hive/",
+               "mount-observer/": "/node_modules/mount-observer/",
+               "roundabout-lib/": "/node_modules/roundabout-lib/"
+           }
+       }
+   </script>
+   ```
+2. Replace `[project-name]` with your actual project name (e.g., `be-clonable`)
+3. The key difference: the project itself maps to `"/"` (root), while dependencies map to `/node_modules/[package]/`
+
+**Result:** Your imports.html file should now provide proper import mappings for the browser.
+
+### Step 5: Establish Coding Standards
+
+Create a coding standards steering document to guide development practices.
+
+**Why this step?** Establishing clear conventions ensures consistency across the codebase and helps maintain the architectural patterns of the modern approach.
+
+**Instructions:**
+
+1. Create the directory structure: `.kiro/steering/`
+2. Create a file `.kiro/steering/coding-standards.md` with the following content:
+
+```markdown
+# Coding Standards
+
+## JavaScript Module Conventions
+
+### Import Maps
+- Use import maps with explicit, bare specifiers ending with `*.js` for all JavaScript references that run in the browser
+- Example: `"be-hive/": "/node_modules/be-hive/"`
+
+### File Extensions
+- Use `*.mjs` files exclusively for npm build scripts, not for browser code
+- Use `*.js` files (not `*.ts`) for all browser-executable code
+- Enable TypeScript support in `*.js` files via `@ts-check` directive at the top of files
+
+### TypeScript Support
+- Add `// @ts-check` at the beginning of JavaScript files to enable TypeScript checking
+- Use JSDoc comments for type annotations when needed
+- Leverage type definitions from the `types` submodule
+```
+
+**Result:** Your project now has documented coding standards that will be automatically included in Kiro's context when working on the codebase.
+
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*

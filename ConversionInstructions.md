@@ -581,21 +581,18 @@ Modern class:
 import emc from './emc.json' with {type: 'json'};
 
 class BeClonable {
-    #enhancedElementRef;
-    
-    get enhancedElement(){ /* ... */ }
     
     constructor(enhancedElement, ctx, initVals){
-        this.#enhancedElementRef = new WeakRef(enhancedElement);
         const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
-        self.init(self, initVals);
+        self.init(self, enhancedElement, initVals);
     }
 
-    async init(self, initVals){
+    async init(self, enhancedElement, initVals){
         const {customData} = emc;
         const raOptions = { ...customData, vm: this };
         await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
         (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
+            enhancedElement,
             byob: true,
             ...initVals
         });

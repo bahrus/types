@@ -52,12 +52,14 @@
   - [ ] 7.2 Add imports and type annotations
   - [ ] 7.3 Configure enhConfig with enhKey and spawn
   - [ ] 7.4 Configure withAttrs for attribute mapping
-  - [ ] 7.5 Copy actions from legacy static config to customData
-  - [ ] 7.6 Copy handlers from legacy static config to customData
-  - [ ] 7.7 Copy compacts from legacy static config to customData
-  - [ ] 7.8 Add render function
-  - [ ] 7.9 Add console.log(render())
-  - [ ] 7.10 Test build: npm run build (should generate emc.json)
+  - [ ] 7.5 Add weakRef configuration with enhancedElement
+  - [ ] 7.6 Copy actions from legacy static config to customData
+  - [ ] 7.7 Add 'enhancedElement' to ifAllOf for actions that reference it
+  - [ ] 7.8 Copy handlers from legacy static config to customData
+  - [ ] 7.9 Copy compacts from legacy static config to customData
+  - [ ] 7.10 Add render function
+  - [ ] 7.11 Add console.log(render())
+  - [ ] 7.12 Test build: npm run build (should generate emc.json)
 
 - [ ] 8. Configure VS Code
   - [ ] 8.1 Create .vscode folder if needed
@@ -77,10 +79,10 @@
   - [ ] 9.1 Create be-[project-name].js file
   - [ ] 9.2 Add imports (emc.json with type annotation, types)
   - [ ] 9.3 Add class declaration
-  - [ ] 9.4 Add #enhancedElementRef private field
-  - [ ] 9.5 Add enhancedElement getter
-  - [ ] 9.6 Add constructor
-  - [ ] 9.7 Add init method with roundabout integration
+  - [ ] 9.4 Add constructor with enhancedElement, ctx, initVals parameters
+  - [ ] 9.5 Add init method with enhancedElement parameter
+  - [ ] 9.6 Add roundabout integration in init
+  - [ ] 9.7 Add enhancedElement to assignGingerly call
   - [ ] 9.8 Add default values to init via assignGingerly
   - [ ] 9.9 Copy action methods from legacy
   - [ ] 9.10 Replace BAP with AP in all methods

@@ -273,6 +273,9 @@ export const emc = {
         }
     },
     customData: {
+        weakRef: {
+            properties: ['enhancedElement']
+        },
         actions: {
             // Copy from legacy static config
         },
@@ -300,8 +303,14 @@ export function render(){
      ```
    - The `${base}` template variable references the base attribute name
 
-4. **Migrate static config to customData**: 
+4. **Configure weakRef**: 
+   - Add `weakRef: { properties: ['enhancedElement'] }` at the start of customData
+   - If any action methods reference other element properties (like `trigger`, `button`, etc.), add those to the properties array as well
+   - This tells roundabout to automatically create property getters/setters that store weak references
+
+5. **Migrate static config to customData**: 
    - Copy `actions`, `handlers`, and `compacts` from the legacy be-*.js static config
+   - For any action methods that have `ifAllOf` and reference `enhancedElement` in their code, add `'enhancedElement'` to the `ifAllOf` array
    - Do NOT copy `propDefaults` or `propInfo` - these are automatically inferred by roundabout
    - Remove any `positractions` - these are handled differently in the new architecture
 
@@ -349,8 +358,11 @@ export const emc = {
         }
     },
     customData: {
+        weakRef: {
+            properties: ['enhancedElement']
+        },
         actions: {
-            hydrate: { ifAllOf: ['on', 'to'] }
+            hydrate: { ifAllOf: ['on', 'to', 'enhancedElement'] }
         },
         compacts: {
             when_resolved_changes_dispatch: 'resolved',

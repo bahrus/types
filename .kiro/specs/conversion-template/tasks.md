@@ -143,10 +143,16 @@
 ### Step 7: Create Build Configuration
 - Reference legacy emc.js for base/branches/map
 - Reference legacy be-*.js static config for actions/handlers/compacts
+- Add weakRef configuration with enhancedElement at minimum
+- For actions with ifAllOf, add 'enhancedElement' if the method code references it
 - Don't copy propDefaults or propInfo
 - Test the build immediately after creating
 
 ### Step 9: Create Modern Enhancement Class
+- No WeakRef boilerplate needed - roundabout handles it
+- Constructor passes enhancedElement to init method
+- Init method receives enhancedElement as parameter
+- Add enhancedElement to assignGingerly call before other defaults
 - Copy action methods carefully
 - Replace all BAP with AP
 - Keep method implementations the same

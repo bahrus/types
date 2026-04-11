@@ -20,4 +20,5 @@ export interface Actions{
     addCloneBtn(self: AP): ProPAP;
     setBtnContent(self: AP): void;
     beCloned(self: AP): void;
+    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
 }

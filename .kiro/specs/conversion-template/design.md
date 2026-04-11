@@ -136,22 +136,16 @@ console.log(render());
 import emc from './emc.json' with {type: 'json'};
 
 class Be[ClassName] {
-    // Private field for element reference
-    #enhancedElementRef;
-    
-    // Getter for enhanced element
-    get enhancedElement() { /* ... */ }
     
     // Constructor: Initialize and setup
     constructor(enhancedElement, ctx, initVals) {
-        // Store WeakRef
-        // Call init
+        // Call init with enhancedElement
     }
     
     // Init: Setup roundabout and defaults
-    async init(self, initVals) {
-        // Configure roundabout
-        // Set defaults via assignGingerly
+    async init(self, enhancedElement, initVals) {
+        // Configure roundabout with weakRef support
+        // Set defaults via assignGingerly (including enhancedElement)
     }
     
     // Action methods (copied from legacy)
@@ -163,10 +157,11 @@ export { Be[ClassName] }
 
 **Key Design Decisions:**
 - No base class (standalone)
-- WeakRef prevents memory leaks
+- No WeakRef boilerplate - roundabout handles it via customData.weakRef
 - Constructor pattern (enhancedElement, ctx, initVals)
+- Init receives enhancedElement as parameter
 - Roundabout integration in init
-- assignGingerly for property assignment
+- assignGingerly for property assignment (including enhancedElement)
 - No static config (moved to emc.mjs)
 
 ### 4. Emoji Shorthand ([emoji].mjs)
@@ -268,8 +263,8 @@ init() method
 - Verify TypeScript types
 
 ### Runtime Errors
-- WeakRef.deref() returns undefined → throw 404
 - Missing properties → roundabout handles reactivity
+- WeakRef.deref() returns undefined → roundabout throws appropriate error
 - Action method errors → propagate naturally
 
 ## Testing Strategy

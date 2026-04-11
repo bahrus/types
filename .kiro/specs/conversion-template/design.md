@@ -311,7 +311,7 @@ init() method
 ### Browser Support
 - Modern ES modules required
 - Import maps required
-- WeakRef required (modern browsers)
+- WeakRef required (modern browsers) - handled by roundabout
 
 ### Backward Compatibility
 - HTML usage unchanged

@@ -457,11 +457,12 @@ Transform the legacy enhancement class to use the modern architecture with round
 1. **No base class**: Class doesn't extend anything - it's a plain JavaScript class
 2. **No static config**: Configuration is now in emc.mjs, not in the class
 3. **Constructor pattern**: Uses constructor with enhancedElement, ctx, and initVals parameters
-4. **WeakRef for element**: Stores enhancedElement as a WeakRef to prevent memory leaks
-5. **Roundabout integration**: The init method sets up roundabout for reactive property management
-6. **Default values in init**: Property defaults are set in the init method via assignGingerly
-7. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
-8. **BAP → AP**: Replace all BAP type references with AP
+4. **No WeakRef boilerplate**: The roundabout library automatically handles weak references for properties listed in `customData.weakRef.properties`
+5. **enhancedElement parameter in init**: The init method receives enhancedElement as a parameter and passes it to assignGingerly
+6. **Roundabout integration**: The init method sets up roundabout for reactive property management
+7. **Default values in init**: Property defaults (including enhancedElement) are set in the init method via assignGingerly
+8. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
+9. **BAP → AP**: Replace all BAP type references with AP
 
 **Instructions:**
 
@@ -491,16 +492,6 @@ import emc from './emc.json' with {type: 'json'};
  * @implements {Actions}
  */
 class Be[ClassName] {
-    /**
-     * @type {WeakRef<Element & ElementEnhancementGateway>}
-     */
-    #enhancedElementRef;
-
-    get enhancedElement(){
-        const ref = this.#enhancedElementRef.deref();
-        if(ref === undefined) throw 404;
-        return ref;
-    }
 
     /**
      * 
@@ -509,17 +500,17 @@ class Be[ClassName] {
      * @param {AllProps} initVals 
      */
     constructor(enhancedElement, ctx, initVals){
-        this.#enhancedElementRef = new WeakRef(enhancedElement);
         const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
-        self.init(self, initVals);
+        self.init(self, enhancedElement, initVals);
     }
 
     /**
      * @this {AllProps & Actions}
      * @param {AllProps} self 
+     * @param {Element & ElementEnhancementGateway} enhancedElement 
      * @param {PAP} initVals 
      */
-    async init(self, initVals){
+    async init(self, enhancedElement, initVals){
         const {customData} = emc;
         /**
          * @type {RoundaboutOptions}
@@ -531,6 +522,7 @@ class Be[ClassName] {
         await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
         (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
             //set default prop values below
+            enhancedElement,
             defaultProp1: 'value1',
             defaultProp2: true,
             ...initVals

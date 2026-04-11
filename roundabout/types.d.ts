@@ -71,7 +71,7 @@ export interface Positraction<TProps = any, TActions = TProps> extends LogicOp<T
     assignTo?: Array<null | (keyof TProps & string)>
 }
 
-export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps> {
+export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
     //onsets?: Onsets<TProps, TActions>,
@@ -94,7 +94,9 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps>
      */
     weakRef?: WeakRefConfig<TProps>,
 
-    defaultPropVals?: Partial<{[key in keyof TProps & string]: unknown}>
+    defaultPropVals?: Partial<{[key in keyof TProps & string]: unknown}>,
+
+    customData?: TCustomData,
 }
 
 export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {

@@ -17,6 +17,16 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
+export interface CustomData {
+    triggerSettings: {
+        type: string;
+            //trigger.classList.add('be-clonable-trigger');
+        ariaLabel: string;
+        title: string;
+    }
+    
+}
+
 export interface Actions{
     addCloneBtn(self: AP): ProPAP;
     setBtnContent(self: AP): void;

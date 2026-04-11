@@ -93,6 +93,8 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps>
      * Use logIfCollected to get notified when this happens.
      */
     weakRef?: WeakRefConfig<TProps>,
+
+    defaultPropVals?: Partial<{[key in keyof TProps & string]: unknown}>
 }
 
 export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {

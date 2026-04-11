@@ -543,7 +543,8 @@ export { Be[ClassName] }
 
 5. **Set default values** in the init method:
    - Copy default values from the legacy static config's propDefaults
-   - Add them to the assignGingerly call in the init method
+   - Add `enhancedElement` as the first property in the assignGingerly call
+   - Add other defaults after enhancedElement
    - Place them before `...initVals` so initVals can override them
 
 6. **Remove legacy code**:

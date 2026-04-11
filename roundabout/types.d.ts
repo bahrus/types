@@ -78,6 +78,21 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps>
     handlers?: Handlers<ETProps, TActions>,
     hitch?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
+    /**
+     * Configure automatic WeakRef wrapping for properties
+     * 
+     * Properties listed here will automatically wrap values in WeakRef when set,
+     * and automatically deref when accessed. This prevents memory leaks for
+     * DOM elements and other objects that should be garbage collected.
+     * 
+     * Options:
+     * - Array of property names: ['trigger', 'enhancedElement']
+     * - Object with configuration: { properties: ['trigger'], logIfCollected: 'warn' }
+     * 
+     * When a WeakRef'd value is garbage collected, the getter returns undefined.
+     * Use logIfCollected to get notified when this happens.
+     */
+    weakRef?: WeakRefConfig<TProps>,
 }
 
 export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {
@@ -108,21 +123,7 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
      */
     internalRouting?: boolean,
     
-    /**
-     * Configure automatic WeakRef wrapping for properties
-     * 
-     * Properties listed here will automatically wrap values in WeakRef when set,
-     * and automatically deref when accessed. This prevents memory leaks for
-     * DOM elements and other objects that should be garbage collected.
-     * 
-     * Options:
-     * - Array of property names: ['trigger', 'enhancedElement']
-     * - Object with configuration: { properties: ['trigger'], logIfCollected: 'warn' }
-     * 
-     * When a WeakRef'd value is garbage collected, the getter returns undefined.
-     * Use logIfCollected to get notified when this happens.
-     */
-    weakRef?: WeakRefConfig<TProps>,
+
 }
 
 /**

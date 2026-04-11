@@ -8,6 +8,7 @@ export interface AllProps extends EndUserProps{
     enhancedElement: Element;
     byob?: boolean;
     trigger?: HTMLButtonElement;
+    resolved: boolean;
 }
 
 export type AP = AllProps;

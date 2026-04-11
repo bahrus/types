@@ -100,6 +100,9 @@ export const emc = {
         }
     },
     customData: {
+        weakRef: {
+            properties: ['enhancedElement']
+        },
         actions: { /* reactive action triggers */ },
         handlers: { /* event handlers */ },
         compacts: { /* compact syntax mappings */ }
@@ -116,6 +119,7 @@ console.log(render());
 **Key Design Decisions:**
 - withAttrs replaces base/branches/map (cleaner syntax)
 - customData contains reactive configuration
+- weakRef configuration tells roundabout which properties to store as weak references
 - No propDefaults/propInfo (inferred by roundabout)
 - Build-time only (not loaded in browser)
 

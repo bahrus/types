@@ -284,6 +284,10 @@ export const emc = {
         },
         compacts: {
             // Copy from legacy static config
+        },
+        defaultPropVals: {
+            // Copy from legacy static config.propDefaults
+            // Note: propDefaults → defaultPropVals
         }
     }
 }
@@ -311,7 +315,8 @@ export function render(){
 5. **Migrate static config to customData**: 
    - Copy `actions`, `handlers`, and `compacts` from the legacy be-*.js static config
    - For any action methods that have `ifAllOf` and reference `enhancedElement` in their code, add `'enhancedElement'` to the `ifAllOf` array
-   - Do NOT copy `propDefaults` or `propInfo` - these are automatically inferred by roundabout
+   - Copy `propDefaults` to `defaultPropVals` in customData (note the name change from propDefaults to defaultPropVals)
+   - Do NOT copy `propInfo` - property names are automatically inferred by roundabout from actions, handlers, and compacts
    - Remove any `positractions` - these are handled differently in the new architecture
 
 **Example Transformation:**
@@ -366,6 +371,9 @@ export const emc = {
         },
         compacts: {
             when_resolved_changes_dispatch: 'resolved',
+        },
+        defaultPropVals: {
+            on: 'keyup'
         }
     }
 }
@@ -512,6 +520,7 @@ class Be[ClassName] {
      */
     async init(self, enhancedElement, initVals){
         const {customData} = emc;
+        const {defaultPropVals} = customData;
         /**
          * @type {RoundaboutOptions}
          */
@@ -521,10 +530,8 @@ class Be[ClassName] {
         };
         await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
         (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-            //set default prop values below
             enhancedElement,
-            defaultProp1: 'value1',
-            defaultProp2: true,
+            ...defaultPropVals,
             ...initVals
         });
     }
@@ -541,11 +548,21 @@ export { Be[ClassName] }
    - Replace all `BAP` type annotations with `AP`
    - Keep the method implementations the same
 
-5. **Set default values** in the init method:
-   - Copy default values from the legacy static config's propDefaults
-   - Add `enhancedElement` as the first property in the assignGingerly call
-   - Add other defaults after enhancedElement
-   - Place them before `...initVals` so initVals can override them
+5. **Apply default values** in the init method:
+   - Extract `defaultPropVals` from `customData`: `const {defaultPropVals} = customData;`
+   - In the assignGingerly call, spread `defaultPropVals` after `enhancedElement` but before `initVals`
+   - This ensures defaults are applied, but can be overridden by `initVals`
+   - Example:
+     ```javascript
+     const {customData} = emc;
+     const {defaultPropVals} = customData;
+     // ... roundabout setup ...
+     (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
+         enhancedElement,
+         ...defaultPropVals,
+         ...initVals
+     });
+     ```
 
 6. **Remove legacy code**:
    - Remove `await BeClonable.bootUp();` at the bottom
@@ -589,11 +606,12 @@ class BeClonable {
 
     async init(self, enhancedElement, initVals){
         const {customData} = emc;
+        const {defaultPropVals} = customData;
         const raOptions = { ...customData, vm: this };
         await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
         (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
             enhancedElement,
-            byob: true,
+            ...defaultPropVals,
             ...initVals
         });
     }

@@ -66,6 +66,13 @@
   - [ ] 8.4 Enable file nesting
   - [ ] 8.5 Verify JSON files nest under .mjs files in explorer
 
+- [ ] 8a. Configure Auto-Build Hook (Optional)
+  - [ ] 8a.1 Create .kiro/hooks folder if needed
+  - [ ] 8a.2 Create auto-build-config.kiro.hook
+  - [ ] 8a.3 Configure fileEdited event for emc.mjs and emoji .mjs
+  - [ ] 8a.4 Configure runCommand action with npm run build
+  - [ ] 8a.5 Test by saving emc.mjs and verifying JSON regenerates
+
 - [ ] 9. Create Modern Enhancement Class
   - [ ] 9.1 Create be-[project-name].js file
   - [ ] 9.2 Add imports (emc.json with type annotation, types)

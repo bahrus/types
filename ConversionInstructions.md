@@ -394,6 +394,46 @@ Set up VS Code to nest generated .json files under their corresponding .mjs sour
 
 **Result:** In VS Code's file explorer, generated JSON files will appear nested under their source .mjs files, making the project structure cleaner and more intuitive.
 
+### Step 8a: Configure Auto-Build Hook (Optional but Recommended)
+
+Set up a Kiro hook to automatically rebuild JSON configuration files when .mjs files are saved.
+
+**Why this step?** Manually running `npm run build` after every change to emc.mjs or [emoji].mjs is tedious and easy to forget. A Kiro hook automates this, ensuring your JSON files are always up-to-date.
+
+**Instructions:**
+
+1. Use Kiro to create the hook by saying: "Create a hook that runs npm run build when emc.mjs or [emoji].mjs is saved"
+
+   Or manually create `.kiro/hooks/auto-build-config.kiro.hook` with:
+
+```json
+{
+    "name": "Auto-build Configuration",
+    "version": "1.0.0",
+    "description": "Automatically runs npm run build when emc.mjs or emoji .mjs files are saved, regenerating the JSON configuration files",
+    "when": {
+        "type": "fileEdited",
+        "patterns": ["emc.mjs", "⿻.mjs"]
+    },
+    "then": {
+        "type": "runCommand",
+        "command": "npm run build",
+        "timeout": 10000
+    }
+}
+```
+
+2. Adjust the patterns array to match your emoji filename if different from `⿻.mjs`
+3. If you don't have an emoji variant, use: `"patterns": ["emc.mjs"]`
+
+**What this does:**
+- Watches for saves to emc.mjs and emoji .mjs files
+- Automatically runs `npm run build` to regenerate JSON files
+- Completes within 10 seconds (configurable via timeout)
+- Keeps your runtime configuration in sync with source files
+
+**Result:** Your JSON configuration files will automatically regenerate whenever you save the source .mjs files, eliminating manual build steps during development.
+
 ### Step 9: Create Modern Enhancement Class
 
 Transform the legacy enhancement class to use the modern architecture with roundabout and assign-gingerly.

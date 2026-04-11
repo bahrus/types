@@ -94,6 +94,17 @@ Complete conversion instructions: `#[[file:../../ConversionInstructions.md]]`
 - File nesting patterns configured for *.mjs -> *.json
 - File nesting is enabled
 
+### US-8a: Configure Auto-Build Hook (Optional)
+**As a** developer  
+**I want** automatic rebuilding when .mjs files are saved  
+**So that** JSON files stay in sync without manual build commands
+
+**Acceptance Criteria:**
+- Kiro hook exists for fileEdited event
+- Hook watches emc.mjs and emoji .mjs files
+- Hook runs npm run build on save
+- JSON files regenerate automatically
+
 ### US-9: Create Modern Enhancement Class
 **As a** developer  
 **I want** a modern enhancement class using roundabout  

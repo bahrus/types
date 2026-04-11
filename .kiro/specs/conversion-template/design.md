@@ -296,7 +296,7 @@ init() method
 - No unnecessary object creation
 
 ### Memory
-- WeakRef prevents memory leaks
+- WeakRef handled automatically by roundabout for configured properties
 - No circular references
 - Clean teardown
 

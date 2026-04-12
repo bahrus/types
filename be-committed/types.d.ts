@@ -15,12 +15,8 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
-export type BAP = AllProps // & BEAllProps & RoundaboutReady;
-
 export interface Actions{
     
-    hydrate(self: BAP): ProPAP;
-    init(self: BAP, initVals: PAP): Promise<void>
-    // findTarget(self: this): Promise<void>;
-    // handleCommit(self: this, e: KeyboardEvent): Promise<void>;
+    hydrate(self: AP): ProPAP;
+    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
 }

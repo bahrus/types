@@ -115,6 +115,8 @@ Update the package.json to use the modern architecture's dependencies and build 
 
 4. Run `npm run update` to fetch the latest versions of all dependencies
 
+**IMPORTANT:** After updating package.json, you MUST run `npm run update` (or `npm install`) to install the new dependencies before proceeding with the conversion. The subsequent steps require these packages to be installed.
+
 **Result:** Your package.json should now use the modern dependency set, and running the update script will ensure you have the latest compatible versions.
 
 ### Step 4: Update imports.html

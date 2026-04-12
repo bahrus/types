@@ -169,6 +169,7 @@ export type IEnhancementRegistryItem<T = any> = EnhancementConfig<T>;
 export interface IAssignGingerlyOptions {
   registry?: typeof EnhancementRegistry | EnhancementRegistry;
   bypassChecks?: boolean;
+  withMethods?: string[] | Set<string>;
 }
 
 /**

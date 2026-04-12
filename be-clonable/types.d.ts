@@ -23,7 +23,8 @@ export interface CustomData {
         '?.classList?.add': string;
         ariaLabel: string;
         title: string;
-    }
+    },
+    withMethods: string[]
     
 }
 

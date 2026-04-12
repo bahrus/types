@@ -763,13 +763,14 @@ Update test and demo HTML files to use the modern be-hive registration pattern.
    - With the modern be-hive pattern:
      ```html
      <be-hive>
-         <script type=emc src="[project-name]/emc.mjs"></script>
+         <script type=emc src="[project-name]/emc.json"></script>
      </be-hive>
      <script type=module>
          import 'be-hive/be-hive.js';
      </script>
      ```
    - Replace `[project-name]` with your actual project name (e.g., `be-delible`)
+   - **Important**: Reference `emc.json` (not `emc.mjs`) - this reduces dependency on special web server behavior and makes the markup portable across different hosting environments without modification
 
 2. **Update demo files** (e.g., `demo/dev.html`) with the same pattern
 

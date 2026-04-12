@@ -7,7 +7,7 @@ export interface EndUserProps{
 export interface AllProps extends EndUserProps{
     enhancedElement: Element;
     byob?: boolean;
-    trigger?: HTMLButtonElement;
+    trigger: HTMLButtonElement;
     resolved: boolean;
 }
 

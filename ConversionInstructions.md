@@ -5,11 +5,12 @@
 This document provides step-by-step instructions for converting legacy "be-*" enhancement projects to the modern architecture. The conversion process has been successfully applied to several projects including:
 
 - **[be-clonable](https://github.com/bahrus/be-clonable)** ⭐ **RECOMMENDED REFERENCE** - The most up-to-date implementation with the latest architectural improvements. Use this as your primary reference.
-- [be-a-beacon](https://github.com/bahrus/be-a-beacon)
 - [be-committed](https://github.com/bahrus/be-committed)
 - [be-decked-with](https://github.com/bahrus/be-decked-with)
 
 Each of these repositories contains a "legacy" folder showing the original implementation for reference. When in doubt about implementation details, refer to be-clonable first as it demonstrates the cleanest, most refined patterns.
+
+**Note:** be-a-beacon is intentionally not listed as a reference because its requirements are too simple - it just fires an event on construction without needing reactive properties or actions, making it an outlier that doesn't benefit from the roundabout architecture.
 
 ## What This Conversion Achieves
 
@@ -113,7 +114,13 @@ Update the package.json to use the modern architecture's dependencies and build 
    }
    ```
 
-4. Run `npm run update` to fetch the latest versions of all dependencies
+4. Ensure the `update` script exists in the `scripts` section:
+   ```json
+   "update": "ncu -u && npm install"
+   ```
+   This script uses npm-check-updates (ncu) to update all dependencies to their latest versions.
+
+5. Run `npm run update` to fetch the latest versions of all dependencies
 
 **IMPORTANT:** After updating package.json, you MUST run `npm run update` (or `npm install`) to install the new dependencies before proceeding with the conversion. The subsequent steps require these packages to be installed.
 

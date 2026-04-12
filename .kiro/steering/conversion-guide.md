@@ -30,7 +30,7 @@ For quick, automated conversions:
 1. **Preserve Legacy Code**: Always move existing implementation to the `legacy` folder before making changes
 2. **Follow the Order**: The conversion steps have dependencies - follow them in sequence
 3. **Verify Each Step**: After each major step, verify the changes work as expected
-4. **Reference Examples**: Point to **be-clonable** (most up-to-date), be-a-beacon, be-committed, and be-decked-with as reference implementations. Prefer be-clonable as it has the latest architectural improvements.
+4. **Reference Examples**: Point to **be-clonable** (most up-to-date), be-committed, and be-decked-with as reference implementations. Prefer be-clonable as it has the latest architectural improvements. Note: be-a-beacon is too simple to serve as a good example - it doesn't use roundabout due to its minimal requirements.
 
 ## Common Patterns
 

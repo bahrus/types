@@ -582,6 +582,19 @@ export { Be[ClassName] }
    - Remove imports from trans-render that were only used in static config
    - Remove any separate assignGingerly imports - roundabout handles initialization
 
+7. **Update utility imports**:
+   - Replace `trans-render/lib/findAdjacentElement.js` with `be-hive/findAdjacentElement.js`
+   - The be-hive package provides common utilities that were previously in trans-render
+
+**CRITICAL - Avoid Compact/Action Conflicts:**
+
+When migrating the static config to emc.mjs, be careful not to define the same method in both `actions` and `compacts`:
+
+- **Compacts** automatically call methods when properties change (e.g., `when_triggerInsertPosition_changes_call_addDeleteBtn`)
+- **Actions** define when methods should be called based on property availability (e.g., `ifAllOf: ['prop1', 'prop2']`)
+- If a method is already invoked by a compact, DO NOT add it to actions - this will cause a "Conflict detected" error
+- Example: If you have `when_triggerInsertPosition_changes_call_addDeleteBtn: 0` in compacts, do NOT add `addDeleteBtn` to actions
+
 **Example Transformation:**
 
 Legacy class:
@@ -731,6 +744,68 @@ console.log(render());
 ```
 
 **Result:** When you run `npm run build`, both `emc.json` and `⿻.json` will be generated, allowing users to use either the full name or emoji shorthand.
+
+### Step 11: Update Tests and Demo Files
+
+Update test and demo HTML files to use the modern be-hive registration pattern.
+
+**Why this step?** The legacy architecture used direct imports of emc.js files. The modern approach uses be-hive's declarative `<be-hive>` element with `<script type=emc>` tags to load enhancement configurations.
+
+**Instructions:**
+
+1. **Update test HTML files** (e.g., `tests/test1.html`):
+   - Replace the legacy import pattern:
+     ```html
+     <script type=module>
+         import '/emc.js';
+     </script>
+     ```
+   - With the modern be-hive pattern:
+     ```html
+     <be-hive>
+         <script type=emc src="[project-name]/emc.mjs"></script>
+     </be-hive>
+     <script type=module>
+         import 'be-hive/be-hive.js';
+     </script>
+     ```
+   - Replace `[project-name]` with your actual project name (e.g., `be-delible`)
+
+2. **Update demo files** (e.g., `demo/dev.html`) with the same pattern
+
+3. **Update test selectors** in test files:
+   - Change button selectors from generic `button` to the specific class (e.g., `.be-delible-trigger`)
+   - Verify test logic matches the enhancement behavior
+
+4. **Update playwright.config.ts** to only run Chrome tests:
+   - Comment out firefox and webkit projects
+   - Add a comment explaining that Chrome 146+ features are required (JSON imports with type assertion)
+   - Example:
+     ```typescript
+     projects: [
+       {
+         name: 'chromium',
+         use: { ...devices['Desktop Chrome'] },
+       },
+       // Commented out - requires Chrome 146+ features (JSON imports with type assertion)
+       // {
+       //   name: 'firefox',
+       //   use: { ...devices['Desktop Firefox'] },
+       // },
+       // {
+       //   name: 'webkit',
+       //   use: { ...devices['Desktop Safari'] },
+       // },
+     ],
+     ```
+
+**Common Issues:**
+
+- **Module resolution errors**: If you see "Failed to resolve module specifier" errors for utilities like `findAdjacentElement`, ensure you're importing from `be-hive/findAdjacentElement.js` (not `trans-render/lib/findAdjacentElement.js`)
+- **Compact/Action conflicts**: If roundabout reports "Method X is invoked by both a compact and an action", remove the method from the `actions` section in emc.mjs - compacts already handle the invocation
+- **WeakRef properties**: Ensure any properties that store element references (like `trigger`, `button`, etc.) are listed in `customData.weakRef.properties` in emc.mjs
+
+**Result:** Tests and demos should now work with the modern architecture. Run `npm test` to verify.
 
 ---
 

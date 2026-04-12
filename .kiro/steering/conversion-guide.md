@@ -59,9 +59,10 @@ When a user asks to convert a be-* project:
 1. **Assess the project**: Determine if it's legacy or already converted
 2. **Offer spec creation**: Ask if they want a tracked conversion (spec) or direct conversion
 3. **Execute systematically**: Follow the 10 steps in ConversionInstructions.md
-4. **Verify at milestones**: After steps 3, 7, and 10, suggest running `npm run build` and `npm test`
-5. **Reference the guide**: Point users to specific sections of ConversionInstructions.md as needed
-6. **Use be-clonable as reference**: When implementation details are unclear, refer to [be-clonable](https://github.com/bahrus/be-clonable) as it has the most refined patterns
+4. **Run npm run update**: After Step 3 (updating package.json), ALWAYS run `npm run update` to install dependencies before proceeding
+5. **Verify at milestones**: After steps 3, 7, and 10, suggest running `npm run build` and `npm test`
+6. **Reference the guide**: Point users to specific sections of ConversionInstructions.md as needed
+7. **Use be-clonable as reference**: When implementation details are unclear, refer to [be-clonable](https://github.com/bahrus/be-clonable) as it has the most refined patterns
 
 ## Special Cases
 

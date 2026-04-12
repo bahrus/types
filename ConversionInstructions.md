@@ -503,18 +503,16 @@ const {customData} = emc;
 class Be[ClassName] {
 
     /**
-     * 
+     * @this {AllProps & Actions}
      * @param {Element & ElementEnhancementGateway} enhancedElement 
      * @param {*} ctx 
      * @param {AllProps} initVals 
      */
     constructor(enhancedElement, ctx, initVals){
-        const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
-        self.init(self, enhancedElement, initVals);
+        this.init(this, enhancedElement, initVals);
     }
 
     /**
-     * @this {AllProps & Actions}
      * @param {AllProps} self 
      * @param {Element & ElementEnhancementGateway} enhancedElement 
      * @param {PAP} initVals 
@@ -526,7 +524,7 @@ class Be[ClassName] {
          */
         const raOptions = {
             ...customData,
-            vm: this,
+            vm: self,
             initialPropVals: {
                 enhancedElement,
                 ...defaultPropVals,
@@ -611,16 +609,18 @@ const {customData} = emc;
 
 class BeClonable {
     
+    /**
+     * @this {AllProps & Actions}
+     */
     constructor(enhancedElement, ctx, initVals){
-        const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
-        self.init(self, enhancedElement, initVals);
+        this.init(this, enhancedElement, initVals);
     }
 
     async init(self, enhancedElement, initVals){
         const {defaultPropVals} = customData;
         const raOptions = {
             ...customData,
-            vm: this,
+            vm: self,
             initialPropVals: {
                 enhancedElement,
                 ...defaultPropVals,

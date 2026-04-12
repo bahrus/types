@@ -466,9 +466,9 @@ Transform the legacy enhancement class to use the modern architecture with round
 2. **No static config**: Configuration is now in emc.mjs, not in the class
 3. **Constructor pattern**: Uses constructor with enhancedElement, ctx, and initVals parameters
 4. **No WeakRef boilerplate**: The roundabout library automatically handles weak references for properties listed in `customData.weakRef.properties`
-5. **enhancedElement parameter in init**: The init method receives enhancedElement as a parameter and passes it to assignGingerly
-6. **Roundabout integration**: The init method sets up roundabout for reactive property management
-7. **Default values in init**: Property defaults (including enhancedElement) are set in the init method via assignGingerly
+5. **Simplified init method**: All initial values (enhancedElement, defaults, and initVals) are passed through roundabout's `initialPropVals` option
+6. **Single library call**: Only roundabout is called - no separate assignGingerly import needed
+7. **Module-level customData**: Extract customData from emc at the module level for reuse
 8. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
 9. **BAP → AP**: Replace all BAP type references with AP
 
@@ -479,19 +479,20 @@ Transform the legacy enhancement class to use the modern architecture with round
 
 ```javascript
 // @ts-check
-/**
- * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
- */
-import emc from './emc.json' with {type: 'json'};
-
 /** @import {Actions, PAP, AllProps, AP} from './types/[project-name]/types' */;
 /** @import {RoundaboutOptions} from './types/roundabout/types' */;
 /** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
 /** @import {EMC} from './types/mount-observer/types' */;
 /** @import {RAConfig} from './types/roundabout/types' */;
+/**
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
+ */
+import emc from './emc.json' with {type: 'json'};
+
+const {customData} = emc;
 ```
 
-**Important:** The class imports the generated `emc.json` file (not `emc.mjs`). This is the runtime configuration that was built from emc.mjs.
+**Important:** The class imports the generated `emc.json` file (not `emc.mjs`). This is the runtime configuration that was built from emc.mjs. Extract `customData` at the module level for use in the init method.
 
 3. Add the class with the standard boilerplate:
 
@@ -519,7 +520,6 @@ class Be[ClassName] {
      * @param {PAP} initVals 
      */
     async init(self, enhancedElement, initVals){
-        const {customData} = emc;
         const {defaultPropVals} = customData;
         /**
          * @type {RoundaboutOptions}
@@ -527,13 +527,13 @@ class Be[ClassName] {
         const raOptions = {
             ...customData,
             vm: this,
+            initialPropVals: {
+                enhancedElement,
+                ...defaultPropVals,
+                ...initVals
+            }
         };
-        await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
-        (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-            enhancedElement,
-            ...defaultPropVals,
-            ...initVals
-        });
+        (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
     }
 
     // Copy your action methods here, replacing BAP with AP
@@ -550,24 +550,29 @@ export { Be[ClassName] }
 
 5. **Apply default values** in the init method:
    - Extract `defaultPropVals` from `customData`: `const {defaultPropVals} = customData;`
-   - In the assignGingerly call, spread `defaultPropVals` after `enhancedElement` but before `initVals`
+   - Pass all initial values through the `initialPropVals` property in roundabout options
+   - Spread values in order: `enhancedElement`, then `defaultPropVals`, then `initVals`
    - This ensures defaults are applied, but can be overridden by `initVals`
    - Example:
      ```javascript
-     const {customData} = emc;
      const {defaultPropVals} = customData;
-     // ... roundabout setup ...
-     (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-         enhancedElement,
-         ...defaultPropVals,
-         ...initVals
-     });
+     const raOptions = {
+         ...customData,
+         vm: this,
+         initialPropVals: {
+             enhancedElement,
+             ...defaultPropVals,
+             ...initVals
+         }
+     };
+     (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
      ```
 
 6. **Remove legacy code**:
    - Remove `await BeClonable.bootUp();` at the bottom
    - Remove imports from be-enhanced (BE, resolved, rejected, propInfo)
    - Remove imports from trans-render that were only used in static config
+   - Remove any separate assignGingerly imports - roundabout handles initialization
 
 **Example Transformation:**
 
@@ -592,10 +597,17 @@ export { BeClonable }
 
 Modern class:
 ```javascript
+/** @import {Actions, PAP, AllProps, AP} from './types/be-clonable/types' */;
+/** @import {RoundaboutOptions} from './types/roundabout/types' */;
+/** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {RAConfig} from './types/roundabout/types' */;
 /**
  * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
  */
 import emc from './emc.json' with {type: 'json'};
+
+const {customData} = emc;
 
 class BeClonable {
     
@@ -605,15 +617,17 @@ class BeClonable {
     }
 
     async init(self, enhancedElement, initVals){
-        const {customData} = emc;
         const {defaultPropVals} = customData;
-        const raOptions = { ...customData, vm: this };
-        await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
-        (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-            enhancedElement,
-            ...defaultPropVals,
-            ...initVals
-        });
+        const raOptions = {
+            ...customData,
+            vm: this,
+            initialPropVals: {
+                enhancedElement,
+                ...defaultPropVals,
+                ...initVals
+            }
+        };
+        (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
     }
 
     async addCloneBtn(self) {

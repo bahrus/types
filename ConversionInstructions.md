@@ -4,11 +4,12 @@
 
 This document provides step-by-step instructions for converting legacy "be-*" enhancement projects to the modern architecture. The conversion process has been successfully applied to several projects including:
 
+- **[be-clonable](https://github.com/bahrus/be-clonable)** ⭐ **RECOMMENDED REFERENCE** - The most up-to-date implementation with the latest architectural improvements. Use this as your primary reference.
 - [be-a-beacon](https://github.com/bahrus/be-a-beacon)
 - [be-committed](https://github.com/bahrus/be-committed)
 - [be-decked-with](https://github.com/bahrus/be-decked-with)
 
-Each of these repositories contains a "legacy" folder showing the original implementation for reference.
+Each of these repositories contains a "legacy" folder showing the original implementation for reference. When in doubt about implementation details, refer to be-clonable first as it demonstrates the cleanest, most refined patterns.
 
 ## What This Conversion Achieves
 

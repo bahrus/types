@@ -30,7 +30,7 @@ For quick, automated conversions:
 1. **Preserve Legacy Code**: Always move existing implementation to the `legacy` folder before making changes
 2. **Follow the Order**: The conversion steps have dependencies - follow them in sequence
 3. **Verify Each Step**: After each major step, verify the changes work as expected
-4. **Reference Examples**: Point to be-a-beacon, be-committed, and be-decked-with as reference implementations
+4. **Reference Examples**: Point to **be-clonable** (most up-to-date), be-a-beacon, be-committed, and be-decked-with as reference implementations. Prefer be-clonable as it has the latest architectural improvements.
 
 ## Common Patterns
 
@@ -61,6 +61,7 @@ When a user asks to convert a be-* project:
 3. **Execute systematically**: Follow the 10 steps in ConversionInstructions.md
 4. **Verify at milestones**: After steps 3, 7, and 10, suggest running `npm run build` and `npm test`
 5. **Reference the guide**: Point users to specific sections of ConversionInstructions.md as needed
+6. **Use be-clonable as reference**: When implementation details are unclear, refer to [be-clonable](https://github.com/bahrus/be-clonable) as it has the most refined patterns
 
 ## Special Cases
 

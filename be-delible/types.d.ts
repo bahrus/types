@@ -20,4 +20,5 @@ export interface Actions{
     addDeleteBtn(self: AP): ProPAP ;
     setBtnContent(self: AP): void;
     beDeleted(self: AP): void;
+    init(self: AP & Actions, enhancedElement: Element, initVals: PAP): Promise<void>;
 }

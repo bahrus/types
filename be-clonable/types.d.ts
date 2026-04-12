@@ -20,7 +20,7 @@ export type ProPAP = Promise<PAP>;
 export interface CustomData {
     triggerSettings: {
         type: string;
-            //trigger.classList.add('be-clonable-trigger');
+        '?.classList?.add': string;
         ariaLabel: string;
         title: string;
     }

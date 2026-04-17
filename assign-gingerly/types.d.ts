@@ -74,6 +74,44 @@ export type pathString = `?.${string}`;
 export type CustomElementName = string;
 export type CustomElementConstructorStaticMethodName = string;
 
+/**
+ * Context passed to parser functions
+ * Provides access to configuration and spawn context for advanced parsing scenarios
+ */
+export interface ParserContext<T = any> {
+  /**
+   * The attribute configuration that matched this attribute
+   * Useful for parsers that need to access additional config properties
+   */
+  attrConfig: AttrConfig<T>;
+  
+  /**
+   * The spawn context containing enhancement config and synthesizer element
+   * Useful for parsers that need access to the enhancement or synthesizer context
+   */
+  spawnContext?: SpawnContext<T>;
+  
+  /**
+   * The element being enhanced
+   * Useful for parsers that need to read other attributes or element properties
+   */
+  element: Element;
+  
+  /**
+   * The attribute name that was matched (resolved from template)
+   * Useful for parsers that handle multiple attributes
+   */
+  attrName: string;
+}
+
+/**
+ * Parser function signature
+ * Can accept just the attribute value (simple form) or value + context (advanced form)
+ */
+export type ParserFunction<T = any> = 
+  | ((attrValue: string | null) => any)
+  | ((attrValue: string | null, context?: ParserContext<T>) => any);
+
 export interface AttrConfig<T = any> {
   /**
    * Type of the property value (JSON-serializable string format)
@@ -100,13 +138,19 @@ export interface AttrConfig<T = any> {
   /**
    * Parser to transform attribute string value
    * - Function: Inline parser function (not JSON serializable)
-   * - String: Named parser reference (JSON serializable) - looks up in global parser registry (e.g., 'timestamp', 'csv')
-   * - Tuple: [CustomElementName, StaticMethodName] - looks up static method on custom element constructor (e.g., ['my-widget', 'parseSpecial'])
+   *   - Simple form: (attrValue: string | null) => any
+   *   - Advanced form: (attrValue: string | null, context: ParserContext) => any
+   * - String: Named parser reference (JSON serializable) - looks up in scoped registry (if available) then global parser registry (e.g., 'timestamp', 'csv')
+   * 
+   * Parser functions can optionally accept a second parameter (ParserContext) which provides:
+   * - attrConfig: The full AttrConfig object for this attribute
+   * - spawnContext: The SpawnContext with enhancement config and synthesizer element
+   * - element: The element being enhanced
+   * - attrName: The resolved attribute name
    */
   parser?: 
-    | ((attrValue: string | null) => any) 
-    | string 
-    | [CustomElementName, CustomElementConstructorStaticMethodName]
+    | ParserFunction<T>
+    | string
   ;
   
   /**
@@ -156,6 +200,12 @@ export type AttrPatterns<T = any> = {
 export interface SpawnContext<T = any, TMountContext = any> {
   config: EnhancementConfig<T>;
   mountCtx?: TMountContext;
+  /**
+   * Reference to the synthesizer element (be-hive, htmx-container, alpine-scope, etc.)
+   * that contains the EMC script defining this enhancement.
+   * Used for scoped parser registry access during attribute parsing.
+   */
+  synthesizerElement?: Element;
 }
 
 /**

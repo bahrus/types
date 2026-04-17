@@ -1,12 +1,10 @@
 export interface EndUserProps{
-    to: string;
-    nudge: boolean;
-    on: string;
+    closeOnSelect: boolean;
+    eventName: string;
 }
 
 export interface AllProps extends EndUserProps {
     enhancedElement: Element;
-    resolved: boolean;
 }
 
 export type AP = AllProps;
@@ -16,7 +14,6 @@ export type PAP = Partial<AP>;
 export type ProPAP = Promise<PAP>;
 
 export interface Actions{
-    
-    hydrate(self: AP): ProPAP;
-    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
+    init(self: AllProps, enhancedElement: Element, initVals: PAP): void;
+    hydrate(self: AP): PAP | void
 }

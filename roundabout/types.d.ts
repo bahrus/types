@@ -97,6 +97,8 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps,
     defaultPropVals?: Partial<{[key in keyof TProps & string]: unknown}>,
 
     customData?: TCustomData,
+
+    initialPropVals?: Partial<{[key in keyof TProps & string]: unknown}>,
 }
 
 export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps> extends RAConfig<TProps, TActions, ETProps> {

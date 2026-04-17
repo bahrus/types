@@ -4,11 +4,13 @@
 
 This document provides step-by-step instructions for converting legacy "be-*" enhancement projects to the modern architecture. The conversion process has been successfully applied to several projects including:
 
-- [be-a-beacon](https://github.com/bahrus/be-a-beacon)
+- **[be-clonable](https://github.com/bahrus/be-clonable)** ⭐ **RECOMMENDED REFERENCE** - The most up-to-date implementation with the latest architectural improvements. Use this as your primary reference.
 - [be-committed](https://github.com/bahrus/be-committed)
 - [be-decked-with](https://github.com/bahrus/be-decked-with)
 
-Each of these repositories contains a "legacy" folder showing the original implementation for reference.
+Each of these repositories contains a "legacy" folder showing the original implementation for reference. When in doubt about implementation details, refer to be-clonable first as it demonstrates the cleanest, most refined patterns.
+
+**Note:** be-a-beacon is intentionally not listed as a reference because its requirements are too simple - it just fires an event on construction without needing reactive properties or actions, making it an outlier that doesn't benefit from the roundabout architecture.
 
 ## What This Conversion Achieves
 
@@ -112,7 +114,15 @@ Update the package.json to use the modern architecture's dependencies and build 
    }
    ```
 
-4. Run `npm run update` to fetch the latest versions of all dependencies
+4. Ensure the `update` script exists in the `scripts` section:
+   ```json
+   "update": "ncu -u && npm install"
+   ```
+   This script uses npm-check-updates (ncu) to update all dependencies to their latest versions.
+
+5. Run `npm run update` to fetch the latest versions of all dependencies
+
+**IMPORTANT:** After updating package.json, you MUST run `npm run update` (or `npm install`) to install the new dependencies before proceeding with the conversion. The subsequent steps require these packages to be installed.
 
 **Result:** Your package.json should now use the modern dependency set, and running the update script will ensure you have the latest compatible versions.
 
@@ -466,9 +476,9 @@ Transform the legacy enhancement class to use the modern architecture with round
 2. **No static config**: Configuration is now in emc.mjs, not in the class
 3. **Constructor pattern**: Uses constructor with enhancedElement, ctx, and initVals parameters
 4. **No WeakRef boilerplate**: The roundabout library automatically handles weak references for properties listed in `customData.weakRef.properties`
-5. **enhancedElement parameter in init**: The init method receives enhancedElement as a parameter and passes it to assignGingerly
-6. **Roundabout integration**: The init method sets up roundabout for reactive property management
-7. **Default values in init**: Property defaults (including enhancedElement) are set in the init method via assignGingerly
+5. **Simplified init method**: All initial values (enhancedElement, defaults, and initVals) are passed through roundabout's `initialPropVals` option
+6. **Single library call**: Only roundabout is called - no separate assignGingerly import needed
+7. **Module-level customData**: Extract customData from emc at the module level for reuse
 8. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
 9. **BAP → AP**: Replace all BAP type references with AP
 
@@ -479,19 +489,20 @@ Transform the legacy enhancement class to use the modern architecture with round
 
 ```javascript
 // @ts-check
-/**
- * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
- */
-import emc from './emc.json' with {type: 'json'};
-
 /** @import {Actions, PAP, AllProps, AP} from './types/[project-name]/types' */;
 /** @import {RoundaboutOptions} from './types/roundabout/types' */;
 /** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
 /** @import {EMC} from './types/mount-observer/types' */;
 /** @import {RAConfig} from './types/roundabout/types' */;
+/**
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
+ */
+import emc from './emc.json' with {type: 'json'};
+
+const {customData} = emc;
 ```
 
-**Important:** The class imports the generated `emc.json` file (not `emc.mjs`). This is the runtime configuration that was built from emc.mjs.
+**Important:** The class imports the generated `emc.json` file (not `emc.mjs`). This is the runtime configuration that was built from emc.mjs. Extract `customData` at the module level for use in the init method.
 
 3. Add the class with the standard boilerplate:
 
@@ -502,38 +513,35 @@ import emc from './emc.json' with {type: 'json'};
 class Be[ClassName] {
 
     /**
-     * 
+     * @this {AllProps & Actions}
      * @param {Element & ElementEnhancementGateway} enhancedElement 
      * @param {*} ctx 
      * @param {AllProps} initVals 
      */
     constructor(enhancedElement, ctx, initVals){
-        const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
-        self.init(self, enhancedElement, initVals);
+        this.init(this, enhancedElement, initVals);
     }
 
     /**
-     * @this {AllProps & Actions}
      * @param {AllProps} self 
      * @param {Element & ElementEnhancementGateway} enhancedElement 
      * @param {PAP} initVals 
      */
     async init(self, enhancedElement, initVals){
-        const {customData} = emc;
         const {defaultPropVals} = customData;
         /**
          * @type {RoundaboutOptions}
          */
         const raOptions = {
             ...customData,
-            vm: this,
+            vm: self,
+            initialPropVals: {
+                enhancedElement,
+                ...defaultPropVals,
+                ...initVals
+            }
         };
-        await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
-        (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-            enhancedElement,
-            ...defaultPropVals,
-            ...initVals
-        });
+        (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
     }
 
     // Copy your action methods here, replacing BAP with AP
@@ -550,24 +558,42 @@ export { Be[ClassName] }
 
 5. **Apply default values** in the init method:
    - Extract `defaultPropVals` from `customData`: `const {defaultPropVals} = customData;`
-   - In the assignGingerly call, spread `defaultPropVals` after `enhancedElement` but before `initVals`
+   - Pass all initial values through the `initialPropVals` property in roundabout options
+   - Spread values in order: `enhancedElement`, then `defaultPropVals`, then `initVals`
    - This ensures defaults are applied, but can be overridden by `initVals`
    - Example:
      ```javascript
-     const {customData} = emc;
      const {defaultPropVals} = customData;
-     // ... roundabout setup ...
-     (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-         enhancedElement,
-         ...defaultPropVals,
-         ...initVals
-     });
+     const raOptions = {
+         ...customData,
+         vm: this,
+         initialPropVals: {
+             enhancedElement,
+             ...defaultPropVals,
+             ...initVals
+         }
+     };
+     (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
      ```
 
 6. **Remove legacy code**:
    - Remove `await BeClonable.bootUp();` at the bottom
    - Remove imports from be-enhanced (BE, resolved, rejected, propInfo)
    - Remove imports from trans-render that were only used in static config
+   - Remove any separate assignGingerly imports - roundabout handles initialization
+
+7. **Update utility imports**:
+   - Replace `trans-render/lib/findAdjacentElement.js` with `be-hive/findAdjacentElement.js`
+   - The be-hive package provides common utilities that were previously in trans-render
+
+**CRITICAL - Avoid Compact/Action Conflicts:**
+
+When migrating the static config to emc.mjs, be careful not to define the same method in both `actions` and `compacts`:
+
+- **Compacts** automatically call methods when properties change (e.g., `when_triggerInsertPosition_changes_call_addDeleteBtn`)
+- **Actions** define when methods should be called based on property availability (e.g., `ifAllOf: ['prop1', 'prop2']`)
+- If a method is already invoked by a compact, DO NOT add it to actions - this will cause a "Conflict detected" error
+- Example: If you have `when_triggerInsertPosition_changes_call_addDeleteBtn: 0` in compacts, do NOT add `addDeleteBtn` to actions
 
 **Example Transformation:**
 
@@ -592,28 +618,39 @@ export { BeClonable }
 
 Modern class:
 ```javascript
+/** @import {Actions, PAP, AllProps, AP} from './types/be-clonable/types' */;
+/** @import {RoundaboutOptions} from './types/roundabout/types' */;
+/** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {RAConfig} from './types/roundabout/types' */;
 /**
  * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
  */
 import emc from './emc.json' with {type: 'json'};
 
+const {customData} = emc;
+
 class BeClonable {
     
+    /**
+     * @this {AllProps & Actions}
+     */
     constructor(enhancedElement, ctx, initVals){
-        const self = /** @type {AllProps & Actions} */(/** @type {unknown} */(this));
-        self.init(self, enhancedElement, initVals);
+        this.init(this, enhancedElement, initVals);
     }
 
     async init(self, enhancedElement, initVals){
-        const {customData} = emc;
         const {defaultPropVals} = customData;
-        const raOptions = { ...customData, vm: this };
-        await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
-        (await import('assign-gingerly/assignGingerly.js')).assignGingerly(self, {
-            enhancedElement,
-            ...defaultPropVals,
-            ...initVals
-        });
+        const raOptions = {
+            ...customData,
+            vm: self,
+            initialPropVals: {
+                enhancedElement,
+                ...defaultPropVals,
+                ...initVals
+            }
+        };
+        (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
     }
 
     async addCloneBtn(self) {
@@ -707,6 +744,69 @@ console.log(render());
 ```
 
 **Result:** When you run `npm run build`, both `emc.json` and `⿻.json` will be generated, allowing users to use either the full name or emoji shorthand.
+
+### Step 11: Update Tests and Demo Files
+
+Update test and demo HTML files to use the modern be-hive registration pattern.
+
+**Why this step?** The legacy architecture used direct imports of emc.js files. The modern approach uses be-hive's declarative `<be-hive>` element with `<script type=emc>` tags to load enhancement configurations.
+
+**Instructions:**
+
+1. **Update test HTML files** (e.g., `tests/test1.html`):
+   - Replace the legacy import pattern:
+     ```html
+     <script type=module>
+         import '/emc.js';
+     </script>
+     ```
+   - With the modern be-hive pattern:
+     ```html
+     <be-hive>
+         <script type=emc src="[project-name]/emc.json"></script>
+     </be-hive>
+     <script type=module>
+         import 'be-hive/be-hive.js';
+     </script>
+     ```
+   - Replace `[project-name]` with your actual project name (e.g., `be-delible`)
+   - **Important**: Reference `emc.json` (not `emc.mjs`) - this reduces dependency on special web server behavior and makes the markup portable across different hosting environments without modification
+
+2. **Update demo files** (e.g., `demo/dev.html`) with the same pattern
+
+3. **Update test selectors** in test files:
+   - Change button selectors from generic `button` to the specific class (e.g., `.be-delible-trigger`)
+   - Verify test logic matches the enhancement behavior
+
+4. **Update playwright.config.ts** to only run Chrome tests:
+   - Comment out firefox and webkit projects
+   - Add a comment explaining that Chrome 146+ features are required (JSON imports with type assertion)
+   - Example:
+     ```typescript
+     projects: [
+       {
+         name: 'chromium',
+         use: { ...devices['Desktop Chrome'] },
+       },
+       // Commented out - requires Chrome 146+ features (JSON imports with type assertion)
+       // {
+       //   name: 'firefox',
+       //   use: { ...devices['Desktop Firefox'] },
+       // },
+       // {
+       //   name: 'webkit',
+       //   use: { ...devices['Desktop Safari'] },
+       // },
+     ],
+     ```
+
+**Common Issues:**
+
+- **Module resolution errors**: If you see "Failed to resolve module specifier" errors for utilities like `findAdjacentElement`, ensure you're importing from `be-hive/findAdjacentElement.js` (not `trans-render/lib/findAdjacentElement.js`)
+- **Compact/Action conflicts**: If roundabout reports "Method X is invoked by both a compact and an action", remove the method from the `actions` section in emc.mjs - compacts already handle the invocation
+- **WeakRef properties**: Ensure any properties that store element references (like `trigger`, `button`, etc.) are listed in `customData.weakRef.properties` in emc.mjs
+
+**Result:** Tests and demos should now work with the modern architecture. Run `npm test` to verify.
 
 ---
 

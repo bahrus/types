@@ -101,9 +101,15 @@ Update the package.json to use the modern architecture's dependencies and build 
      "be-hive": "0.1.9",
      "mount-observer": "0.0.16",
      "roundabout-lib": "0.0.2",
-     "nested-regex-groups": "^0.0.1"
+     "nested-regex-groups": "0.0.1"
    }
    ```
+   
+   **IMPORTANT - Use Specific Versions:** Always use specific point versions (e.g., `"0.1.9"`) rather than version ranges (e.g., `"^0.1.9"` or `"~0.1.9"`). This ensures:
+   - Reproducible builds across environments
+   - No unexpected breaking changes from automatic updates
+   - Explicit control over when dependencies are updated
+   - Easier debugging when issues arise
    
    **Note:** Including `mount-observer` as a direct dependency ensures it's installed at the root `node_modules/` level, making it accessible via the import map and available for direct use in your code. The `nested-regex-groups` package is optional but recommended if your enhancement requires complex attribute parsing.
 

@@ -153,7 +153,11 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
     | string
   ;
 
-  parserConfig?:
+  /**
+   * configuration information needed by a custom parser to properly
+   * parse the attribute.
+   */
+  parserConfig?: TParserConfig;
   
   /**
    * Default value to use when attribute is missing

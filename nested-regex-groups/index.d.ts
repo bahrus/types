@@ -8,4 +8,3 @@ export type { ParseSuccess, ParseFailure, ParseResult } from './parse-result.js'
 export type { ParsePattern, NestedRegexOptions } from './pattern.js';
 export type { ParserOptions } from './options.js';
 export type { StatementsResult } from './statements.js';
-//# sourceMappingURL=index.d.ts.map

@@ -19,4 +19,3 @@ export interface ParseFailure {
  * Union type for parse results
  */
 export type ParseResult<T = any> = ParseSuccess<T> | ParseFailure;
-//# sourceMappingURL=parse-result.d.ts.map

@@ -5,4 +5,3 @@
  * and type aliases used by the nested-regex-groups library.
  */
 export {};
-//# sourceMappingURL=index.js.map

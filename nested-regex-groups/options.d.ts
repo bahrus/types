@@ -7,4 +7,3 @@ export interface ParserOptions {
      */
     verbose?: boolean;
 }
-//# sourceMappingURL=options.d.ts.map

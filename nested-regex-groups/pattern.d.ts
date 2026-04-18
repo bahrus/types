@@ -25,4 +25,3 @@ export interface NestedRegexOptions {
      */
     groupMap?: Record<string, string>;
 }
-//# sourceMappingURL=pattern.d.ts.map

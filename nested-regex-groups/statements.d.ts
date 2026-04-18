@@ -10,4 +10,3 @@ export interface StatementsResult<T = any> {
         matched?: string;
     }>;
 }
-//# sourceMappingURL=statements.d.ts.map

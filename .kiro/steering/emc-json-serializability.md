@@ -263,6 +263,42 @@ This principle should be enforced by:
 3. **Documentation**: Reference this principle in conversion guides
 4. **Linting**: Consider adding a custom lint rule to detect non-serializable values
 
+## Dependency Version Management
+
+**Always use specific point versions** in `package.json`, not version ranges:
+
+✅ **CORRECT:**
+```json
+{
+  "dependencies": {
+    "be-hive": "0.1.9",
+    "mount-observer": "0.0.16",
+    "roundabout-lib": "0.0.2"
+  }
+}
+```
+
+❌ **WRONG:**
+```json
+{
+  "dependencies": {
+    "be-hive": "^0.1.9",      // ❌ Caret allows minor/patch updates
+    "mount-observer": "~0.0.16", // ❌ Tilde allows patch updates
+    "roundabout-lib": "*"     // ❌ Wildcard allows any version
+  }
+}
+```
+
+**Why specific versions?**
+- **Reproducible builds**: Same versions across all environments
+- **No surprises**: Prevents automatic breaking changes
+- **Explicit control**: You decide when to update
+- **Easier debugging**: Know exactly which version caused an issue
+- **Consistent testing**: CI/CD uses same versions as development
+
+**When to update:**
+Use `npm run update` (which runs `ncu -u && npm install`) to explicitly update all dependencies to their latest versions. Review the changes and test thoroughly before committing.
+
 ## Related Documentation
 
 - [Scoped Parser Registry](https://github.com/bahrus/mount-observer#scoped-parser-registry-for-emc-scripts)

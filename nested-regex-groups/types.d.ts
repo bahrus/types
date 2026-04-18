@@ -54,6 +54,12 @@ export interface PatternConfig {
   name: string;
   pattern: string;
   description?: string;
+  /**
+   * Default values to merge into the parsed result
+   * Keys can use dot notation for nested values
+   * Example: { trigger: 'on', 'lhs.id': '#lhs' }
+   */
+  defaultVals?: Record<string, string>;
 }
 
 /**

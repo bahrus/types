@@ -639,14 +639,57 @@ export interface AllProps extends EndUserProps {
 
 #### Choosing the Right Parser
 
+The `nested-regex-groups` package provides two built-in parsers with different capabilities:
+
 **Use `parse-pattern-statements` when:**
-- Your target object is flat (no nested properties)
-- You need to parse multiple statements (though do-invoke uses single statements)
+- You need to support **nested object structures** using dot notation in capture groups
+- Example: `(?<lhs.id>#\\w+)` creates nested structure `{ lhs: { id: '#foo' } }`
+- This is a heavier-footprint parser based on the API documented [here](https://github.com/bahrus/nested-regex-groups#parsepatternstatementsinput-patternconfigs-options)
+- Example usage:
+  ```javascript
+  import { parsePatternStatements } from 'nested-regex-groups';
+  
+  const patterns = [
+    { name: 'comparison', pattern: '^(?<trigger>on|off)\\s+when\\s+(?<lhs.id>#\\w+)\\s+eq\\s+(?<rhs.id>#\\w+)$' }
+  ];
+  
+  const result = parsePatternStatements('on when #foo eq #bar. off when #baz eq #qux.', patterns);
+  // {
+  //   success: true,
+  //   statements: [
+  //     { pattern: 'comparison', value: { trigger: 'on', lhs: { id: '#foo' }, rhs: { id: '#bar' } } },
+  //     { pattern: 'comparison', value: { trigger: 'off', lhs: { id: '#baz' }, rhs: { id: '#qux' } } }
+  //   ]
+  // }
+  ```
+
+**Use `parse-grouped-capture-statements` when:**
+- Your target object is **flat** (no nested properties)
+- You want a lighter-weight parser that relies almost exclusively on built-in regex capabilities
 - Example: `InvokingParameters { targetPart: string, localEventType?: string }`
+- This parser can only result in a flat document structure
+- Based on the API documented [here](https://github.com/bahrus/nested-regex-groups#parsegroupedcapturestatementsinput-patternconfigs-options)
+- Example usage:
+  ```javascript
+  import { parseGroupedCaptureStatements } from 'nested-regex-groups';
+  
+  const patterns = [
+    { name: 'withEvent', pattern: '^(?<methodName>\\w+)\\s+on\\s+(?<eventType>\\w+)$' },
+    { name: 'methodOnly', pattern: '^(?<methodName>\\w+)$' }
+  ];
+  
+  const result = parseGroupedCaptureStatements('handleClick on click. handleInput on input.', patterns);
+  // {
+  //   success: true,
+  //   statements: [
+  //     { pattern: 'withEvent', value: { methodName: 'handleClick', eventType: 'click' } },
+  //     { pattern: 'withEvent', value: { methodName: 'handleInput', eventType: 'input' } }
+  //   ]
+  // }
+  ```
 
 **Use custom parser (advanced) when:**
-- You need nested object structures (use dot notation in capture groups)
-- You need complex post-processing logic
+- You need complex post-processing logic beyond pattern matching
 - Built-in parsers don't meet your needs
 - See [Scoped Parser Registry](https://github.com/bahrus/mount-observer#scoped-parser-registry-for-emc-scripts) for custom parser documentation
 

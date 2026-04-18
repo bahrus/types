@@ -23,6 +23,10 @@ export interface Actions{
 }
 
 export interface InvokingParameters {
-    remoteSpecifier: Specifier,
+    targetSpecifier: {
+        hostOrPeerMethodName?: string,
+        targetElementId?: string,
+    },
+    //defaults to "click" if not specified
     localEventType?: string,
 }

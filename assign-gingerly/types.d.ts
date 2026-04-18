@@ -112,7 +112,7 @@ export type ParserFunction<T = any> =
   | ((attrValue: string | null) => any)
   | ((attrValue: string | null, context?: ParserContext<T>) => any);
 
-export interface AttrConfig<T = any> {
+export interface AttrConfig<T = unknown, TParserConfig = unknown> {
   /**
    * Type of the property value (JSON-serializable string format)
    */
@@ -152,6 +152,8 @@ export interface AttrConfig<T = any> {
     | ParserFunction<T>
     | string
   ;
+
+  parserConfig?:
   
   /**
    * Default value to use when attribute is missing

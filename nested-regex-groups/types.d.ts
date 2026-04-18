@@ -59,7 +59,7 @@ export interface PatternConfig {
    * Keys can use dot notation for nested values
    * Example: { trigger: 'on', 'lhs.id': '#lhs' }
    */
-  defaultVals?: Record<string, unknown>;
+  defaultVals?: Record<string, string>;
 }
 
 /**

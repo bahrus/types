@@ -408,313 +408,80 @@ console.log(render());
 
 #### Overview
 
-Some be-* enhancements require **custom attribute parsers** to transform complex attribute syntax into structured data. The legacy architecture used `regExpExts` patterns in emc.js, while the modern architecture uses the **scoped parser registry** system provided by mount-observer and assign-gingerly.
+Some be-* enhancements require **custom attribute parsers** to transform complex attribute syntax into structured data. The legacy architecture used `regExpExts` patterns in emc.js, while the modern architecture uses **built-in parsers from nested-regex-groups** integrated through the `parserConfig` property.
 
 **When do you need a custom parser?**
 
-- Your enhancement accepts complex attribute syntax (e.g., `be-switched="case1: /pattern1/ | case2: /pattern2/"`)
+- Your enhancement accepts complex attribute syntax (e.g., `do-invoke="methodName on click"` or `be-switched="case1: /pattern1/ | case2: /pattern2/"`)
 - You need to parse multiple patterns or conditional logic from a single attribute
 - Simple string-to-property mapping isn't sufficient
 
 **References:** 
-- [Scoped Parser Registry for EMC Scripts](https://github.com/bahrus/mount-observer#scoped-parser-registry-for-emc-scripts)
-- [nested-regex-groups](https://github.com/bahrus/nested-regex-groups) - A powerful library for parsing complex attribute syntax with nested object structures
+- [nested-regex-groups](https://github.com/bahrus/nested-regex-groups) - Documentation for the parsing library
+- [nested-regex-groups npm](https://www.npmjs.com/package/nested-regex-groups) - Install with `npm install nested-regex-groups`
 
-**Note:** For complex parsing needs, consider using the [nested-regex-groups](https://www.npmjs.com/package/nested-regex-groups) npm package, which provides:
-- Dot notation in capture group names for nested structures
-- Multiple pattern matching with priority order
-- Statement parsing for paragraph-style attributes
-- Zero dependencies and full TypeScript support
+**Key Insight:** You don't need to write custom parser functions! The `nested-regex-groups` package provides built-in parsers that you configure with pattern definitions in your `emc.mjs` file.
 
-#### Architecture: Scoped Parser Registry
+#### Built-in Parsers Available
 
-The scoped parser registry system enables:
+The modern architecture provides these built-in parsers (no custom code needed):
 
-1. **Lazy loading** of complex parsers only when needed
-2. **Framework isolation** - each synthesizer element (be-hive, htmx-container, etc.) maintains its own parser registry
-3. **Declarative loading** via `<script type="emc-parser">` elements
-4. **Programmatic registration** for dynamic scenarios
+1. **`parse-pattern-statements`** - For flat objects (no nested properties)
+   - Use when your target type has no nested properties
+   - Example: `InvokingParameters { targetPart: string, localEventType?: string }`
+   - Parses multiple statements separated by periods
+   - **Use this for do-invoke style patterns**
 
-#### Implementation Approach: Declarative Parser Loading
+2. **`parse-grouped-captures`** - For flat objects, single statement
+   - Use when parsing a single statement into a flat object
+   - No statement splitting
 
-**CRITICAL:** All content in `emc.mjs` must be JSON-serializable. The `render()` function at the bottom exports the configuration as JSON, which means:
+3. **`parse-grouped-capture-statements`** - For flat objects, multiple statements
+   - Similar to `parse-pattern-statements` but different API
+
+**CRITICAL:** All content in `emc.mjs` must be JSON-serializable. The `render()` function exports the configuration as JSON, which means:
 - No function references (including parser functions)
-- No class constructors
+- No class constructors  
 - No symbols or other non-JSON types
-- Parser functions must be loaded separately and referenced by string name
+- Parser names must be strings
+- Pattern configurations must use `String.raw` for regex patterns
 
-**Step 1: Create a parser module**
+#### Step-by-Step Implementation
 
-Create a file `parser.js` (or `parser.mjs`) that exports a parser function:
+**Step 1: Define Pattern Configurations in emc.mjs**
 
-```javascript
-// my-enhancement/parser.js
-
-/**
- * Parser function that transforms attribute string to structured data
- * @param {string | null} attrValue - The attribute value to parse
- * @param {ParserContext} context - Optional context with element, config, etc.
- * @returns {any} - Parsed value
- */
-export default function parse(attrValue, context) {
-    if (attrValue === null) return null;
-    
-    // Your parsing logic here
-    // Example: Parse "method on event" pattern
-    const match = attrValue.match(/^(.+?)\s+on\s+(.+)$/);
-    if (match) {
-        return {
-            method: match[1].trim(),
-            event: match[2].trim()
-        };
-    }
-    
-    return { method: attrValue.trim() };
-}
-```
-
-**Step 2: Register the parser in HTML**
-
-Add a `<script type="emc-parser">` element to load the parser:
-
-```html
-<be-hive>
-    <!-- Load parser first -->
-    <script type="emc-parser" 
-            src="my-enhancement/parser.js" 
-            parser-name="myEnhancementParser"></script>
-    
-    <!-- Then load enhancement that depends on it -->
-    <script type="emc" 
-            src="my-enhancement/emc.json" 
-            wait-for-parsers="myEnhancementParser"></script>
-</be-hive>
-```
-
-**Step 3: Reference the parser in emc.mjs**
-
-In your `emc.mjs`, reference the parser by **string name only**:
+Create pattern configurations using `PatternConfig` objects with `String.raw` for regex patterns:
 
 ```javascript
-export const emc = {
-    enhConfig: {
-        enhKey: 'MyEnhancement',
-        spawn: 'my-enhancement/my-enhancement.js',
-        withAttrs: {
-            base: 'my-enhancement',
-            _base: {
-                mapsTo: 'parsedValue',
-                parser: 'myEnhancementParser'  // String reference - JSON serializable
-            }
-        }
+// @ts-check
+
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {AllProps, Actions} from './types/do-invoke/types' */
+/** @import {RAConfig} from './types/roundabout/types' */
+/** @import {PatternConfig} from './types/nested-regex-groups/types' */
+
+/** @type {PatternConfig[]} */
+const parsePatterns = [
+    {
+        name: 'targetsPartOnEventType',
+        pattern: String.raw `^(?<targetPart>.*) on (?<localEventType>.*)`,
+        description: 'Method/selector with explicit event type'
     },
-    customData: {
-        // ... rest of config
+    {
+        name: 'targetsPart',
+        pattern: String.raw `^(?<targetPart>.*)`,
+        description: 'Method/selector with default event type'
     }
-};
-
-export function render() {
-    return JSON.stringify(emc, null, 4);
-}
-
-console.log(render());
+];
 ```
 
-**Why string references?** The `render()` function must produce valid JSON. Function references cannot be serialized to JSON, so we use string names that will be resolved at runtime from the scoped parser registry.
+**Why `String.raw`?** Template literals with `String.raw` prevent JavaScript from interpreting backslashes as escape sequences, which is essential for regex patterns containing `\w`, `\s`, `\.`, etc.
 
-#### Parser Function Signature
+**Pattern Priority:** Patterns are tried in order - most specific first. The first matching pattern wins.
 
-All parsers must follow this signature:
+**Step 2: Configure withAttrs to Use Built-in Parser**
 
-```typescript
-type ParserFunction = 
-  | ((attrValue: string | null) => any)
-  | ((attrValue: string | null, context?: ParserContext) => any);
-
-interface ParserContext {
-  attrConfig: AttrConfig;      // The attribute configuration
-  spawnContext?: SpawnContext;  // Enhancement config and synthesizer element
-  element: Element;             // The element being enhanced
-  attrName: string;             // The resolved attribute name
-}
-```
-
-**Simple form (most common):**
-```javascript
-function parse(attrValue) {
-    return /* transformed value */;
-}
-```
-
-**Advanced form (with context):**
-```javascript
-function parse(attrValue, context) {
-    // Access element, config, etc.
-    const element = context.element;
-    const otherAttr = element.getAttribute('data-config');
-    
-    return /* transformed value based on context */;
-}
-```
-
-#### Parser Resolution Order
-
-When assign-gingerly looks up a parser by name:
-
-1. **Check scoped registry** (if synthesizer element exists)
-2. **Fall back to global registry** (built-in parsers like `timestamp`, `csv`, `json`)
-3. **Throw error** if not found in either
-
-#### Built-in Global Parsers
-
-These parsers are available everywhere without registration:
-
-- `timestamp` - Parse date strings to timestamps
-- `date` - Parse date strings to Date objects
-- `csv` - Parse comma-separated values
-- `int` - Parse integers
-- `float` - Parse floating-point numbers
-- `boolean` - Parse boolean values
-- `json` - Parse JSON strings
-
-#### Multiple Parsers
-
-If your enhancement needs multiple parsers, list them space-delimited:
-
-```html
-<be-hive>
-    <script type="emc-parser" src="parser1.js" parser-name="parser1"></script>
-    <script type="emc-parser" src="parser2.js" parser-name="parser2"></script>
-    
-    <!-- Wait for both parsers -->
-    <script type="emc" 
-            src="my-enhancement/emc.json" 
-            wait-for-parsers="parser1 parser2"></script>
-</be-hive>
-```
-
-#### Parser Timeout
-
-Configure parser loading timeout (default: 60 seconds):
-
-```html
-<script type="emc" 
-        src="my-enhancement/emc.json" 
-        wait-for-parsers="slowParser"
-        data-parser-timeout="120000"></script>
-```
-
-#### Programmatic Parser Registration
-
-For dynamic scenarios, register parsers via JavaScript:
-
-```javascript
-import { registerParser } from 'assign-gingerly/parserRegistry.js';
-
-// Load parser programmatically
-const parser = await import('./custom-parser.js');
-const beHive = document.getElementById('myHive');
-
-registerParser(beHive, 'customParser', parser.default);
-```
-
-#### Shadow DOM Syndication
-
-Parser registries are scoped to synthesizer elements and apply to all shadow roots within that scope:
-
-```html
-<!-- Syndicator in document root -->
-<be-hive>
-    <script type="emc-parser" src="parser.js" parser-name="myParser"></script>
-    <script type="emc" src="enhancement/emc.json" wait-for-parsers="myParser"></script>
-</be-hive>
-
-<!-- Component with shadow root -->
-<my-component>
-    #shadow
-        <!-- Subscriber receives scripts from syndicator -->
-        <be-hive></be-hive>
-        
-        <!-- Elements here can use the parser -->
-        <div my-enhancement="...">Content</div>
-</my-component>
-```
-
-#### Error Handling
-
-**Parser loading errors:**
-```html
-<!-- Parser module fails to load -->
-<script type="emc-parser" 
-        src="broken-parser.js" 
-        parser-name="broken"
-        data-parser-error="Module not found"></script>
-```
-
-**Parser waiting timeout:**
-```html
-<!-- EMC script times out waiting for parser -->
-<script type="emc" 
-        src="my-enhancement/emc.json" 
-        wait-for-parsers="missingParser"
-        data-emc-error="Timeout waiting for parsers: missingParser"></script>
-```
-
-#### Complete Example: do-invoke Custom Parser
-
-Here's how do-invoke would implement its custom parser:
-
-**1. Create parser.js:**
-
-```javascript
-// do-invoke/parser.js
-
-/**
- * Parse do-invoke attribute patterns:
- * - "methodName"
- * - "methodName on eventType"
- * - "#{{selector}}?.methodName"
- * - "#{{selector}}?.methodName on eventType"
- */
-export default function parseInvokeStatements(attrValue, context) {
-    if (!attrValue) {
-        // Infer from name attribute if no value
-        const methodName = context.element.getAttribute('name');
-        if (!methodName) return [];
-        return [{ remoteSpecifier: { prop: methodName } }];
-    }
-
-    // Pattern: "targetPart on eventType"
-    const withEventMatch = attrValue.match(/^(.+?)\s+on\s+(.+)$/);
-    if (withEventMatch) {
-        return [{
-            remoteSpecifier: parseTargetPart(withEventMatch[1]),
-            localEventType: withEventMatch[2].trim()
-        }];
-    }
-    
-    // Pattern: Just "targetPart"
-    return [{ remoteSpecifier: parseTargetPart(attrValue) }];
-}
-
-function parseTargetPart(targetPart) {
-    const trimmed = targetPart.trim();
-    
-    // Pattern: #{{selector}}?.prop
-    const selectorMatch = trimmed.match(/^#\{\{(.+?)\}\}\?\.(.+)$/);
-    if (selectorMatch) {
-        return {
-            selector: selectorMatch[1].trim(),
-            prop: selectorMatch[2].trim()
-        };
-    }
-    
-    // Just a method name
-    return { prop: trimmed };
-}
-```
-
-**2. Update emc.mjs:**
+Reference the built-in parser by name and pass your pattern configuration:
 
 ```javascript
 export const emc = {
@@ -725,7 +492,9 @@ export const emc = {
             base: 'do-invoke',
             _base: {
                 mapsTo: 'invokeParamSets',
-                parser: 'doInvokeParser'  // Reference to registered parser
+                parser: 'parse-pattern-statements',  // Built-in parser name
+                instanceOf: 'Array',                  // Result is an array
+                parserConfig: parsePatterns           // Your pattern configs
             }
         }
     },
@@ -740,138 +509,169 @@ export const emc = {
         }
     }
 };
+
+export function render() {
+    return JSON.stringify(emc, null, 4);
+}
+
+console.log(render());
 ```
 
-**3. Add parser script to HTML:**
+**Key Configuration Properties:**
 
-```html
-<be-hive>
-    <script type="emc-parser" 
-            src="do-invoke/parser.js" 
-            parser-name="doInvokeParser"></script>
-    <script type="emc" 
-            src="do-invoke/emc.json" 
-            wait-for-parsers="doInvokeParser"></script>
-</be-hive>
+- **`parser`**: String name of built-in parser (`'parse-pattern-statements'`)
+- **`parserConfig`**: Array of `PatternConfig` objects defining your patterns
+- **`instanceOf`**: `'Array'` since the parser returns an array of parsed statements
+- **`mapsTo`**: Property name where parsed result is stored (`'invokeParamSets'`)
+
+**Step 3: Ensure Type Definitions Match**
+
+Your type definitions should match the parser output structure:
+
+```typescript
+// types/do-invoke/types.d.ts
+
+export interface InvokingParameters {
+    targetPart: string;        // Captured from pattern
+    localEventType?: string;   // Optional, captured from pattern
+}
+
+export interface EndUserProps {
+    invokeParamSets: Array<InvokingParameters>;  // Array of parsed statements
+}
+
+export interface AllProps extends EndUserProps {
+    enhancedElement: Element;
+}
 ```
 
-#### Advanced Example: Using nested-regex-groups
+**Important:** The property names in your type (`targetPart`, `localEventType`) must match the capture group names in your regex patterns (`(?<targetPart>...)`, `(?<localEventType>...)`).
 
-For more complex parsing scenarios, use the `nested-regex-groups` library:
+#### Complete Working Example: do-invoke
 
-**1. Create parser.js with nested-regex-groups:**
+Here's the complete, tested implementation from do-invoke:
 
+**emc.mjs:**
 ```javascript
-// my-enhancement/parser.js
-import { parsePatterns } from 'nested-regex-groups';
+// @ts-check
 
-// Define patterns with dot notation for nested structures
-const patterns = [
+/** @import {EMC} from './types/mount-observer/types' */;
+/** @import {AllProps, Actions} from './types/do-invoke/types' */
+/** @import {RAConfig} from './types/roundabout/types' */
+/** @import {PatternConfig} from './types/nested-regex-groups/types' */
+
+/** @type {PatternConfig[]} */
+const parsePatterns = [
     {
-        name: 'fullComparison',
-        pattern: '^(?<trigger>on|off)\\s+when\\s+(?<lhs.id>#\\w+)(?:::(?<lhs.event>\\w+))?(?:\\?\\.(?<lhs.prop>\\w+))?\\s+(?<op>eq|gt|lt)\\s+(?<rhs.id>#\\w+)(?:::(?<rhs.event>\\w+))?(?:\\?\\.(?<rhs.prop>\\w+))?$',
-        description: 'Comparison with events and properties'
+        name: 'targetsPartOnEventType',
+        pattern: String.raw `^(?<targetPart>.*) on (?<localEventType>.*)`,
+        description: 'Method/selector with explicit event type'
     },
     {
-        name: 'simpleComparison',
-        pattern: '^(?<trigger>on|off)\\s+when\\s+(?<lhs.id>#\\w+)\\s+(?<op>eq)\\s+(?<rhs.id>#\\w+)$',
-        description: 'Simple comparison'
-    },
-    {
-        name: 'booleanCondition',
-        pattern: '^(?<trigger>on|off)\\s+when\\s+(?<lhs.id>#\\w+)$',
-        description: 'Boolean condition'
+        name: 'targetsPart',
+        pattern: String.raw `^(?<targetPart>.*)`,
+        description: 'Method/selector with default event type'
     }
 ];
 
-const parser = parsePatterns(patterns);
-
 /**
- * Parser function using nested-regex-groups
- * Parses: "on when #lhs::change?.weight gt #rhs?.weight"
- * Returns: { trigger: 'on', lhs: { id: '#lhs', event: 'change', prop: 'weight' }, op: 'gt', rhs: { id: '#rhs', prop: 'weight' } }
+ * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions> >}
  */
-export default function parse(attrValue, context) {
-    if (!attrValue) return null;
-    
-    const result = parser(attrValue);
-    
-    if (result.success) {
-        return result.value;
+export const emc = {
+    enhConfig: {
+        enhKey: 'DoInvoke',
+        spawn: 'do-invoke/do-invoke.js',
+        withAttrs: {
+            base: 'do-invoke',
+            _base: {
+                mapsTo: 'invokeParamSets',
+                parser: 'parse-pattern-statements',
+                instanceOf: 'Array',
+                parserConfig: parsePatterns
+            }
+        }
+    },
+    customData: {
+        weakRef: {
+            properties: ['enhancedElement']
+        },
+        actions: {
+            hydrate: {
+                ifAllOf: ['invokeParamSets', 'enhancedElement']
+            }
+        }
     }
-    
-    throw new Error(`Failed to parse: ${attrValue}. ${result.error}`);
+};
+
+export function render() {
+    return JSON.stringify(emc, null, 4);
+}
+
+console.log(render());
+```
+
+**types/do-invoke/types.d.ts:**
+```typescript
+export interface InvokingParameters {
+    targetPart: string;
+    localEventType?: string;
+}
+
+export interface EndUserProps {
+    invokeParamSets: Array<InvokingParameters>;
+}
+
+export interface AllProps extends EndUserProps {
+    enhancedElement: Element;
 }
 ```
 
-**Benefits of nested-regex-groups:**
-- Automatic nested object creation from dot notation in capture groups
-- Multiple pattern matching with priority order
-- Clean, readable pattern definitions
-- Better error messages with pattern names
-- Zero dependencies and TypeScript support
-
-**Example usage:**
+**Usage Examples:**
 ```html
-<!-- Input: "on when #lhs::change?.weight gt #rhs?.weight" -->
-<!-- Parsed to: -->
-{
-  trigger: 'on',
-  lhs: { id: '#lhs', event: 'change', prop: 'weight' },
-  op: 'gt',
-  rhs: { id: '#rhs', prop: 'weight' }
-}
+<!-- Pattern 1: Just method name (uses default event) -->
+<button do-invoke="handleClick">Click me</button>
+<!-- Parsed: [{ targetPart: "handleClick" }] -->
+
+<!-- Pattern 2: Method with explicit event -->
+<input do-invoke="handleInput on input" />
+<!-- Parsed: [{ targetPart: "handleInput", localEventType: "input" }] -->
 ```
 
-#### Best Practices
+#### Choosing the Right Parser
 
-1. **Keep parsers pure** - Parser functions should be stateless and deterministic
-2. **Handle null values** - Always check for `null` attribute values
-3. **Provide good error messages** - Throw descriptive errors for invalid input
-4. **Use context sparingly** - Only access context when necessary (keeps parsers simple)
-5. **Test thoroughly** - Parser bugs can be hard to debug, so test all edge cases
-6. **Document patterns** - Clearly document what attribute patterns your parser supports
-7. **Consider caching** - For expensive parsing, use the `parseCache` option in `AttrConfig`
+**Use `parse-pattern-statements` when:**
+- Your target object is flat (no nested properties)
+- You need to parse multiple statements (though do-invoke uses single statements)
+- Example: `InvokingParameters { targetPart: string, localEventType?: string }`
 
-#### Caching Parsed Values
-
-For expensive parsing operations, enable caching:
-
-```javascript
-withAttrs: {
-    base: 'my-enhancement',
-    _base: {
-        mapsTo: 'parsedValue',
-        parser: 'expensiveParser',
-        parseCache: 'shared'  // or 'cloned'
-    }
-}
-```
-
-**Cache modes:**
-- `'shared'` - Cache and reuse the same parsed object (fast, but enhancements must not mutate)
-- `'cloned'` - Cache and return a structural clone (safer, but slower)
+**Use custom parser (advanced) when:**
+- You need nested object structures (use dot notation in capture groups)
+- You need complex post-processing logic
+- Built-in parsers don't meet your needs
+- See [Scoped Parser Registry](https://github.com/bahrus/mount-observer#scoped-parser-registry-for-emc-scripts) for custom parser documentation
 
 #### Troubleshooting
 
-**Parser not found:**
-- Verify parser-name matches exactly
-- Check that emc-parser script loads before emc script
-- Ensure parser module exports a function as default
+**Parser not working:**
+- Verify `nested-regex-groups` is in dependencies
+- Check that capture group names match your type properties
+- Ensure `String.raw` is used for patterns with backslashes
+- Run `node emc.mjs` to verify JSON output includes `parserConfig`
 
-**Parser not being called:**
-- Verify the attribute name matches the withAttrs configuration
-- Check that the element has the attribute when it mounts
-- Look for errors in browser console
+**Type mismatches:**
+- Capture group names must exactly match type property names
+- Use optional properties (`?`) for optional capture groups
+- Ensure `instanceOf: 'Array'` when parser returns an array
 
-**Parsed value is wrong:**
-- Add console.log in parser to debug input/output
-- Verify regex patterns match your attribute syntax
-- Check for edge cases (empty strings, null, special characters)
+**Pattern not matching:**
+- Test patterns in order - first match wins
+- Use more specific patterns first
+- Check regex syntax with online regex testers
+- Remember `.*` is greedy - use `.*?` for non-greedy matching
 
 ---
 
-**Result:** If your enhancement requires custom parsing, you now have a parser module, HTML registration, and emc.mjs configuration. If not needed, skip this step and proceed to Step 8.
+**Result:** If your enhancement requires custom parsing, you now have pattern configurations in `emc.mjs` using built-in parsers. If not needed, skip this step and proceed to Step 8.
 
 ### Step 8: Configure VS Code File Nesting
 

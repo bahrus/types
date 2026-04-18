@@ -33,7 +33,7 @@ export interface ParseFailure {
 export type ParseResult<T = any> = ParseSuccess<T> | ParseFailure;
 
 /**
- * A pattern definition with metadata
+ * A pattern definition with metadata (internal use with compiled RegExp)
  */
 export interface ParsePattern {
   name: string;
@@ -44,6 +44,16 @@ export interface ParsePattern {
    * Example: { user_name: 'user.name', user_domain: 'user.domain' }
    */
   groupMap?: Record<string, string>;
+}
+
+/**
+ * Pattern configuration for parsePatterns and parsePattern functions
+ * Used when loading patterns from JSON or defining patterns as strings
+ */
+export interface PatternConfig {
+  name: string;
+  pattern: string;
+  description?: string;
 }
 
 /**

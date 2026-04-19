@@ -114,13 +114,7 @@ Update the package.json to use the modern architecture's dependencies and build 
    
    **Note:** Including `mount-observer` as a direct dependency ensures it's installed at the root `node_modules/` level, making it accessible via the import map and available for direct use in your code. The `nested-regex-groups` package is optional but recommended if your enhancement requires complex attribute parsing.
 
-3. Update the `devDependencies` section:
-   ```json
-   "devDependencies": {
-     "@playwright/test": "1.59.1",
-     "spa-ssi": "0.0.27"
-   }
-   ```
+3. **DO NOT modify the `devDependencies` section** - leave it as-is. The conversion only updates runtime dependencies, not development/testing dependencies.
 
 4. Ensure the `update` script exists in the `scripts` section:
    ```json
@@ -919,6 +913,7 @@ export { Be[ClassName] }
    - Copy all action methods (like addCloneBtn, setBtnContent, etc.)
    - Replace all `BAP` type annotations with `AP`
    - Keep the method implementations the same
+   - **Update import paths**: Replace `'mount-observer/refid/nudge.js'` with `'mount-observer/nudge.js'` (whether dynamic import or top-level import)
 
 5. **Apply default values** in the init method:
    - Extract `defaultPropVals` from `customData`: `const {defaultPropVals} = customData;`

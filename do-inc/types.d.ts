@@ -1,8 +1,11 @@
-export interface EndUserProps{}
+import { StatementsResult } from "../nested-regex-groups/types";
+
+export interface EndUserProps{
+    parsedStatements: StatementsResult<IncParameters>,
+}
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element;
-    parsedStatements: Array<IncParameters>,
     rawStatements: Array<string>,
 }
 

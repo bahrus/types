@@ -544,7 +544,17 @@ export interface AllProps extends EndUserProps {
 }
 ```
 
-**Important:** The property names in your type (`targetPart`, `localEventType`) must match the capture group names in your regex patterns (`(?<targetPart>...)`, `(?<localEventType>...)`).
+**Important:** 
+- The property names in your type (`targetPart`, `localEventType`) must match the capture group names in your regex patterns (`(?<targetPart>...)`, `(?<localEventType>...)`).
+- When using custom parsers, wrap your parsed property type with `StatementsResult<T>` from `nested-regex-groups`:
+  ```typescript
+  import { StatementsResult } from "../nested-regex-groups/types";
+  
+  export interface EndUserProps {
+      parsedStatements: StatementsResult<IncParameters>;
+  }
+  ```
+- The `StatementsResult<T>` type includes a `success` flag and a `statements` array containing your parsed data.
 
 #### Complete Working Example: do-invoke
 

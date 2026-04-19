@@ -1,10 +1,12 @@
+import { StatementsResult } from "../nested-regex-groups/types";
+
 export interface Specifier {
     selector?: string;
     prop?: string;
 }
 
 export interface EndUserProps{
-    invokeParamSets: Array<InvokingParameters>,
+    invokeParamSet: StatementsResult<InvokingParameters>,
 }
 
 export interface AllProps extends EndUserProps{
@@ -22,6 +24,8 @@ export interface Actions{
     hydrate(self: AP): ProPAP;
     init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
 }
+
+
 
 export interface InvokingParameters {
     targetSpecifier: {

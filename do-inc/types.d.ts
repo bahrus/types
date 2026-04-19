@@ -16,7 +16,7 @@ export type PAP = Partial<AP>;
 export type ProPAP  = Promise<PAP>
 
 export interface Actions{
-    hydrate(self: AP): ProPAP;
+    hydrate(self: AP & Actions): ProPAP;
     handleEvent(self: AP, event: Event, incParameters: IncParameters): void;
     init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
 }

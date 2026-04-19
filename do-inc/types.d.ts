@@ -17,7 +17,7 @@ export type ProPAP  = Promise<PAP>
 
 export interface Actions{
     hydrate(self: AP): ProPAP;
-    
+    handleEvent(self: AP, event: Event, incParameters: IncParameters): void;
 }
 
 export type asOptions = 
@@ -46,7 +46,9 @@ export interface Specifier {
 }
 
 export interface IncParameters {
-    targetSpecifier: Specifier,
-    sourceSpecifier: Specifier,
+    prop: string,
+    byAmtS?: string,
+    byAmtN?: number,
+    targetElementId?: string,
     localEventType?: string,
 }

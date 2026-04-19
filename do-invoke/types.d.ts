@@ -9,7 +9,7 @@ export interface EndUserProps{
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element;
-    rawStatements: Array<string>,
+    resolved: boolean;
 }
 
 export type AP = AllProps;
@@ -20,13 +20,14 @@ export type ProPAP  = Promise<PAP>
 
 export interface Actions{
     hydrate(self: AP): ProPAP;
+    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
 }
 
 export interface InvokingParameters {
     targetSpecifier: {
-        hostOrPeerMethodName?: string,
+        hostOrPeerMethodName: string,
         targetElementId?: string,
     },
     //defaults to "click" if not specified
-    localEventType?: string,
+    localEventType: string,
 }

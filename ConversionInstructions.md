@@ -5,10 +5,11 @@
 This document provides step-by-step instructions for converting legacy "be-*" enhancement projects to the modern architecture. The conversion process has been successfully applied to several projects including:
 
 - **[be-clonable](https://github.com/bahrus/be-clonable)** ⭐ **RECOMMENDED REFERENCE** - The most up-to-date implementation with the latest architectural improvements. Use this as your primary reference.
+- **[do-invoke](https://github.com/bahrus/do-invoke)** ⭐ **CUSTOM PARSER REFERENCE** - The first conversion using custom parser integration with nested paths and default values. Use this as your reference for complex attribute parsing.
 - [be-committed](https://github.com/bahrus/be-committed)
 - [be-decked-with](https://github.com/bahrus/be-decked-with)
 
-Each of these repositories contains a "legacy" folder showing the original implementation for reference. When in doubt about implementation details, refer to be-clonable first as it demonstrates the cleanest, most refined patterns.
+Each of these repositories contains a "legacy" folder showing the original implementation for reference. When in doubt about implementation details, refer to be-clonable first as it demonstrates the cleanest, most refined patterns. For custom parser implementations, refer to do-invoke.
 
 **Note:** be-a-beacon is intentionally not listed as a reference because its requirements are too simple - it just fires an event on construction without needing reactive properties or actions, making it an outlier that doesn't benefit from the roundabout architecture.
 
@@ -419,6 +420,7 @@ Some be-* enhancements require **custom attribute parsers** to transform complex
 **References:** 
 - [nested-regex-groups](https://github.com/bahrus/nested-regex-groups) - Documentation for the parsing library
 - [nested-regex-groups npm](https://www.npmjs.com/package/nested-regex-groups) - Install with `npm install nested-regex-groups`
+- **[do-invoke](https://github.com/bahrus/do-invoke)** ⭐ - Complete working example demonstrating custom parser with nested paths and default values
 
 **Key Insight:** You don't need to write custom parser functions! The `nested-regex-groups` package provides built-in parsers that you configure with pattern definitions in your `emc.mjs` file.
 
@@ -549,7 +551,7 @@ export interface AllProps extends EndUserProps {
 
 #### Complete Working Example: do-invoke
 
-Here's the complete, tested implementation from do-invoke:
+Here's the complete, tested implementation from do-invoke that demonstrates nested paths and default values:
 
 **emc.mjs:**
 ```javascript
@@ -560,17 +562,35 @@ Here's the complete, tested implementation from do-invoke:
 /** @import {RAConfig} from './types/roundabout/types' */
 /** @import {PatternConfig} from './types/nested-regex-groups/types' */
 
+const defaultVals = {
+    localEventType: 'click'
+};
+
 /** @type {PatternConfig[]} */
 const parsePatterns = [
     {
-        name: 'targetsPartOnEventType',
-        pattern: String.raw `^(?<targetPart>.*) on (?<localEventType>.*)`,
-        description: 'Method/selector with explicit event type'
+        name: 'idWithMethodAndEvent',
+        pattern: String.raw `^#(?<targetSpecifier.targetElementId>[^?]+)\?\.(?<targetSpecifier.hostOrPeerMethodName>\w+) on (?<localEventType>\w+)$`,
+        description: 'Element ID with method and explicit event type: #{{id}}?.method on event',
+        defaultVals,
     },
     {
-        name: 'targetsPart',
-        pattern: String.raw `^(?<targetPart>.*)`,
-        description: 'Method/selector with default event type'
+        name: 'idWithMethod',
+        pattern: String.raw `^#(?<targetSpecifier.targetElementId>[^?]+)\?\.(?<targetSpecifier.hostOrPeerMethodName>\w+)$`,
+        description: 'Element ID with method, default event: #{{id}}?.method',
+        defaultVals,
+    },
+    {
+        name: 'methodWithEvent',
+        pattern: String.raw `^(?<targetSpecifier.hostOrPeerMethodName>\w+) on (?<localEventType>\w+)$`,
+        description: 'Method name with explicit event type: method on event',
+        defaultVals,
+    },
+    {
+        name: 'methodOnly',
+        pattern: String.raw `^(?<targetSpecifier.hostOrPeerMethodName>\w+)$`,
+        description: 'Method name only, default event: method',
+        defaultVals,
     }
 ];
 
@@ -584,7 +604,7 @@ export const emc = {
         withAttrs: {
             base: 'do-invoke',
             _base: {
-                mapsTo: 'invokeParamSets',
+                mapsTo: 'invokeParamSet',
                 parser: 'parse-pattern-statements',
                 instanceOf: 'Array',
                 parserConfig: parsePatterns
@@ -597,7 +617,7 @@ export const emc = {
         },
         actions: {
             hydrate: {
-                ifAllOf: ['invokeParamSets', 'enhancedElement']
+                ifAllOf: ['invokeParamSet', 'enhancedElement']
             }
         }
     }
@@ -612,29 +632,51 @@ console.log(render());
 
 **types/do-invoke/types.d.ts:**
 ```typescript
+import { StatementsResult } from "../nested-regex-groups/types";
+
 export interface InvokingParameters {
-    targetPart: string;
-    localEventType?: string;
+    targetSpecifier: {
+        hostOrPeerMethodName: string,
+        targetElementId?: string,
+    },
+    // defaults to "click" if not specified
+    localEventType: string,
 }
 
 export interface EndUserProps {
-    invokeParamSets: Array<InvokingParameters>;
+    invokeParamSet: StatementsResult<InvokingParameters>;
 }
 
 export interface AllProps extends EndUserProps {
     enhancedElement: Element;
+    resolved: boolean;
 }
 ```
 
+**Key Features Demonstrated:**
+
+1. **Nested paths**: Using dot notation like `targetSpecifier.hostOrPeerMethodName` creates nested object structures
+2. **Default values**: The `defaultVals` object provides defaults for `localEventType: 'click'`
+3. **Multiple patterns**: Four patterns handle different syntax variations, ordered from most specific to least specific
+4. **StatementsResult type**: The parser returns a `StatementsResult<InvokingParameters>` which includes `success` flag and `statements` array
+
 **Usage Examples:**
 ```html
-<!-- Pattern 1: Just method name (uses default event) -->
+<!-- Pattern 1: Method only (uses default click event) -->
 <button do-invoke="handleClick">Click me</button>
-<!-- Parsed: [{ targetPart: "handleClick" }] -->
+<!-- Parsed: { targetSpecifier: { hostOrPeerMethodName: "handleClick" }, localEventType: "click" } -->
 
 <!-- Pattern 2: Method with explicit event -->
 <input do-invoke="handleInput on input" />
-<!-- Parsed: [{ targetPart: "handleInput", localEventType: "input" }] -->
+<!-- Parsed: { targetSpecifier: { hostOrPeerMethodName: "handleInput" }, localEventType: "input" } -->
+
+<!-- Pattern 3: Element ID with method (uses default click event) -->
+<button do-invoke="#{{soul-searching}}?.engage">What have I done?</button>
+<!-- Parsed: { targetSpecifier: { targetElementId: "soul-searching", hostOrPeerMethodName: "engage" }, localEventType: "click" } -->
+
+<!-- Pattern 4: Element ID with method and explicit event -->
+<button do-invoke="#{{soul-searching}}?.engage on mouseover">Hover me</button>
+<!-- Parsed: { targetSpecifier: { targetElementId: "soul-searching", hostOrPeerMethodName: "engage" }, localEventType: "mouseover" } -->
 ```
 
 #### Choosing the Right Parser
@@ -1091,13 +1133,37 @@ Update test and demo HTML files to use the modern be-hive registration pattern.
    - Replace `[project-name]` with your actual project name (e.g., `be-delible`)
    - **Important**: Reference `emc.json` (not `emc.mjs`) - this reduces dependency on special web server behavior and makes the markup portable across different hosting environments without modification
 
-2. **Update demo files** (e.g., `demo/dev.html`) with the same pattern
+2. **If using custom parsers (Step 7a), register the parser in HTML:**
+   - When your enhancement uses a custom parser like `parse-pattern-statements`, you must register it in the HTML before loading the EMC configuration
+   - Add a `<script type=emc-parser>` tag that loads the parser and assigns it a name
+   - Use `wait-for-parsers` attribute on the EMC script to ensure the parser is loaded first
+   - Example for enhancements using `parse-pattern-statements`:
+     ```html
+     <be-hive>
+         <script type=emc-parser 
+                 src="be-hive/parsers/parse-pattern-statements.js" 
+                 parser-name=parse-pattern-statements></script>
+         <script type=emc 
+                 src="do-invoke/🕹️.json" 
+                 wait-for-parsers=parse-pattern-statements></script>
+     </be-hive>
+     <script type=module>
+         import 'be-hive/be-hive.js';
+     </script>
+     ```
+   - **Key attributes:**
+     - `type=emc-parser` - Identifies this as a parser registration script
+     - `src` - Path to the parser module (e.g., `be-hive/parsers/parse-pattern-statements.js`)
+     - `parser-name` - The name you used in `emc.mjs` for the `parser` property
+     - `wait-for-parsers` - Comma-separated list of parser names to wait for before processing the EMC
 
-3. **Update test selectors** in test files:
+3. **Update demo files** (e.g., `demo/dev.html`) with the same pattern
+
+4. **Update test selectors** in test files:
    - Change button selectors from generic `button` to the specific class (e.g., `.be-delible-trigger`)
    - Verify test logic matches the enhancement behavior
 
-4. **Update playwright.config.ts** to only run Chrome tests:
+5. **Update playwright.config.ts** to only run Chrome tests:
    - Comment out firefox and webkit projects
    - Add a comment explaining that Chrome 146+ features are required (JSON imports with type assertion)
    - Example:
@@ -1119,11 +1185,51 @@ Update test and demo HTML files to use the modern be-hive registration pattern.
      ],
      ```
 
+**Complete Working Example (do-invoke):**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example 1a</title>
+    <!-- #include virtual="/imports.html" -->
+    <be-hive>
+        <script type=emc-parser 
+                src="be-hive/parsers/parse-pattern-statements.js" 
+                parser-name=parse-pattern-statements></script>
+        <script type=emc 
+                src="do-invoke/🕹️.json" 
+                wait-for-parsers=parse-pattern-statements></script>
+    </be-hive>
+    <script type=module>
+        import 'be-hive/be-hive.js';
+        class MoodStone extends HTMLElement{
+            howAmIFeelingAboutToday(targetElement, event){
+                console.log({targetElement, event});
+            }
+        }
+        customElements.define('mood-stone', MoodStone);
+    </script>
+</head>
+<body>
+    <mood-stone itemscope>
+        <button 🕹️=howAmIFeelingAboutToday>Feeling great</button>
+    </mood-stone>
+</body>
+</html>
+```
+
 **Common Issues:**
 
 - **Module resolution errors**: If you see "Failed to resolve module specifier" errors for utilities like `findAdjacentElement`, ensure you're importing from `be-hive/findAdjacentElement.js` (not `trans-render/lib/findAdjacentElement.js`)
 - **Compact/Action conflicts**: If roundabout reports "Method X is invoked by both a compact and an action", remove the method from the `actions` section in emc.mjs - compacts already handle the invocation
 - **WeakRef properties**: Ensure any properties that store element references (like `trigger`, `button`, etc.) are listed in `customData.weakRef.properties` in emc.mjs
+- **Parser not found**: If you get errors about parser not being found, ensure:
+  - The `parser-name` attribute matches the `parser` value in your `emc.mjs`
+  - The `wait-for-parsers` attribute lists all required parsers
+  - The parser script loads before the EMC script
 
 **Result:** Tests and demos should now work with the modern architecture. Run `npm test` to verify.
 ---

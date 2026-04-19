@@ -151,13 +151,16 @@ Create or update the imports.html file to use the modern import map pattern.
                "[project-name]/": "/",
                "be-hive/":  "/node_modules/be-hive/",
                "mount-observer/": "/node_modules/mount-observer/",
-               "roundabout-lib/": "/node_modules/roundabout-lib/"
+               "roundabout-lib/": "/node_modules/roundabout-lib/",
+               "id-generation/": "/node_modules/id-generation/",
+               "nested-regex-groups/": "/node_modules/nested-regex-groups/"
            }
        }
    </script>
    ```
 2. Replace `[project-name]` with your actual project name (e.g., `be-clonable`)
 3. The key difference: the project itself maps to `"/"` (root), while dependencies map to `/node_modules/[package]/`
+4. **Note:** The `id-generation` and `nested-regex-groups` entries are required if your enhancement uses custom parsers (Step 7a). If you're not using custom parsers, these can be omitted.
 
 **Result:** Your imports.html file should now provide proper import mappings for the browser.
 

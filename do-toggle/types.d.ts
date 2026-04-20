@@ -26,6 +26,6 @@ export interface Actions{
 }
 
 export interface TogglingParameters {
-    remoteSpecifier: Specifier;
+    prop: string;
     localEventType?: string;
 }

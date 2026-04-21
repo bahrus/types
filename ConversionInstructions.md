@@ -1243,3 +1243,127 @@ Update test and demo HTML files to use the modern be-hive registration pattern.
 ---
 
 *This document is a living guide that will be expanded with detailed instructions for each conversion step.*
+
+
+## Lessons Learned from Recent Conversions
+
+### Emoji Shorthand Configuration (⏻.mjs)
+
+**Issue:** When creating emoji shorthand files, the generated JSON was missing the `customData` section, causing the enhancement to fail silently.
+
+**Solution:** Always include `customData` when spreading the base configuration:
+
+```javascript
+const emc = {
+    enhConfig: {
+        ...myJSON.enhConfig,
+        enhKey: '⏻',
+        withAttrs: {
+            ...myJSON.enhConfig.withAttrs,
+            base: '⏻'
+        }
+    },
+    customData: myJSON.customData  // ← CRITICAL: Don't forget this!
+}
+```
+
+**Why:** The `customData` section contains essential configuration for roundabout:
+- `actions` - Defines when methods should be called
+- `weakRef` - Specifies which properties should use weak references
+- `compacts` - Defines property change handlers
+- `defaultPropVals` - Default property values
+
+Without `customData`, roundabout won't know how to initialize the enhancement, and the enhancement will appear to load but won't respond to events.
+
+### Property Inference from Name Attribute
+
+**Issue:** When implementing inference from the `name` attribute (for empty attribute values like `⏻` with no value), the inferred statement structure must match the parser's output structure.
+
+**Solution:** Ensure the inferred statement matches your type definitions:
+
+```javascript
+// If using simple structure with just 'prop':
+if(statements.length === 0){
+    const name = enhancedElement.getAttribute('name');
+    if(name){
+        statements.push({
+            value: {
+                prop: name,              // ← Match your TogglingParameters type
+                localEventType: 'click'
+            }
+        });
+    }
+}
+```
+
+**Don't use nested structures** like `remoteSpecifier: { targetPart: name }` unless your types actually define that structure.
+
+### Chained Accessor Syntax for Selectors
+
+**Issue:** When using selectors with properties like `[#myLight].isOn`, the simple period `.` conflicts with statement splitting (periods are used to separate multiple statements in a single attribute).
+
+**Solution:** Use the chained accessor `?.` syntax instead:
+
+```html
+<!-- ❌ Wrong - period conflicts with statement splitting -->
+<button ⏻="[#myLight].isOn">Toggle</button>
+
+<!-- ✅ Correct - chained accessor avoids conflict -->
+<button ⏻="[#myLight]?.isOn">Toggle</button>
+```
+
+**Implementation:** Update your regex patterns to match `?.` instead of `.`:
+
+```javascript
+// Match [selector]?.property instead of [selector].property
+const selectorMatch = prop.match(/^\[(.+?)\](?:\?\.(.+))?$/);
+```
+
+**Why:** The `parse-grouped-capture-statements` parser splits on periods to handle multiple statements like `prop1. prop2. prop3`. Using `?.` avoids this conflict while maintaining readable syntax.
+
+### Parser Selection: parse-grouped-capture-statements vs parse-pattern-statements
+
+**When to use `parse-grouped-capture-statements`:**
+- Your target object is **flat** (no nested properties)
+- Example: `{ prop: "isHappy", localEventType: "click" }`
+- Lighter weight, simpler patterns
+- Good for most basic enhancements
+
+**When to use `parse-pattern-statements`:**
+- You need **nested object structures** using dot notation in capture groups
+- Example: `{ targetSpecifier: { hostOrPeerMethodName: "method" }, localEventType: "click" }`
+- Required when using `dssKeys` for DSS (DOM Selector Syntax) parsing
+- Heavier footprint but more powerful
+
+**Key difference:** The parser choice affects your type definitions and how you structure parsed data. Choose based on your data structure needs, not syntax complexity.
+
+### Testing Strategy
+
+**Start simple, then expand:**
+
+1. **Get the basic case working first** (Example1a - simple property toggle on host)
+2. **Add inference** (Example1aInfer - infer from name attribute)
+3. **Add event customization** (Example1b - custom event types)
+4. **Add selector support** (Example1c - toggle peer elements)
+
+**Don't try to implement all features at once.** Each step builds on the previous one and helps identify issues early.
+
+### Common Pitfalls
+
+1. **Missing customData in emoji JSON** - Enhancement loads but doesn't work
+2. **Type mismatch in inference** - Using nested structure when types expect flat structure
+3. **Wrong parser in HTML** - HTML references `parse-pattern-statements` but emc.mjs uses `parse-grouped-capture-statements`
+4. **Period vs chained accessor** - Using `.` instead of `?.` for selector properties
+5. **Forgetting to rebuild** - After changing emc.mjs or emoji.mjs, always run `npm run build`
+
+### Debugging Tips
+
+1. **Check the generated JSON** - Verify emc.json and emoji.json have all expected sections
+2. **Console log parsedStatements** - Add `console.log({parsedStatements})` in hydrate to see what the parser produced
+3. **Verify parser loading** - Check browser console for "Parser not found" errors
+4. **Test incrementally** - Get one example working before moving to the next
+5. **Compare with working examples** - Look at do-inc and do-invoke for reference patterns
+
+---
+
+*Last updated: April 2026 - Based on do-toggle conversion experience*

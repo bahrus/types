@@ -1,10 +1,5 @@
 import { StatementsResult } from "../nested-regex-groups/types";
 
-export interface Specifier {
-    selector?: string;
-    prop?: string;
-}
-
 export interface EndUserProps{}
 
 export interface AllProps extends EndUserProps{

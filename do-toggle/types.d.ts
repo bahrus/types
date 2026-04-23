@@ -21,6 +21,6 @@ export interface Actions{
 }
 
 export interface TogglingParameters {
-    prop: string;
+    prop?: string | null;
     localEventType?: string;
 }

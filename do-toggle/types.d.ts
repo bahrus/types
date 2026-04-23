@@ -19,7 +19,6 @@ export interface Actions{
     init(self: AllProps, enhancedElement: Element, initVals: PAP): void;
     hydrate(self: AP): ProPAP;
     handleEvent(self: AP, e: Event, parsedStatement: TogglingParameters): void;
-    //infer(el: Element & ElementEnhancementGateway) : Promise<ElementInfer>
 }
 
 export interface TogglingParameters {

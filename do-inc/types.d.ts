@@ -1,3 +1,4 @@
+import { ElementEnhancementGateway } from "../assign-gingerly/types";
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface EndUserProps{
@@ -5,7 +6,7 @@ export interface EndUserProps{
 }
 
 export interface AllProps extends EndUserProps{
-    enhancedElement: Element;
+    enhancedElement: Element & ElementEnhancementGateway;
     resolved: boolean;
 }
 
@@ -34,20 +35,20 @@ export type asOptions =
 export type SubPropPath = string;
 export type EventName = string;
 
-export interface Specifier {
-    id?: string,
-    prop?: string,
-    path?: SubPropPath,
-    evtName?: EventName,
-    as?: asOptions,
-    constVal?: any;
-    enhKey?: string;
-    ish?: boolean;
-    host?: boolean;
-}
+// export interface Specifier {
+//     id?: string,
+//     prop?: string,
+//     path?: SubPropPath,
+//     evtName?: EventName,
+//     as?: asOptions,
+//     constVal?: any;
+//     enhKey?: string;
+//     ish?: boolean;
+//     host?: boolean;
+// }
 
 export interface IncParameters {
-    prop: string,
+    prop?: string | null,
     byAmtS?: string,
     byAmtN?: number,
     targetElementId?: string,

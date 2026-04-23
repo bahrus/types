@@ -298,9 +298,15 @@ export declare function assignGingerly(
 export default assignGingerly;
 
 export declare class ElementEnhancementGateway{
+  //TODO:  this isn't right
   enh: ElementEnhancement;
 }
 
 export interface ElementEnhancement{
   dispose(regItem: EnhancementConfig): void;
+}
+
+export interface ElementInfer{
+  value: any;
+  eventType: string
 }

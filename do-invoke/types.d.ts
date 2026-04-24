@@ -1,3 +1,4 @@
+import { ElementEnhancementGateway } from "../assign-gingerly/types";
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface Specifier {
@@ -10,7 +11,7 @@ export interface EndUserProps{
 }
 
 export interface AllProps extends EndUserProps{
-    enhancedElement: Element;
+    enhancedElement: Element & ElementEnhancementGateway;
     resolved: boolean;
 }
 

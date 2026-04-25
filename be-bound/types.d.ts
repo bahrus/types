@@ -19,7 +19,8 @@ export interface BindingRule {
     
     localProp?: string,
     localEvent?: string,
-    remoteSpecifierString?: string,
+    remoteId?: string,
+    remoteProp?: string,
     remoteSpecifier?: Specifier,
 
 

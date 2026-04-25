@@ -305,8 +305,3 @@ export declare class ElementEnhancementGateway{
 export interface ElementEnhancement{
   dispose(regItem: EnhancementConfig): void;
 }
-
-export interface ElementInfer{
-  value: any;
-  eventType: string
-}

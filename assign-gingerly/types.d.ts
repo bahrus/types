@@ -226,6 +226,7 @@ export interface IAssignGingerlyOptions {
   registry?: typeof EnhancementRegistry | EnhancementRegistry;
   bypassChecks?: boolean;
   withMethods?: string[] | Set<string>;
+  aka?: Record<string, string>;
 }
 
 /**

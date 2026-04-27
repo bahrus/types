@@ -227,6 +227,13 @@ export interface IAssignGingerlyOptions {
   bypassChecks?: boolean;
   withMethods?: string[] | Set<string>;
   aka?: Record<string, string>;
+  
+  /**
+   * AbortSignal for cleaning up reactive subscriptions (@eachTime)
+   * Required when using @eachTime symbol for reactive iteration
+   * When the signal is aborted, all event listeners are automatically removed
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -243,7 +250,6 @@ export declare class EnhancementRegisteredEvent extends Event {
  * Extends EventTarget to dispatch events when configs are registered
  */
 export declare class EnhancementRegistry extends EventTarget {
-  private items;
   push(items: EnhancementConfig | EnhancementConfig[]): void;
   getItems(): EnhancementConfig[];
   findBySymbol(symbol: symbol | string): EnhancementConfig | undefined;

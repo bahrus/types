@@ -310,5 +310,7 @@ export declare class ElementEnhancementGateway{
 }
 
 export interface ElementEnhancement{
-  dispose(regItem: EnhancementConfig): void;
+  get(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): any;
+  dispose(registryItem: EnhancementConfig | string | symbol): void;
+  whenResolved(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): Promise<any>;
 }

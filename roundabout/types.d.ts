@@ -28,8 +28,7 @@ export interface LogicOp<Props = any, TActions = Props>{
 
 /**
  * Extends LogicOp with a `do` property for specifying which function to call.
- * Used by positractions (where the function is generic and view-model-neutral)
- * and rarely needed for actions (where the action key IS the method name).
+ * Used by positractions where the function is generic and view-model-neutral.
  */
 export interface LogicOpWithDo<Props = any, TActions = Props> extends LogicOp<Props, TActions>{
     do?:

@@ -128,6 +128,12 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
      * - Diamond dependencies (A→B, A→C, B→D, C→D)
      */
     internalRouting?: boolean,
+
+    /**
+     * Options passed to every internal assignGingerly call.
+     * See IAssignGingerlyOptions in assign-gingerly for details.
+     */
+    assignGingerlyOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
     
 
 }

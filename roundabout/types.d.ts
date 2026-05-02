@@ -52,6 +52,7 @@ export type Compacts<TProps = any, TActions = TProps> =
     | Partial<{[key in `when_${keyof TProps & string}_changes_toggle_${keyof TProps & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_inc_${keyof TProps & string}_by`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}> //TODO
+    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
 ;
 
 export type Hitches<TProps = any, TActions = TProps> = 

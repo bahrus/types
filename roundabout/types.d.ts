@@ -24,11 +24,18 @@ export interface LogicOp<Props = any, TActions = Props>{
 
     delay?: number,
 
+}
+
+/**
+ * Extends LogicOp with a `do` property for specifying which function to call.
+ * Used by positractions (where the function is generic and view-model-neutral)
+ * and rarely needed for actions (where the action key IS the method name).
+ */
+export interface LogicOpWithDo<Props = any, TActions = Props> extends LogicOp<Props, TActions>{
     do?:
         | Function
         | (keyof TActions & string)
         | PropsToProps<Props>
-
 }
 
 export type Actions<TProps = any, TActions = TProps> = 
@@ -58,7 +65,7 @@ export type Handlers<ETProps = any, TActions = ETProps> =
     export type Positractions<TProps = any, TActions = TProps> = 
     | Array<Positraction<TProps, TActions>>;
 
-export interface Positraction<TProps = any, TActions = TProps> extends LogicOp<TProps, TActions> {
+export interface Positraction<TProps = any, TActions = TProps> extends LogicOpWithDo<TProps, TActions> {
     do: 
         | Function 
         | (keyof TActions & string)

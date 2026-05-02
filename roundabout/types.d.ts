@@ -98,7 +98,7 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps,
     compacts?: Compacts<TProps, TActions>,
     //onsets?: Onsets<TProps, TActions>,
     handlers?: Handlers<ETProps, TActions>,
-    hitch?: Hitches<TProps, TActions>,
+    hitches?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
     merges?: Merges<TProps>,
     /**

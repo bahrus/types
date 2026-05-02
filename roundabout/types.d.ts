@@ -77,6 +77,22 @@ export interface Positraction<TProps = any, TActions = TProps> extends LogicOpWi
     assignTo?: Array<null | (keyof TProps & string)>
 }
 
+/**
+ * A merge is a fully JSON-serializable reactive rule.
+ * When its conditions are met, it calls assignFrom(vm, assignFrom, { from: vm })
+ * to resolve RHS path strings against the vm and assign the results into the vm.
+ * No method or code is required.
+ */
+export interface Merge<TProps = any> extends LogicOp<TProps> {
+    /**
+     * Pattern object whose keys are LHS assignGingerly paths and whose
+     * values are RHS `?.`-prefixed path strings resolved against the vm.
+     */
+    assign: Record<string, any>;
+}
+
+export type Merges<TProps = any> = Array<Merge<TProps>>;
+
 export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
@@ -84,6 +100,7 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps,
     handlers?: Handlers<ETProps, TActions>,
     hitch?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
+    merges?: Merges<TProps>,
     /**
      * Configure automatic WeakRef wrapping for properties
      * 

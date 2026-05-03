@@ -116,15 +116,15 @@ Update the package.json to use the modern architecture's dependencies and build 
 
 3. **DO NOT modify the `devDependencies` section** - leave it as-is. The conversion only updates runtime dependencies, not development/testing dependencies.
 
-4. Ensure the `update` script exists in the `scripts` section:
+4. Verify the `update` script exists in the `scripts` section:
    ```json
    "update": "ncu -u && npm install"
    ```
-   This script uses npm-check-updates (ncu) to update all dependencies to their latest versions.
+   This script uses npm-check-updates (ncu) to update all dependencies to their latest versions. If it's missing, add it.
 
-5. Run `npm run update` to fetch the latest versions of all dependencies
+5. Run `npm run update` to fetch and install the latest versions of all dependencies
 
-**IMPORTANT:** After updating package.json, you MUST run `npm run update` (or `npm install`) to install the new dependencies before proceeding with the conversion. The subsequent steps require these packages to be installed.
+**IMPORTANT:** After updating package.json, you MUST run `npm run update` to install the new dependencies before proceeding with the conversion. The subsequent steps require these packages to be installed. Use `npm run update` (not `npm install`) to ensure you get the latest compatible versions.
 
 **Result:** Your package.json should now use the modern dependency set, and running the update script will ensure you have the latest compatible versions.
 

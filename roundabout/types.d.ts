@@ -24,11 +24,17 @@ export interface LogicOp<Props = any, TActions = Props>{
 
     delay?: number,
 
+}
+
+/**
+ * Extends LogicOp with a `do` property for specifying which function to call.
+ * Used by positractions where the function is generic and view-model-neutral.
+ */
+export interface LogicOpWithDo<Props = any, TActions = Props> extends LogicOp<Props, TActions>{
     do?:
         | Function
         | (keyof TActions & string)
         | PropsToProps<Props>
-
 }
 
 export type Actions<TProps = any, TActions = TProps> = 
@@ -46,6 +52,8 @@ export type Compacts<TProps = any, TActions = TProps> =
     | Partial<{[key in `when_${keyof TProps & string}_changes_toggle_${keyof TProps & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_inc_${keyof TProps & string}_by`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}> //TODO
+    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
+    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
 ;
 
 export type Hitches<TProps = any, TActions = TProps> = 
@@ -58,7 +66,7 @@ export type Handlers<ETProps = any, TActions = ETProps> =
     export type Positractions<TProps = any, TActions = TProps> = 
     | Array<Positraction<TProps, TActions>>;
 
-export interface Positraction<TProps = any, TActions = TProps> extends LogicOp<TProps, TActions> {
+export interface Positraction<TProps = any, TActions = TProps> extends LogicOpWithDo<TProps, TActions> {
     do: 
         | Function 
         | (keyof TActions & string)
@@ -71,13 +79,30 @@ export interface Positraction<TProps = any, TActions = TProps> extends LogicOp<T
     assignTo?: Array<null | (keyof TProps & string)>
 }
 
+/**
+ * A merge is a fully JSON-serializable reactive rule.
+ * When its conditions are met, it calls assignFrom(vm, assignFrom, { from: vm })
+ * to resolve RHS path strings against the vm and assign the results into the vm.
+ * No method or code is required.
+ */
+export interface Merge<TProps = any> extends LogicOp<TProps> {
+    /**
+     * Pattern object whose keys are LHS assignGingerly paths and whose
+     * values are RHS `?.`-prefixed path strings resolved against the vm.
+     */
+    assign: Record<string, any>;
+}
+
+export type Merges<TProps = any> = Array<Merge<TProps>>;
+
 export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
     //onsets?: Onsets<TProps, TActions>,
     handlers?: Handlers<ETProps, TActions>,
-    hitch?: Hitches<TProps, TActions>,
+    hitches?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
+    merges?: Merges<TProps>,
     /**
      * Configure automatic WeakRef wrapping for properties
      * 
@@ -128,6 +153,12 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
      * - Diamond dependencies (A→B, A→C, B→D, C→D)
      */
     internalRouting?: boolean,
+
+    /**
+     * Options passed to every internal assignGingerly call.
+     * See IAssignGingerlyOptions in assign-gingerly for details.
+     */
+    assignGingerlyOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
     
 
 }

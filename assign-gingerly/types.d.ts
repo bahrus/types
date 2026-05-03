@@ -212,6 +212,13 @@ export interface SpawnContext<T = any, TMountContext = any> {
    * Used for scoped parser registry access during attribute parsing.
    */
   synthesizerElement?: Element;
+  /**
+   * The full EMC configuration object that triggered this spawn.
+   * Passed through so enhancement classes can access their full configuration
+   * (including customData) without needing to separately import the JSON file.
+   * This avoids duplicate JSON imports when using emoji shorthand aliases.
+   */
+  emc?: any;
 }
 
 /**

@@ -1,6 +1,6 @@
 // Core types for MountObserver v2 - Polyfill Supported Scenario I
 
-import {Spawner, EnhancementConfigBase, EnhKey, AttrPatterns} from '../assign-gingerly/types';
+import {EnhancementConfigBase, EnhKey, AttrPatterns} from '../assign-gingerly/types';
 
 export type Constructor = new (...args: any[]) => any;
 

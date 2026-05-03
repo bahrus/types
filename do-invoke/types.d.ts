@@ -1,4 +1,4 @@
-import { ElementEnhancementGateway } from "../assign-gingerly/types";
+import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface Specifier {
@@ -23,7 +23,7 @@ export type ProPAP  = Promise<PAP>
 
 export interface Actions{
     hydrate(self: AP): ProPAP;
-    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
+    init(self: AP, enhancedElement: Element, ctx: SpawnContext, initVals: PAP): Promise<void>
 }
 
 

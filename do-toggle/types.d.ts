@@ -1,4 +1,4 @@
-import { ElementEnhancementGateway, ElementInfer } from "../assign-gingerly/types";
+import { ElementEnhancementGateway } from "../assign-gingerly/types";
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface EndUserProps{}

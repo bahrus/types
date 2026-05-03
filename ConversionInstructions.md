@@ -844,33 +844,29 @@ Transform the legacy enhancement class to use the modern architecture with round
 2. **No static config**: Configuration is now in emc.mjs, not in the class
 3. **Constructor pattern**: Uses constructor with enhancedElement, ctx, and initVals parameters
 4. **No WeakRef boilerplate**: The roundabout library automatically handles weak references for properties listed in `customData.weakRef.properties`
-5. **Simplified init method**: All initial values (enhancedElement, defaults, and initVals) are passed through roundabout's `initialPropVals` option
+5. **Configuration from ctx, not JSON import**: The `ctx` parameter (typed as `SpawnContext`) carries the full EMC configuration via `ctx.emc`, so the enhancement class does NOT need to import `emc.json`. This avoids duplicate JSON parsing when both the canonical name and emoji shorthand are used.
 6. **Single library call**: Only roundabout is called - no separate assignGingerly import needed
-7. **Module-level customData**: Extract customData from emc at the module level for reuse
-8. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
-9. **BAP → AP**: Replace all BAP type references with AP
+7. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
+8. **BAP → AP**: Replace all BAP type references with AP
 
 **Instructions:**
 
-1. Create `be-[project-name].js` in your project root
-2. Start with the required imports:
+1. Create `be-[project-name].js` (or `do-[project-name].js`) in your project root
+2. Start with the required imports — note there is **no `emc.json` import**:
 
 ```javascript
 // @ts-check
 /** @import {Actions, PAP, AllProps, AP} from './types/[project-name]/types' */;
 /** @import {RoundaboutOptions} from './types/roundabout/types' */;
-/** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
+/** @import {ElementEnhancementGateway, SpawnContext} from './types/assign-gingerly/types' */;
 /** @import {EMC} from './types/mount-observer/types' */;
 /** @import {RAConfig} from './types/roundabout/types' */;
-/**
- * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
- */
-import emc from './emc.json' with {type: 'json'};
-
-const {customData} = emc;
 ```
 
-**Important:** The class imports the generated `emc.json` file (not `emc.mjs`). This is the runtime configuration that was built from emc.mjs. Extract `customData` at the module level for use in the init method.
+**Important:** The class does NOT import `emc.json`. Instead, the full EMC configuration (including `customData`) is passed through the `ctx` parameter by the mount-observer/assign-gingerly infrastructure. This means:
+- Only one JSON file is parsed by the browser (whichever EMC script triggered the spawn)
+- The enhancement class is name-agnostic — it works identically whether spawned by `emc.json` or an emoji variant JSON
+- No duplicate JSON imports when using emoji shorthand aliases
 
 3. Add the class with the standard boilerplate:
 
@@ -883,20 +879,21 @@ class Be[ClassName] {
     /**
      * @this {AllProps & Actions}
      * @param {Element & ElementEnhancementGateway} enhancedElement 
-     * @param {*} ctx 
-     * @param {AllProps} initVals 
+     * @param {SpawnContext} ctx 
+     * @param {PAP} initVals 
      */
     constructor(enhancedElement, ctx, initVals){
-        this.init(this, enhancedElement, initVals);
+        this.init(this, enhancedElement, ctx, initVals);
     }
 
     /**
      * @param {AllProps} self 
      * @param {Element & ElementEnhancementGateway} enhancedElement 
+     * @param {SpawnContext} ctx 
      * @param {PAP} initVals 
      */
-    async init(self, enhancedElement, initVals){
-        const {defaultPropVals} = customData;
+    async init(self, enhancedElement, ctx, initVals){
+        const {customData} = /** @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>} */ (ctx.emc);
         /**
          * @type {RoundaboutOptions}
          */
@@ -905,7 +902,7 @@ class Be[ClassName] {
             vm: self,
             initialPropVals: {
                 enhancedElement,
-                ...defaultPropVals,
+                ...customData?.defaultPropVals,
                 ...initVals
             }
         };
@@ -918,6 +915,12 @@ class Be[ClassName] {
 export { Be[ClassName] }
 ```
 
+**Key pattern — extracting customData from ctx.emc:**
+```javascript
+const {customData} = /** @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>} */ (ctx.emc);
+```
+The `ctx.emc` property is typed as `any` on `SpawnContext`, so you cast it to your specific `EMC` parameterization to get full type safety on `customData`.
+
 4. **Copy action methods** from the legacy class:
    - Remove the static config section entirely
    - Copy all action methods (like addCloneBtn, setBtnContent, etc.)
@@ -926,24 +929,10 @@ export { Be[ClassName] }
    - **Update import paths**: Replace `'mount-observer/refid/nudge.js'` with `'mount-observer/nudge.js'` (whether dynamic import or top-level import)
 
 5. **Apply default values** in the init method:
-   - Extract `defaultPropVals` from `customData`: `const {defaultPropVals} = customData;`
+   - Extract `customData` from `ctx.emc` with a cast to your EMC type
    - Pass all initial values through the `initialPropVals` property in roundabout options
    - Spread values in order: `enhancedElement`, then `defaultPropVals`, then `initVals`
    - This ensures defaults are applied, but can be overridden by `initVals`
-   - Example:
-     ```javascript
-     const {defaultPropVals} = customData;
-     const raOptions = {
-         ...customData,
-         vm: this,
-         initialPropVals: {
-             enhancedElement,
-             ...defaultPropVals,
-             ...initVals
-         }
-     };
-     (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
-     ```
 
 6. **Remove legacy code**:
    - Remove `await BeClonable.bootUp();` at the bottom
@@ -987,35 +976,42 @@ export { BeClonable }
 
 Modern class:
 ```javascript
+// @ts-check
 /** @import {Actions, PAP, AllProps, AP} from './types/be-clonable/types' */;
 /** @import {RoundaboutOptions} from './types/roundabout/types' */;
-/** @import {ElementEnhancementGateway} from './types/assign-gingerly/types' */;
+/** @import {ElementEnhancementGateway, SpawnContext} from './types/assign-gingerly/types' */;
 /** @import {EMC} from './types/mount-observer/types' */;
 /** @import {RAConfig} from './types/roundabout/types' */;
+
 /**
- * @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>}
+ * @implements {Actions}
  */
-import emc from './emc.json' with {type: 'json'};
-
-const {customData} = emc;
-
 class BeClonable {
     
     /**
      * @this {AllProps & Actions}
+     * @param {Element & ElementEnhancementGateway} enhancedElement 
+     * @param {SpawnContext} ctx 
+     * @param {PAP} initVals 
      */
     constructor(enhancedElement, ctx, initVals){
-        this.init(this, enhancedElement, initVals);
+        this.init(this, enhancedElement, ctx, initVals);
     }
 
-    async init(self, enhancedElement, initVals){
-        const {defaultPropVals} = customData;
+    /**
+     * @param {AllProps} self 
+     * @param {Element & ElementEnhancementGateway} enhancedElement 
+     * @param {SpawnContext} ctx 
+     * @param {PAP} initVals 
+     */
+    async init(self, enhancedElement, ctx, initVals){
+        const {customData} = /** @type {EMC<any, AllProps, Element, RAConfig<AllProps, Actions>>} */ (ctx.emc);
         const raOptions = {
             ...customData,
             vm: self,
             initialPropVals: {
                 enhancedElement,
-                ...defaultPropVals,
+                ...customData?.defaultPropVals,
                 ...initVals
             }
         };
@@ -1056,6 +1052,7 @@ import myJSON from './emc.json' with {type: 'json'};
  * @type {EMC<any, AllProps> }
  */
 const emc = {
+    ...myJSON,
     enhConfig: {
         ...myJSON.enhConfig,
         enhKey: '[emoji]',
@@ -1095,6 +1092,7 @@ import myJSON from './emc.json' with {type: 'json'};
  * @type {EMC<any, AllProps> }
  */
 const emc = {
+    ...myJSON,
     enhConfig: {
         ...myJSON.enhConfig,
         enhKey: '⿻',
@@ -1111,6 +1109,8 @@ export function render(){
 
 console.log(render());
 ```
+
+**IMPORTANT — Spread `...myJSON` at the top level:** The `...myJSON` spread ensures that all top-level properties from `emc.json` (including `customData`) are carried over into the emoji variant. Without this, the emoji JSON would only contain `enhConfig` and the enhancement class would not have access to its configuration (actions, weakRef, defaultPropVals, etc.) when spawned via the emoji attribute.
 
 **Result:** When you run `npm run build`, both `emc.json` and `⿻.json` will be generated, allowing users to use either the full name or emoji shorthand.
 

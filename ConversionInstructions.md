@@ -921,6 +921,28 @@ const {customData} = /** @type {EMC<any, AllProps, Element, RAConfig<AllProps, A
 ```
 The `ctx.emc` property is typed as `any` on `SpawnContext`, so you cast it to your specific `EMC` parameterization to get full type safety on `customData`.
 
+**IMPORTANT — Update the `init` signature in types.d.ts:** The `Actions` interface in `types/[project-name]/types.d.ts` must be updated to match the new 4-parameter `init` method. The legacy signature has 3 parameters (no `ctx`), but the modern architecture passes `ctx` through so the class can access `ctx.emc`. If you skip this, `@ts-check` will report "Expected 3 arguments, but got 4" in the constructor and a signature mismatch on `init`.
+
+Add `SpawnContext` to the import and update the `init` signature:
+
+Before:
+```typescript
+import { ElementEnhancementGateway } from "../assign-gingerly/types";
+
+export interface Actions{
+    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>;
+}
+```
+
+After:
+```typescript
+import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+
+export interface Actions{
+    init(self: AP, enhancedElement: Element, ctx: SpawnContext, initVals: PAP): Promise<void>;
+}
+```
+
 4. **Copy action methods** from the legacy class:
    - Remove the static config section entirely
    - Copy all action methods (like addCloneBtn, setBtnContent, etc.)

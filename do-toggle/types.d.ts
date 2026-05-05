@@ -24,4 +24,8 @@ export interface Actions{
 export interface TogglingParameters {
     prop?: string | null;
     localEventType?: string;
+    targetSpecifier: {
+        prop?: string;
+        targetElementId?: string;
+    };
 }

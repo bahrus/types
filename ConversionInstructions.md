@@ -144,6 +144,7 @@ Create or update the imports.html file to use the modern import map pattern.
                "assign-gingerly/": "/node_modules/assign-gingerly/",
                "[project-name]/": "/",
                "be-hive/":  "/node_modules/be-hive/",
+               "inferencer/": "/node_modules/inferencer/",
                "mount-observer/": "/node_modules/mount-observer/",
                "roundabout-lib/": "/node_modules/roundabout-lib/",
                "id-generation/": "/node_modules/id-generation/",

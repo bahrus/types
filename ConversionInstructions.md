@@ -1367,3 +1367,234 @@ const selectorMatch = prop.match(/^\[(.+?)\](?:\?\.(.+))?$/);
 ---
 
 *Last updated: April 2026 - Based on do-toggle conversion experience*
+
+
+## Using the Infer Pattern for Element Conventions
+
+### Overview
+
+The modern architecture provides a standardized way to infer element properties and event types through the **`infer` pattern** from `assign-gingerly`. This eliminates the need for hardcoded element type checks and provides a consistent, extensible approach to element conventions.
+
+### The Infer Function
+
+Add this helper function at the bottom of your enhancement class file:
+
+```javascript
+/**
+ * @param {Element & ElementEnhancementGateway} from 
+ */
+async function infer(from){
+    return /** @type {ElementInfer} */ (
+        /** @type {any} */ (
+            from.enh.get((await import('assign-gingerly/Infer.js')).registryItem)
+        )
+    );
+}
+```
+
+### What It Provides
+
+The `infer` function returns an `ElementInfer` object with:
+- **`eventType`**: The most appropriate event type for the element (e.g., 'click', 'input', 'change')
+- **`propName`**: The most appropriate property name for the element (e.g., 'checked', 'value', 'textContent')
+- **`value`**: The current value of the inferred property (getter/setter)
+
+### Type Import
+
+Add `ElementInfer` to your imports:
+
+```javascript
+/** @import {ElementEnhancementGateway, ElementInfer} from './types/assign-gingerly/types' */;
+```
+
+### Usage Examples
+
+#### Example 1: Inferring Event Type
+
+Replace hardcoded event type logic:
+
+```javascript
+// ❌ Old approach - hardcoded logic
+if (localEventType === undefined) {
+    const tagName = enhancedElement.tagName.toLowerCase();
+    if(tagName === 'input' || tagName === 'textarea' || tagName === 'select'){
+        localEventType = 'input';
+    } else {
+        localEventType = 'click';
+    }
+}
+
+// ✅ New approach - use infer
+if (localEventType === undefined) {
+    localEventType = (await infer(enhancedElement)).eventType;
+}
+```
+
+#### Example 2: Inferring Property Name
+
+Replace hardcoded property inference:
+
+```javascript
+// ❌ Old approach - hardcoded logic
+if(!propertyName){
+    const tagName = target.tagName.toLowerCase();
+    if(tagName === 'input'){
+        const inputType = target.getAttribute('type');
+        propertyName = (inputType === 'checkbox' || inputType === 'radio') ? 'checked' : 'value';
+    } else {
+        propertyName = 'textContent';
+    }
+}
+
+// ✅ New approach - use infer
+if(!propertyName){
+    propertyName = (await infer(target)).propName;
+}
+```
+
+#### Example 3: Inferring from Name Attribute
+
+When the attribute value is empty, infer both event type and property name:
+
+```javascript
+// When statements.length === 0, infer from element
+if(statements.length === 0){
+    const inference = await infer(enhancedElement);
+    statements.push({
+        value: {
+            prop: inference.propName,
+            localEventType: inference.eventType
+        }
+    });
+}
+```
+
+#### Example 4: Getting/Setting Inferred Property Value
+
+The `infer` object provides direct access to the property value:
+
+```javascript
+// Get the inferred property value
+const inference = await infer(target);
+const currentValue = inference.value;
+
+// Set the inferred property value
+inference.value = !inference.value;  // Toggle
+```
+
+This is particularly useful in do-toggle when no property is specified:
+
+```javascript
+if(propertyName){
+    target[propertyName] = !target[propertyName];
+} else {
+    const inference = await infer(target);
+    inference.value = !inference.value;
+}
+```
+
+### Complete Example: do-toggle
+
+Here's how do-toggle uses the infer pattern throughout:
+
+```javascript
+class DoToggle {
+    async hydrate(self){
+        const { parsedStatements, enhancedElement } = self;
+        const {success, statements} = parsedStatements;
+        if(!success) throw 400;
+        
+        // Infer when no statements provided
+        if(statements.length === 0){
+            const name = enhancedElement.getAttribute('name');
+            statements.push({
+                value: {
+                    prop: name,
+                    localEventType: (await infer(enhancedElement)).eventType,
+                }
+            });
+        }
+        
+        for (const statement of statements) {
+            const {value} = statement;
+            if(!value) continue;
+            
+            // Infer event type if not specified
+            let { localEventType } = value;
+            if (localEventType === undefined) {
+                localEventType = (await infer(enhancedElement)).eventType;
+            }
+            
+            enhancedElement.addEventListener(localEventType, e => {
+                self.handleEvent(self, e, value);
+            });
+        }
+        // ...
+    }
+
+    async handleEvent(self, e, parsedStatement){
+        // ... find target element ...
+        
+        // Use inferred value when no property specified
+        if(propertyName){
+            target[propertyName] = !target[propertyName];
+        } else {
+            const inference = await infer(target);
+            inference.value = !inference.value;
+        }
+    }
+}
+
+// Helper function at bottom of file
+async function infer(from){
+    return /** @type {ElementInfer} */ (
+        /** @type {any} */ (
+            from.enh.get((await import('assign-gingerly/Infer.js')).registryItem)
+        )
+    );
+}
+```
+
+### Benefits
+
+1. **Consistency**: All enhancements use the same inference logic
+2. **Extensibility**: New element types can be supported by updating assign-gingerly, not each enhancement
+3. **Maintainability**: No duplicated element type checking code
+4. **Type Safety**: TypeScript definitions ensure correct usage
+5. **Future-proof**: Custom elements can provide their own inference hints
+
+### How It Works
+
+The `infer` function:
+1. Accesses the enhancement gateway on the element (`from.enh`)
+2. Gets the `Infer` enhancement instance from the registry
+3. Returns an object with inferred `eventType`, `propName`, and `value` getter/setter
+
+The `Infer` enhancement (from assign-gingerly) analyzes the element and provides sensible defaults based on:
+- Element tag name (input, button, textarea, etc.)
+- Input type attribute (checkbox, radio, text, etc.)
+- Name attribute (as fallback for property name)
+- Itemprop attribute (for microdata-aware properties)
+- Custom element conventions
+
+### Migration Checklist
+
+When converting an enhancement to use the infer pattern:
+
+- [ ] Add `ElementInfer` to type imports
+- [ ] Add the `infer` helper function at the bottom of the file
+- [ ] Replace hardcoded event type inference with `(await infer(element)).eventType`
+- [ ] Replace hardcoded property name inference with `(await infer(element)).propName`
+- [ ] Use `inference.value` for getting/setting inferred properties
+- [ ] Update empty statement handling to use infer
+- [ ] Test with various element types (button, input, checkbox, etc.)
+
+### Reference
+
+For more details on the inference system, see:
+- [assign-gingerly documentation](https://github.com/bahrus/assign-gingerly#accessing-the-enhancement-instance)
+- Working examples: do-toggle, do-inc, do-invoke
+
+---
+
+*Added: April 2026 - Standardized inference pattern*

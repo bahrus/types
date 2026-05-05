@@ -1567,14 +1567,15 @@ class DoToggle {
     }
 }
 
+// Helper type at top of file
+/** @import {Infer} from './types/inferencer/types' */
+
 // Helper function at bottom of file
-async function infer(from){
-    return /** @type {ElementInfer} */ (
-        /** @type {any} */ (
-            from.enh.get((await import('assign-gingerly/Infer.js')).registryItem)
-        )
-    );
-}
+/**
+ * 
+ * @param {Element & ElementEnhancementGateway} from 
+ */
+async function infer(from){return /** @type {Infer} */ (/** @type {any} */ (from.enh.get((await import('inferencer/inferencer.js')).registryItem)));}
 ```
 
 ### Benefits

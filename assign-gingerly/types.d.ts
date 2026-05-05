@@ -212,6 +212,13 @@ export interface SpawnContext<T = any, TMountContext = any> {
    * Used for scoped parser registry access during attribute parsing.
    */
   synthesizerElement?: Element;
+  /**
+   * The full EMC configuration object that triggered this spawn.
+   * Passed through so enhancement classes can access their full configuration
+   * (including customData) without needing to separately import the JSON file.
+   * This avoids duplicate JSON imports when using emoji shorthand aliases.
+   */
+  emc?: any;
 }
 
 /**
@@ -226,6 +233,14 @@ export interface IAssignGingerlyOptions {
   registry?: typeof EnhancementRegistry | EnhancementRegistry;
   bypassChecks?: boolean;
   withMethods?: string[] | Set<string>;
+  aka?: Record<string, string>;
+  
+  /**
+   * AbortSignal for cleaning up reactive subscriptions (@eachTime)
+   * Required when using @eachTime symbol for reactive iteration
+   * When the signal is aborted, all event listeners are automatically removed
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -242,7 +257,6 @@ export declare class EnhancementRegisteredEvent extends Event {
  * Extends EventTarget to dispatch events when configs are registered
  */
 export declare class EnhancementRegistry extends EventTarget {
-  private items;
   push(items: EnhancementConfig | EnhancementConfig[]): void;
   getItems(): EnhancementConfig[];
   findBySymbol(symbol: symbol | string): EnhancementConfig | undefined;
@@ -303,10 +317,7 @@ export declare class ElementEnhancementGateway{
 }
 
 export interface ElementEnhancement{
-  dispose(regItem: EnhancementConfig): void;
-}
-
-export interface ElementInfer{
-  value: any;
-  eventType: string
+  get(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): any;
+  dispose(registryItem: EnhancementConfig | string | symbol): void;
+  whenResolved(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): Promise<any>;
 }

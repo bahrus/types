@@ -4,9 +4,14 @@
 
 This steering file provides guidance for converting legacy "be-*" enhancement projects to the modern architecture. When a user requests help with converting a be-* project, use this guide to structure the conversion process.
 
+**Important:** This guide is specifically for **enhancements** (declarative behaviors added to existing HTML elements via attributes). It does NOT apply to custom elements.
+
 ## Reference Documentation
 
-The complete step-by-step conversion instructions are maintained in `ConversionInstructions.md` in the types repository root. Always reference that document for detailed instructions on each step.
+- **Converting legacy enhancements:** `EnhancementConversionInstructions.md` in the types repository root
+- **Creating new enhancements from scratch:** `NewEnhancementInstructions.md` in the types repository root
+
+Always reference the appropriate document based on whether the project is a legacy conversion or a brand new enhancement.
 
 ## Conversion Approach
 
@@ -94,4 +99,5 @@ A successful conversion should:
 
 ## File Reference
 
-Always reference `#[[file:ConversionInstructions.md]]` for the complete step-by-step instructions.
+Always reference `#[[file:EnhancementConversionInstructions.md]]` for the complete step-by-step conversion instructions.
+For new enhancements, reference `#[[file:NewEnhancementInstructions.md]]`.

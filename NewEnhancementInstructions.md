@@ -49,6 +49,7 @@ Set up the standard scripts and dependencies:
   "dependencies": {
     "assign-gingerly": "0.0.5",
     "be-hive": "0.1.9",
+    "inferencer": "0.0.1",
     "mount-observer": "0.0.16",
     "roundabout-lib": "0.0.2"
   },

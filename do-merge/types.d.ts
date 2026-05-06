@@ -4,6 +4,7 @@ export interface MergeParameters {
     assign: Record<string, any>;
     on?: string;
     options?: IAssignGingerlyOptions;
+    targetElementId?: string;
 }
 
 export interface EndUserProps {

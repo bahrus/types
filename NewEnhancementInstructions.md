@@ -51,6 +51,10 @@ Set up the standard scripts and dependencies:
     "be-hive": "0.1.9",
     "mount-observer": "0.0.16",
     "roundabout-lib": "0.0.2"
+  },
+  "devDependencies": {
+    "spa-ssi": "0.0.27",
+    "@playwright/test": "1.59.1"
   }
 }
 ```

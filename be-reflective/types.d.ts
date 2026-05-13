@@ -1,6 +1,17 @@
 import { SpawnContext } from "../assign-gingerly/types";
 
 /**
+ * Shared context passed via getSharedContext — contains everything
+ * the Reflector needs to self-activate on spawn.
+ */
+export interface ReflectorSharedContext {
+    /** The ElementInternals instance for custom state manipulation */
+    internals: ElementInternals;
+    /** The EventTarget the host dispatches property change events on */
+    hostPropagator: EventTarget;
+}
+
+/**
  * Context passed to the Reflector feature constructor
  */
 export interface FeatureSpawnContext extends SpawnContext {
@@ -8,9 +19,7 @@ export interface FeatureSpawnContext extends SpawnContext {
     optIn: any;
     injection: any;
     featuresRegistry: any;
-    shared?: {
-        internals: ElementInternals;
-    };
+    shared?: ReflectorSharedContext;
 }
 
 /**
@@ -30,12 +39,14 @@ export interface CustomStateRule {
 }
 
 /**
- * Properties that the Reflector feature manages
+ * Properties that the Reflector feature exposes.
+ * With callbackForwarding, hostPropagator is provided via getSharedContext
+ * and the feature self-activates — but the setter remains for manual use cases.
  */
 export interface ReflectorProps {
     /**
      * The EventTarget that the host element uses to propagate property change events.
-     * Reflector listens for events matching property names to update custom states.
+     * Provided via getSharedContext. Also settable post-spawn for reconnection.
      */
     hostPropagator: EventTarget | null;
 }

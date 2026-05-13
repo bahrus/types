@@ -19,7 +19,8 @@ A custom element feature is a class that:
 
 ## Reference Implementation
 
-- **[truth-sourcer](https://github.com/bahrus/truth-sourcer)** — The world's first custom element feature (this project)
+- **[truth-sourcer](https://github.com/bahrus/truth-sourcer)** — The world's first custom element feature
+- **[be-reflective](https://github.com/bahrus/be-reflective)** — Demonstrates `callbackForwarding` and `getSharedContext` for features that need DOM context (computed styles)
 
 ## Prerequisites
 
@@ -393,6 +394,147 @@ The feature receives this via `ctx.shared`:
 class MyFeature {
     constructor(hostElement, ctx, initVals) {
         this.internals = ctx.shared?.internals;
+    }
+}
+```
+
+### Lifecycle Callback Forwarding with `callbackForwarding`
+
+Features that need DOM context (computed styles, layout info) or cleanup on disconnect can declare `callbackForwarding` to receive the host element's lifecycle callbacks automatically:
+
+```javascript
+customElements.assignFeatures(MyElement, {
+    myFeature: {
+        spawn: MyFeature,
+        callbackForwarding: ['connectedCallback', 'disconnectedCallback']
+    }
+});
+```
+
+**How it works:**
+
+1. `assignFeatures` patches the custom element's lifecycle callbacks on the prototype (once per callback type).
+2. The original callback runs first, then all registered features are forwarded.
+3. On first `connectedCallback`, the lazy getter is triggered — spawning the feature at the correct lifecycle moment (when the element is in the DOM and computed styles are available).
+4. For async features, forwarding is skipped until the real instance is available.
+
+**Supported callbacks:** `connectedCallback`, `disconnectedCallback`, `attributeChangedCallback`, `adoptedCallback`
+
+**When to use it:**
+
+- The feature needs `getComputedStyle` (which requires the element to be in the DOM)
+- The feature sets up event listeners that should be cleaned up on disconnect
+- The feature needs to handle elements created via cloned templates (where the constructor fires before DOM insertion)
+
+**Avoiding double-connect on initial spawn:**
+
+Since the feature is *spawned* during the first `connectedCallback` (the getter fires), the constructor already has the opportunity to self-connect. When `callbackForwarding` then immediately forwards `connectedCallback` to the freshly-spawned instance, you need to guard against double-initialization. The standard pattern is a `#hasDisconnected` flag:
+
+```javascript
+class MyFeature {
+    #hasDisconnected = false;
+
+    constructor(hostElement, ctx, initVals) {
+        // Self-connect on construction (we know we're in the DOM
+        // because connectedCallback triggered our spawn)
+        this.#connect();
+    }
+
+    connectedCallback() {
+        // Only re-connect after a prior disconnection
+        if (this.#hasDisconnected) {
+            this.#hasDisconnected = false;
+            this.#connect();
+        }
+    }
+
+    disconnectedCallback() {
+        this.#hasDisconnected = true;
+        this.#cleanup();
+    }
+
+    #connect() {
+        // Safe to call getComputedStyle here — element is in the DOM
+        const styles = getComputedStyle(this.#hostRef.deref());
+        // ... wire up listeners, parse CSS, etc.
+    }
+
+    #cleanup() {
+        // Abort listeners, clear state
+    }
+}
+```
+
+**Complete example with `getSharedContext` + `callbackForwarding`:**
+
+This pattern eliminates all manual wiring in the consumer's constructor — the feature self-activates at the correct lifecycle moment with all dependencies provided declaratively:
+
+```javascript
+class MyElement extends HTMLElement {
+    propagator = new EventTarget();
+    #internals;
+
+    static supportedFeatures = {
+        myFeature: {
+            fallbackSpawn: MyFeature,
+            getSharedContext(instance) {
+                return {
+                    internals: instance.#internals,
+                    hostPropagator: instance.propagator
+                };
+            }
+        }
+    };
+
+    constructor() {
+        super();
+        this.#internals = this.attachInternals();
+        // No manual feature activation needed!
+    }
+}
+
+customElements.assignFeatures(MyElement, {
+    myFeature: {
+        spawn: MyFeature,
+        callbackForwarding: ['connectedCallback', 'disconnectedCallback']
+    }
+});
+
+customElements.define('my-element', MyElement);
+```
+
+**Async features and `callbackForwarding`:**
+
+For async features (where `spawn` is an async function), the feature is instantiated when the async import resolves. Since the constructor already handles initial connection, `callbackForwarding` only needs to forward *subsequent* lifecycle events. If you wrap an async feature around a sync one (lazy-loading pattern), delegate lifecycle calls to the inner feature once it's loaded:
+
+```javascript
+class MyFeatureLazy {
+    #delegate = null;
+    #hasDisconnected = false;
+
+    constructor(hostElement, ctx, initVals) {
+        this.#maybeActivate(hostElement, ctx);
+    }
+
+    connectedCallback() {
+        if (this.#hasDisconnected) {
+            this.#hasDisconnected = false;
+            this.#delegate?.connectedCallback();
+        }
+    }
+
+    disconnectedCallback() {
+        this.#hasDisconnected = true;
+        this.#delegate?.disconnectedCallback();
+    }
+
+    async #maybeActivate(hostElement, ctx) {
+        // Guard: only load if actually needed
+        const computed = getComputedStyle(hostElement);
+        if (!computed.getPropertyValue('--my-config').trim()) return;
+
+        const { MyFeature } = await import('./MyFeature.js');
+        this.#delegate = new MyFeature(hostElement, ctx);
     }
 }
 ```

@@ -400,16 +400,24 @@ class MyFeature {
 
 ### Lifecycle Callback Forwarding with `callbackForwarding`
 
-Features that need DOM context (computed styles, layout info) or cleanup on disconnect can declare `callbackForwarding` to receive the host element's lifecycle callbacks automatically:
+Features that need DOM context (computed styles, layout info) or cleanup on disconnect can declare `callbackForwarding` in `static supportedFeatures` to receive the host element's lifecycle callbacks automatically:
 
 ```javascript
+class MyElement extends HTMLElement {
+    static supportedFeatures = {
+        myFeature: {
+            fallbackSpawn: MyFeature,
+            callbackForwarding: ['connectedCallback', 'disconnectedCallback']
+        }
+    };
+}
+
 customElements.assignFeatures(MyElement, {
-    myFeature: {
-        spawn: MyFeature,
-        callbackForwarding: ['connectedCallback', 'disconnectedCallback']
-    }
+    myFeature: { spawn: MyFeature }
 });
 ```
+
+`callbackForwarding` can also be specified in the injection config passed to `assignFeatures`. A union is taken between both — so the feature author can guarantee the callbacks they need in `supportedFeatures`, and the injector can add additional ones if needed.
 
 **How it works:**
 
@@ -422,6 +430,7 @@ customElements.assignFeatures(MyElement, {
 
 **When to use it:**
 
+- The feature needs `attributeChangedCallback` forwarded (e.g., truth-sourcer)
 - The feature needs `getComputedStyle` (which requires the element to be in the DOM)
 - The feature sets up event listeners that should be cleaned up on disconnect
 - The feature needs to handle elements created via cloned templates (where the constructor fires before DOM insertion)
@@ -477,6 +486,7 @@ class MyElement extends HTMLElement {
     static supportedFeatures = {
         myFeature: {
             fallbackSpawn: MyFeature,
+            callbackForwarding: ['connectedCallback', 'disconnectedCallback'],
             getSharedContext(instance) {
                 return {
                     internals: instance.#internals,
@@ -494,10 +504,7 @@ class MyElement extends HTMLElement {
 }
 
 customElements.assignFeatures(MyElement, {
-    myFeature: {
-        spawn: MyFeature,
-        callbackForwarding: ['connectedCallback', 'disconnectedCallback']
-    }
+    myFeature: { spawn: MyFeature }
 });
 
 customElements.define('my-element', MyElement);

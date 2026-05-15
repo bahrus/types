@@ -51,7 +51,7 @@ export type Compacts<TProps = any, TActions = TProps> =
     | Partial<{[key in `when_${keyof TProps & string}_changes_call_${keyof TActions & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_toggle_${keyof TProps & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_inc_${keyof TProps & string}_by`]: number}>
-    | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}> //TODO
+    | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}>
     | Partial<{[key in `on_${string}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
     | Partial<{[key in `on_${string}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
 ;

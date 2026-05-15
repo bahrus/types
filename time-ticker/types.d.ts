@@ -5,9 +5,9 @@ import { SpawnContext } from "../assign-gingerly/types";
  */
 export interface FeatureProps {
     /**
-     * Interval in milliseconds between ticks
+     * Duration in milliseconds between ticks
      */
-    interval: number;
+    duration: number;
 
     /**
      * Whether the ticker is disabled (stops ticking when true)

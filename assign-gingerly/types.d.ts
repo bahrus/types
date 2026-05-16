@@ -185,7 +185,7 @@ export type AttrPatterns<T = any> = {
   /**
    * Base prefix for attribute names
    */
-  base: string;
+  base?: string;
 
   /**
    * Configuration for the base pattern

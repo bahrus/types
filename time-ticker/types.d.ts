@@ -49,11 +49,10 @@ export interface TimeTickerElementEndUserProps<T = any> {
 
     items: T[];
 
-    item: T;
-
-    idx: number;
 }
 
 export interface TimeTickerElementAllProps<T = any> extends TimeTickerElementEndUserProps{
+    item: T;
 
+    idx: number;
 }

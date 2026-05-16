@@ -105,6 +105,12 @@ export interface YieldConfig<TProps = any> {
     from: keyof TProps & string;
     /** The index property name (for array index lookup) */
     atIndex?: keyof TProps & string;
+    /**
+     * Behavior when the index is out of bounds.
+     * - 'undefined' (default): set target to undefined
+     * - 'clamp': reset the index to 0 (selects first item)
+     */
+    outOfBounds?: 'undefined' | 'clamp';
     // Future: atKey, atIndices, keyProp, etc.
 }
 

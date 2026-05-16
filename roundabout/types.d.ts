@@ -95,6 +95,23 @@ export interface Merge<TProps = any> extends LogicOp<TProps> {
 
 export type Merges<TProps = any> = Array<Merge<TProps>>;
 
+/**
+ * A yield derives a value from a collection using an index or key.
+ * Scenario I: Single selection by index — when the source array or index changes,
+ * the target property is set to source[index].
+ */
+export interface YieldConfig<TProps = any> {
+    /** The source array/collection property name */
+    from: keyof TProps & string;
+    /** The index property name (for array index lookup) */
+    atIndex?: keyof TProps & string;
+    // Future: atKey, atIndices, keyProp, etc.
+}
+
+export type Yields<TProps = any> = {
+    [K in keyof TProps & string]?: YieldConfig<TProps>;
+};
+
 export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
@@ -103,6 +120,7 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps,
     hitches?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
     merges?: Merges<TProps>,
+    yields?: Yields<TProps>,
     /**
      * Configure automatic WeakRef wrapping for properties
      * 

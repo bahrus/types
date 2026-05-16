@@ -51,7 +51,7 @@ export type Compacts<TProps = any, TActions = TProps> =
     | Partial<{[key in `when_${keyof TProps & string}_changes_call_${keyof TActions & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_toggle_${keyof TProps & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_inc_${keyof TProps & string}_by`]: number}>
-    | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}> //TODO
+    | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}>
     | Partial<{[key in `on_${string}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
     | Partial<{[key in `on_${string}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
 ;
@@ -95,6 +95,29 @@ export interface Merge<TProps = any> extends LogicOp<TProps> {
 
 export type Merges<TProps = any> = Array<Merge<TProps>>;
 
+/**
+ * A yield derives a value from a collection using an index or key.
+ * Scenario I: Single selection by index — when the source array or index changes,
+ * the target property is set to source[index].
+ */
+export interface YieldConfig<TProps = any> {
+    /** The source array/collection property name */
+    from: keyof TProps & string;
+    /** The index property name (for array index lookup) */
+    atIndex?: keyof TProps & string;
+    /**
+     * Behavior when the index is out of bounds.
+     * - 'undefined' (default): set target to undefined
+     * - 'clamp': reset the index to 0 (selects first item)
+     */
+    outOfBounds?: 'undefined' | 'clamp';
+    // Future: atKey, atIndices, keyProp, etc.
+}
+
+export type Yields<TProps = any> = {
+    [K in keyof TProps & string]?: YieldConfig<TProps>;
+};
+
 export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
@@ -103,6 +126,7 @@ export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps,
     hitches?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
     merges?: Merges<TProps>,
+    yields?: Yields<TProps>,
     /**
      * Configure automatic WeakRef wrapping for properties
      * 

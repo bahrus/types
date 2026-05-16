@@ -18,12 +18,12 @@ export interface FeatureProps {
 /**
  * Internal state (not exposed to consumers)
  */
-export interface AllProps extends FeatureProps {
+export interface AllFeatureProps extends FeatureProps {
     host: WeakRef<Element>;
 }
 
-export type AP = AllProps;
-export type PAP = Partial<AP>;
+export type AFP = AllFeatureProps;
+export type PAFP = Partial<AFP>;
 
 /**
  * Context passed to the feature constructor
@@ -34,4 +34,26 @@ export interface FeatureSpawnContext extends SpawnContext {
     injection: any;
     featuresRegistry: any;
     shared?: any;
+}
+
+export interface TimeTickerElementEndUserProps<T = any> {
+    /**
+     * Duration in milliseconds between ticks
+     */
+    duration: number;
+
+    /**
+     * Whether the ticker is disabled (stops ticking when true)
+     */
+    disabled: boolean;
+
+    items: T[];
+
+    item: T;
+
+    idx: number;
+}
+
+export interface TimeTickerElementAllProps<T = any> extends TimeTickerElementEndUserProps{
+
 }

@@ -117,7 +117,9 @@ export type Yields<TProps = any> = {
     [K in keyof TProps & string]?: YieldConfig<TProps>;
 };
 
-export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
+export interface RAConfig<
+        TProps = unknown, TActions = TProps, ETProps = TProps, 
+        TCustomData = unknown, TEvents extends string = string > {
     actions?: Actions<TProps,TActions>,
     compacts?: Compacts<TProps, TActions>,
     //onsets?: Onsets<TProps, TActions>,

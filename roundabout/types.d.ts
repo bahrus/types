@@ -43,8 +43,7 @@ export type Actions<TProps = any, TActions = TProps> =
 ;
 
 export type Compacts<TProps = any, TActions = TProps> = 
-    //| Partial<{[key in `${keyof TProps & string}_to_${keyof TProps & string}` & string]: Operation<TProps> }>
-    | Partial<{[key in `negate_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
+    Partial<{[key in `negate_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `pass_length_of_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `echo_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `echo_${keyof TProps & string}_to_${keyof TProps & string}_after`]: keyof TProps}>

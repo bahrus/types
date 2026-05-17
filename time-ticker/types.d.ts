@@ -55,4 +55,8 @@ export interface TimeTickerElementAllProps<T = any> extends TimeTickerElementEnd
     item: T;
 
     idx: number;
+
+    timeTicker: EventTarget;
 }
+
+export type T = TimeTickerElementAllProps;

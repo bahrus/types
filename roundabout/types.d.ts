@@ -42,7 +42,7 @@ export type Actions<TProps = any, TActions = TProps> =
     //& Partial<{[key in `do_${keyof TActions & string}_on`]: Key<TActions> | Array<Key<TActions>> }> 
 ;
 
-export type Compacts<TProps = any, TActions = TProps> = 
+export type Compacts<TProps = any, TActions = TProps, TEvents extends string = string> = 
     Partial<{[key in `negate_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `pass_length_of_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `echo_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
@@ -51,8 +51,8 @@ export type Compacts<TProps = any, TActions = TProps> =
     | Partial<{[key in `when_${keyof TProps & string}_changes_toggle_${keyof TProps & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_inc_${keyof TProps & string}_by`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}>
-    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
-    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
+    | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
+    | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
 ;
 
 export type Hitches<TProps = any, TActions = TProps> = 
@@ -121,7 +121,7 @@ export interface RAConfig<
         TProps = unknown, TActions = TProps, ETProps = TProps, 
         TCustomData = unknown, TEvents extends string = string > {
     actions?: Actions<TProps,TActions>,
-    compacts?: Compacts<TProps, TActions>,
+    compacts?: Compacts<TProps, TActions, TEvents>,
     //onsets?: Onsets<TProps, TActions>,
     handlers?: Handlers<ETProps, TActions>,
     hitches?: Hitches<TProps, TActions>,

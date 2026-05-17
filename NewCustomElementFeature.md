@@ -426,7 +426,7 @@ customElements.assignFeatures(MyElement, {
 3. On first `connectedCallback`, the lazy getter is triggered — spawning the feature at the correct lifecycle moment (when the element is in the DOM and computed styles are available).
 4. For async features, forwarding is skipped until the real instance is available.
 
-**Supported callbacks:** `connectedCallback`, `disconnectedCallback`, `attributeChangedCallback`, `adoptedCallback`
+**Supported callbacks:** `connectedCallback`, `disconnectedCallback`, `attributeChangedCallback`, `adoptedCallback`, `formAssociatedCallback`, `formDisabledCallback`, `formResetCallback`, `formStateRestoreCallback`
 
 **When to use it:**
 
@@ -434,6 +434,7 @@ customElements.assignFeatures(MyElement, {
 - The feature needs `getComputedStyle` (which requires the element to be in the DOM)
 - The feature sets up event listeners that should be cleaned up on disconnect
 - The feature needs to handle elements created via cloned templates (where the constructor fires before DOM insertion)
+- The feature manages form-associated behavior (`formDisabledCallback`, `formResetCallback`, `formStateRestoreCallback`) — e.g., face-up
 
 **Avoiding double-connect on initial spawn:**
 

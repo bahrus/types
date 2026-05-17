@@ -179,6 +179,11 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
   //  * Defaults to true (initial read only)
   //  */
   // initialOnly?: boolean;
+
+  /**
+   * Should make sure it is added to static observedAttribrutes
+   */
+  sourceOfTruth?: boolean;
 }
 
 export type AttrPatterns<T = any> = {

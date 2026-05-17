@@ -129,6 +129,14 @@ export interface RAConfig<
     merges?: Merges<TProps>,
     yields?: Yields<TProps>,
     /**
+     * Properties to explicitly monitor and propagate changes for.
+     * Use this to ensure getter/setters are installed for properties
+     * that aren't referenced by actions, compacts, merges, etc.
+     * but still need to fire propagator events (e.g., attribute-parsed
+     * properties that other features subscribe to).
+     */
+    propagate?: keyof TProps & string | Array<keyof TProps & string>,
+    /**
      * Configure automatic WeakRef wrapping for properties
      * 
      * Properties listed here will automatically wrap values in WeakRef when set,
@@ -155,7 +163,6 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
     vm?: TProps & TActions & RoundaboutReady,
     //for enhanced elements, pass in the container, referenced via $0.
     container?: EventTarget,
-    propagate?: keyof TProps & string | Array<keyof TProps & string>,
     
     //mountObservers?: Set<IMountObserver>
     

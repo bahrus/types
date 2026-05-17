@@ -49,6 +49,8 @@ export interface TimeTickerElementEndUserProps<T = any> {
 
     items: T[];
 
+    name: string;
+
 }
 
 export interface TimeTickerElementAllProps<T = any> extends TimeTickerElementEndUserProps{
@@ -57,6 +59,8 @@ export interface TimeTickerElementAllProps<T = any> extends TimeTickerElementEnd
     idx: number;
 
     timeTicker: EventTarget;
+
+    value: any;
 }
 
 export type T = TimeTickerElementAllProps;

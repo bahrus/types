@@ -1,14 +1,12 @@
 import { SpawnContext } from "../assign-gingerly/types";
 
 /**
- * Shared context passed via getSharedContext — contains everything
- * FaceUp needs to manage form association for the host element.
+ * Shared context passed via getSharedContext — contains the
+ * ElementInternals instance needed for form control APIs.
  */
 export interface FaceUpSharedContext {
     /** The ElementInternals instance for form control APIs */
     internals: ElementInternals;
-    /** The EventTarget the host dispatches property change events on */
-    hostPropagator: EventTarget;
 }
 
 /**
@@ -43,6 +41,11 @@ export interface ValidationFlags {
  * Properties that the FaceUp feature exposes.
  * These allow the host custom element to participate in HTML forms
  * via the ElementInternals API.
+ *
+ * Because the feature is installed as a getter-only property,
+ * assignGingerly merges directly into the instance. The consumer
+ * simply sets properties (e.g., el.faceUp.value = x) and the
+ * setters handle syncing to ElementInternals automatically.
  */
 export interface FaceUpProps {
     /**
@@ -72,12 +75,6 @@ export interface FaceUpProps {
      * marks the control as invalid with customError.
      */
     validationMessage: string;
-
-    /**
-     * The EventTarget that the host element uses to propagate property change events.
-     * Provided via getSharedContext.
-     */
-    hostPropagator: EventTarget | null;
 }
 
 /**
@@ -93,11 +90,6 @@ export interface AllProps extends FaceUpProps {
      * The ElementInternals instance from the host (for form control APIs)
      */
     internals: ElementInternals | null;
-
-    /**
-     * AbortController for cleaning up event listeners
-     */
-    abortController: AbortController | null;
 }
 
 export type AP = AllProps;

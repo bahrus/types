@@ -94,3 +94,9 @@ export interface AllProps extends FaceUpProps {
 
 export type AP = AllProps;
 export type PAP = Partial<AP>;
+
+
+
+export interface CustomData {
+    integrateWithRoundabout: boolean;
+}

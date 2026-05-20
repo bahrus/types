@@ -481,7 +481,6 @@ This pattern eliminates all manual wiring in the consumer's constructor — the 
 
 ```javascript
 class MyElement extends HTMLElement {
-    propagator = new EventTarget();
     #internals;
 
     static supportedFeatures = {
@@ -490,8 +489,7 @@ class MyElement extends HTMLElement {
             callbackForwarding: ['connectedCallback', 'disconnectedCallback'],
             getSharedContext(instance) {
                 return {
-                    internals: instance.#internals,
-                    hostPropagator: instance.propagator
+                    internals: instance.#internals
                 };
             }
         }
@@ -510,6 +508,18 @@ customElements.assignFeatures(MyElement, {
 
 customElements.define('my-element', MyElement);
 ```
+
+Because the feature is a getter-only property, `assignGingerly` merges directly into the instance. The consumer simply sets properties on the feature and the setters handle side effects:
+
+```javascript
+// Direct property access — triggers the setter
+el.myFeature.myProp = 'new value';
+
+// Via assignGingerly — merges into the existing instance
+el.assignGingerly({ myFeature: { myProp: 'new value' } });
+```
+
+This eliminates the need for an intermediate event bus or propagator — property access is the integration point.
 
 **Async features and `callbackForwarding`:**
 

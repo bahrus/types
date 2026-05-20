@@ -1,4 +1,5 @@
 import { SpawnContext } from "../assign-gingerly/types";
+import {FaceUpProps} from "../face-up/types";
 
 /**
  * Configuration/properties that the TimeTicker feature exposes
@@ -36,16 +37,11 @@ export interface FeatureSpawnContext extends SpawnContext {
     shared?: any;
 }
 
-export interface TimeTickerElementEndUserProps<T = any> {
+export interface TimeTickerElementEndUserProps<T = any> extends FaceUpProps {
     /**
      * Duration in milliseconds between ticks
      */
     duration: number;
-
-    /**
-     * Whether the ticker is disabled (stops ticking when true)
-     */
-    disabled: boolean;
 
     items: T[];
 
@@ -60,7 +56,7 @@ export interface TimeTickerElementAllProps<T = any> extends TimeTickerElementEnd
 
     timeTicker: EventTarget;
 
-    value: any;
+    
 }
 
 export type T = TimeTickerElementAllProps;

@@ -326,3 +326,151 @@ export interface ElementEnhancement{
   dispose(registryItem: EnhancementConfig | string | symbol): void;
   whenResolved(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): Promise<any>;
 }
+
+// =============================================================================
+// Custom Element Features types
+// =============================================================================
+
+/**
+ * Context passed to feature spawn constructors
+ */
+export interface FeatureSpawnContext {
+    /** The feature key (e.g., 'photoTaker') */
+    key: string;
+    /** The SupportedFeatureConfig from static supportedFeatures */
+    optIn: SupportedFeatureConfig;
+    /** The FeatureConfig from assignFeatures */
+    injection: FeatureConfig;
+    /** The features registry reference */
+    featuresRegistry: FeaturesRegistry;
+    /** Shared context from the host element (via getSharedContext callback) */
+    shared?: any;
+}
+
+/**
+ * Configuration for a supported feature slot declared via static supportedFeatures
+ */
+export interface SupportedFeatureConfig {
+    /**
+     * Optional fallback class (or async spawner) to use if no implementation is injected.
+     */
+    fallbackSpawn?:
+        | { new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }
+        | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>);
+
+    /**
+     * Optional runtime shape validation for the spawned instance.
+     * Return true if the instance is valid, false to throw.
+     */
+    validateShape?: (spawnedInstance: any) => boolean;
+
+    /**
+     * Optional callback to provide shared context (e.g., ElementInternals, private state)
+     * to the feature at construction time.
+     */
+    getSharedContext?: (instance: any) => any;
+
+    /**
+     * Lifecycle callbacks that this feature requires.
+     * Serves as the default — the consumer can add more via FeatureConfig.callbackForwarding.
+     */
+    callbackForwarding?: string[];
+}
+
+/**
+ * Class-level configuration for the features system.
+ * Declared as `static featuresConfig` on the class.
+ */
+export interface FeaturesClassConfig {
+    /**
+     * Lifecycle method configuration.
+     * true = install 'whenFeatureReady' method.
+     * Object = custom method name.
+     */
+    lifecycleKeys?: true | {
+        whenFeatureReady?: string;
+    };
+}
+
+/**
+ * Configuration for a feature passed to assignFeatures.
+ */
+export interface FeatureConfig {
+    /**
+     * The class to instantiate, or an async function returning one.
+     */
+    spawn?:
+        | { new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }
+        | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>);
+
+    /** Attribute patterns for parsing element attributes into initVals. */
+    withAttrs?: AttrPatterns<any>;
+
+    /** Pass-through custom configuration data (accessible via ctx.injection.customData). */
+    customData?: any;
+
+    /** Lifecycle callbacks to forward to this feature. */
+    callbackForwarding?: string[];
+}
+
+export type SupportedFeaturesMap = Record<string, SupportedFeatureConfig>;
+export type FeatureConfigsMap = Record<string, FeatureConfig>;
+
+/**
+ * Registry for feature configs, keyed by constructor.
+ */
+export declare class FeaturesRegistry {
+    has(ctr: Function): boolean;
+    get(ctr: Function): Map<string, FeatureConfig> | undefined;
+    set(ctr: Function, key: string, config: FeatureConfig): void;
+    hasKey(ctr: Function, key: string): boolean;
+}
+
+/**
+ * A suggestion from one feature to another.
+ */
+export interface FeatureInfoSuggestion {
+    from: Function;
+    withAttrs?: any;
+    customData?: any;
+}
+
+/**
+ * Core assignFeatures function.
+ */
+export declare function assignFeatures(
+    ctr: Function,
+    features: FeatureConfigsMap,
+    featuresRegistry: FeaturesRegistry
+): Promise<void> | undefined;
+
+/**
+ * Captures own-properties that shadow feature getters.
+ */
+export declare function captureFeatureInitVals(instance: any): void;
+
+/**
+ * Suggest configuration to another feature during registration.
+ */
+export declare function suggestFeatureInfo(
+    fromFeatureCtr: Function,
+    toFeatureSymbol: symbol,
+    featureInfo: { withAttrs?: any; customData?: any },
+    targetClass: Function
+): void;
+
+/**
+ * Retrieve suggestions made to a feature by other features.
+ */
+export declare function getFeatureInfoSuggestions(
+    toFeatureSymbol: symbol,
+    targetClass: Function
+): FeatureInfoSuggestion[];
+
+/**
+ * Base class for nested feature containers.
+ */
+export declare class PropertyBag {
+    customElementRegistry: any;
+    constructor(hostElement: any, ctx?: FeatureSpawnContext, initVals?: any);
+}

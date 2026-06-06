@@ -49,6 +49,7 @@ export interface Actions{
     getBindings(self: AP): ProPAP;
     hydrate(self: AP): ProPAP;
     onRawStatements(self: AP): void;
+    reconcileValues(self: AP, rule: BindingRule, direction: 'rToL' | 'lToR'): void;
 }
 
 export type WithStatement = string;

@@ -18,10 +18,10 @@ export type SignalEnhancement = 'be-value-added' | 'be-propagating' | undefined;
 
 export interface BindingRule {
     
-    localProp?: string,
+    localProp: string,
     localEvent?: string,
     remoteId?: string,
-    remoteProp?: string,
+    remoteProp: string,
     //remoteSpecifier?: Specifier,
 
 

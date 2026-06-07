@@ -42,6 +42,8 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
+export type Directions = 'rToL' | 'lToR' | 'tie';
+
 
 export interface Actions{
     init(self: AllProps, enhancedElement: Element, ctx: SpawnContext, initVals: PAP): Promise<void>;
@@ -49,7 +51,7 @@ export interface Actions{
     getBindings(self: AP): ProPAP;
     hydrate(self: AP): ProPAP;
     onRawStatements(self: AP): void;
-    reconcileValues(self: AP, rule: BindingRule, direction: 'rToL' | 'lToR'): void;
+    reconcileValues(self: AP, rule: BindingRule, direction: Directions): void;
 }
 
 export type WithStatement = string;

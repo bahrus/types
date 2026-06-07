@@ -1624,3 +1624,228 @@ For more details on the inference system, see:
 ---
 
 *Added: April 2026 - Standardized inference pattern*
+
+
+## Binding Enhancements: Patterns from be-bound
+
+### Overview
+
+be-bound is the first binding-focused enhancement converted to the modern architecture. It provides two-way data binding between elements and their hosts or peers. The patterns below apply to any enhancement that needs to synchronize property values between elements (e.g., be-observant, be-synced, or similar future packages).
+
+### The InferencedPropagator Pattern
+
+Binding enhancements need to detect property changes on arbitrary elements — both custom elements (which may have roundabout propagators) and native elements (which don't). The `inferencer` package provides `InferencedPropagator` which handles this transparently:
+
+```javascript
+const localInference = await infer(enhancedElement);
+const localPropagator = await localInference.getPropagator();
+
+// Works for both custom elements (uses native propagator) and built-in elements (creates InferencedPropagator)
+localPropagator.addEventListener('value', () => {
+    // property changed
+});
+```
+
+**How `getPropagator()` works:**
+- For **custom elements** with roundabout: returns the element's native `propagator` EventTarget (already set up by roundabout)
+- For **built-in elements**: creates an `InferencedPropagator` that uses best-effort detection strategies (native events, setter interception, attribute observation, polling fallback)
+
+**Key insight:** The propagator's `addEventListener` uses the **property name** as the event type (not a DOM event name). This is the unified interface — you always listen for `'value'`, `'checked'`, `'textContent'`, etc., regardless of whether it's a custom element or native element underneath.
+
+### contentEditable Elements
+
+The `InferencedPropagator` supports contentEditable elements by detecting `element.isContentEditable` and listening for the native `input` event. When the bound property is `textContent`, `innerHTML`, or `innerText`, user edits in contentEditable elements will trigger propagation.
+
+This is handled in `InferencedPropagator.#getNativeEventType`:
+
+```typescript
+if (element instanceof HTMLElement && element.isContentEditable) {
+    if (propName === 'textContent' || propName === 'innerHTML' || propName === 'innerText') {
+        return 'input';
+    }
+}
+```
+
+**Important:** The browser does NOT fire the `textContent` setter when users type in a contentEditable element — it mutates the DOM directly. The `input` event is the only reliable signal for user edits. Any binding enhancement targeting contentEditable must handle this case.
+
+### upSearch: Resolving Remote Targets
+
+The `inferencer/upSearch.js` function resolves remote binding targets with a simple convention:
+
+```javascript
+const target = await upSearch(enhancedElement, remoteId);
+```
+
+- If `remoteId` is truthy: calls `getRootNode().getElementById(remoteId)` (finds by ID within the same root)
+- If `remoteId` is falsy/undefined: traverses up to the nearest `[itemscope]` ancestor, or the shadow root's host
+
+This means the absence of a remote ID implies "bind to the host element," which is the most common binding case.
+
+### Attribute Syntax: Disambiguating IDs vs Property Names
+
+For binding enhancements, the attribute value often needs to reference either an element (by ID) or a property (by name). Use `#` as the disambiguator:
+
+- `#search` → element with `id="search"` (remoteId)
+- `currentMood` → property name on the host (remoteProp)
+
+Parser patterns should be ordered most-specific first:
+```javascript
+// Match ID first (has # prefix)
+{ pattern: "^with #(?<remoteId>\\S+)" }
+// Then match property name (no prefix)
+{ pattern: "^with (?<remoteProp>[\\w\\.]+)" }
+```
+
+### Path-Based Property Access
+
+When binding to nested properties (e.g., `form.rating.value`), use the `?.` path syntax to avoid conflicts with the period-based statement separator:
+
+```html
+<form 🪢="between ?.rating?.value on change and #alternativeRating.">
+```
+
+Implement path resolution in your enhancement:
+
+```javascript
+function resolvePath(obj, path) {
+    if (!path.startsWith('?.')) return obj[path];
+    const segments = path.split('?.').filter(s => s.length > 0);
+    let current = obj;
+    for (const seg of segments) {
+        if (current == null) return undefined;
+        current = current[seg];
+    }
+    return current;
+}
+
+function setPath(obj, path, value) {
+    if (!path.startsWith('?.')) { obj[path] = value; return; }
+    const segments = path.split('?.').filter(s => s.length > 0);
+    let current = obj;
+    for (let i = 0; i < segments.length - 1; i++) {
+        if (current == null) return;
+        current = current[segments[i]];
+    }
+    if (current != null) current[segments[segments.length - 1]] = value;
+}
+```
+
+### Explicit Event Listening with `on` Keyword
+
+When the inferred event isn't appropriate (e.g., binding a form's `rating.value` which changes on `change` events from radio buttons), allow users to specify the event:
+
+```html
+<form 🪢="between ?.rating?.value on change and #alternativeRating.">
+```
+
+In `hydrate`, check for `localEvent` and use it instead of the inferred propagator:
+
+```javascript
+let { localEvent } = value;
+if (localEvent) {
+    enhancedElement.addEventListener(localEvent, () => {
+        self.reconcileValues(self, value, 'lToR');
+    }, { signal: abortController.signal });
+} else {
+    localPropagator.addEventListener(localProp, () => {
+        self.reconcileValues(self, value, 'lToR');
+    });
+}
+```
+
+### Tie-Breaking for Initial Reconciliation
+
+When two-way binding is first established, both sides may already have values. A `breakTie` function determines which value wins based on type specificity:
+
+```
+object > function > symbol > bigint > number > boolean > string > null > undefined
+```
+
+Within the same type, longer string representations win. Equal values result in no action. This avoids overwriting meaningful data with defaults during initial binding.
+
+### Caching Inference Results
+
+If your enhancement calls `reconcileValues` repeatedly (e.g., on every property change), cache the `Infer` instance to avoid re-computing inference on every call:
+
+```javascript
+#localInference;
+
+async hydrate(self) {
+    const localInference = await infer(enhancedElement);
+    this.#localInference = localInference;
+    // ...
+}
+
+async reconcileValues(self, rule, direction) {
+    let { remoteProp, localProp } = rule;
+    if (remoteProp === undefined) remoteProp = this.#localInference?.defaultRemoteBindingPropName;
+    if (localProp === undefined) localProp = this.#localInference?.valueProperty;
+    // ...
+}
+```
+
+### Preventing Duplicate Enhancement Spawns
+
+When an element has multiple `<be-hive>` instances observing it (e.g., one in the document and one in a shadow root), the same enhancement may be spawned multiple times. The mount-observer's `EMCScript.handleMount` uses an in-flight guard to prevent this:
+
+```javascript
+const inflightKey = `__enhInFlight_${String(enhKey)}`;
+if (mountedElement[inflightKey]) return;
+mountedElement[inflightKey] = true;
+```
+
+This is handled at the infrastructure level — individual enhancements don't need to implement their own duplicate guards.
+
+### Complete Parser Config Example (be-bound)
+
+be-bound's parser config demonstrates handling multiple syntax variations in a single enhancement:
+
+```javascript
+const parsePatterns = [
+    // Path + event + remote ID
+    { name: "betweenPathEventAndRemoteId",
+      pattern: "^between (?<localProp>\\?\\.[\\w\\?\\.]+) on (?<localEvent>[\\w]+) and #(?<remoteId>\\S+)" },
+    // Path + event + remote prop
+    { name: "betweenPathEventAndRemoteProp",
+      pattern: "^between (?<localProp>\\?\\.[\\w\\?\\.]+) on (?<localEvent>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
+    // Simple prop + event + remote ID
+    { name: "betweenLocalPropEventAndRemoteId",
+      pattern: "^between (?<localProp>[\\w]+) on (?<localEvent>[\\w]+) and #(?<remoteId>\\S+)" },
+    // Simple prop + event + remote prop
+    { name: "betweenLocalPropEventAndRemoteProp",
+      pattern: "^between (?<localProp>[\\w]+) on (?<localEvent>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
+    // Simple prop + remote ID (no event)
+    { name: "betweenLocalPropAndRemoteId",
+      pattern: "^between (?<localProp>[\\w]+) and #(?<remoteId>\\S+)" },
+    // Simple prop + remote prop (no event)
+    { name: "betweenLocalPropAndRemoteProp",
+      pattern: "^between (?<localProp>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
+    // Remote by ID, everything inferred
+    { name: "withRemoteId", pattern: "^with #(?<remoteId>\\S+)" },
+    // Remote prop on host, everything inferred
+    { name: "withRemoteProp", pattern: "^with (?<remoteProp>[\\w\\.]+)" }
+];
+```
+
+**Key design decisions:**
+- Patterns ordered most-specific to least-specific (first match wins)
+- `#` prefix unambiguously marks element IDs
+- `?.` prefix marks path-based property access
+- `on` keyword separates the event specification
+- Falling through to less-specific patterns enables progressive disclosure of complexity
+
+### Migration Checklist for Binding Enhancements
+
+- [ ] Add `inferencer` to dependencies in package.json
+- [ ] Import and use `upSearch` for resolving remote targets
+- [ ] Import and use `infer` for getting propagators and inferring defaults
+- [ ] Implement `resolvePath` / `setPath` if supporting `?.` path syntax
+- [ ] Handle `localEvent` for explicit DOM event listening
+- [ ] Implement `breakTie` or equivalent for initial reconciliation
+- [ ] Cache inference results to avoid redundant computation
+- [ ] Handle contentEditable elements (they need `input` event, not setter interception)
+- [ ] Test both directions of binding (local→remote, remote→local, and initial tie)
+
+---
+
+*Added: June 2026 - Based on be-bound conversion to modern architecture*

@@ -1,14 +1,10 @@
 import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+import { Infer } from "../inferencer/types";
 
 export interface RemoteSpecifier {
     id?: string;
     evtName?: string;
     prop?: string;
-}
-
-export interface AbsorbingObject {
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): void;
-    getValue(): Promise<any>;
 }
 
 export interface EndUserProps {
@@ -31,7 +27,7 @@ export interface AllProps extends EndUserProps {
     isOutputEl: boolean;
     checkedRegistry: boolean;
     customHandlers: Map<string, any>;
-    propToAO: { [key: string]: AbsorbingObject };
+    propToInfer: { [key: string]: Infer };
     notYetParsedJS: boolean;
     resolved: boolean;
 }

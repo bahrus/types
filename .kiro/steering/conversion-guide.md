@@ -87,6 +87,11 @@ If the project uses trans-render utilities:
 - Keep those imports in the action methods
 - Don't remove them unless they're only used in static config
 
+### mount-observer/refid/hostish.js Replacement
+References to `mount-observer/refid/hostish.js` have been replaced by `inferencer/upSearch.js`. This requires adding the `inferencer` package as a dependency. When converting a project that imports from `mount-observer/refid/hostish.js`:
+- Replace the import path with `inferencer/upSearch.js`
+- Add `inferencer` to the project's dependencies in `package.json`
+
 ## Success Criteria
 
 A successful conversion should:

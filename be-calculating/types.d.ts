@@ -11,6 +11,7 @@ export interface EndUserProps {
     handler: string;
     eventArg: string;
     js: string;
+    format: string;
 }
 
 export interface AllProps extends EndUserProps {

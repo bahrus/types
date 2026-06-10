@@ -12,6 +12,7 @@ export interface EndUserProps {
     eventArg: string;
     js: string;
     format: string;
+    raw: boolean;
 }
 
 export interface AllProps extends EndUserProps {

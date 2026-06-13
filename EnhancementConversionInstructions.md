@@ -1701,7 +1701,7 @@ Parser patterns should be ordered most-specific first:
 When binding to nested properties (e.g., `form.rating.value`), use the `?.` path syntax to avoid conflicts with the period-based statement separator:
 
 ```html
-<form 🪢="between ?.rating?.value on change and #alternativeRating.">
+<form 🪢="between ?.rating?.value@change and #alternativeRating.">
 ```
 
 Implement path resolution in your enhancement:
@@ -1730,12 +1730,12 @@ function setPath(obj, path, value) {
 }
 ```
 
-### Explicit Event Listening with `on` Keyword
+### Explicit Event Listening with `@` Syntax
 
-When the inferred event isn't appropriate (e.g., binding a form's `rating.value` which changes on `change` events from radio buttons), allow users to specify the event:
+When the inferred event isn't appropriate (e.g., binding a form's `rating.value` which changes on `change` events from radio buttons), allow users to specify the event by appending `@eventName` to the property:
 
 ```html
-<form 🪢="between ?.rating?.value on change and #alternativeRating.">
+<form 🪢="between ?.rating?.value@change and #alternativeRating.">
 ```
 
 In `hydrate`, check for `localEvent` and use it instead of the inferred propagator:
@@ -1804,16 +1804,16 @@ be-bound's parser config demonstrates handling multiple syntax variations in a s
 const parsePatterns = [
     // Path + event + remote ID
     { name: "betweenPathEventAndRemoteId",
-      pattern: "^between (?<localProp>\\?\\.[\\w\\?\\.]+) on (?<localEvent>[\\w]+) and #(?<remoteId>\\S+)" },
+      pattern: "^between (?<localProp>\\?\\.[\\w\\?\\.]+)@(?<localEvent>[\\w]+) and #(?<remoteId>\\S+)" },
     // Path + event + remote prop
     { name: "betweenPathEventAndRemoteProp",
-      pattern: "^between (?<localProp>\\?\\.[\\w\\?\\.]+) on (?<localEvent>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
+      pattern: "^between (?<localProp>\\?\\.[\\w\\?\\.]+)@(?<localEvent>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
     // Simple prop + event + remote ID
     { name: "betweenLocalPropEventAndRemoteId",
-      pattern: "^between (?<localProp>[\\w]+) on (?<localEvent>[\\w]+) and #(?<remoteId>\\S+)" },
+      pattern: "^between (?<localProp>[\\w]+)@(?<localEvent>[\\w]+) and #(?<remoteId>\\S+)" },
     // Simple prop + event + remote prop
     { name: "betweenLocalPropEventAndRemoteProp",
-      pattern: "^between (?<localProp>[\\w]+) on (?<localEvent>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
+      pattern: "^between (?<localProp>[\\w]+)@(?<localEvent>[\\w]+) and (?<remoteProp>[\\w\\.]+)" },
     // Simple prop + remote ID (no event)
     { name: "betweenLocalPropAndRemoteId",
       pattern: "^between (?<localProp>[\\w]+) and #(?<remoteId>\\S+)" },

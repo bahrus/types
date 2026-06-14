@@ -124,3 +124,23 @@ export interface Actions {
     onNValSwitches(self: AP): Promise<void>;
     processJS(self: AP): ProPAP;
 }
+
+/**
+ * Event passed to registered n-value handlers.
+ * Handlers set `e.r` to the result of their evaluation.
+ */
+export interface AggEvent extends Event {
+    /** The return value — set this to the result of the evaluation */
+    r: any;
+    /** Array of dependency values in declaration order */
+    args: Array<any>;
+    /** Named map of dependency values (keyed by data-id, id, or prop name) */
+    f: { [key: string]: any };
+    /** The enhanced element (template or data) */
+    target: EventTarget;
+}
+
+/**
+ * Handler function signature for registered n-value handlers
+ */
+export type AggHandler = (e: AggEvent) => void;

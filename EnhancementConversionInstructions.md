@@ -317,13 +317,16 @@ export function render(){
 
 3. **Configure withAttrs**: For each EndUserProps property in your types file:
    - Add `propertyName: '${base}-property-name'` for string/number properties
-   - For boolean properties, use the underscore prefix and instanceOf pattern:
+   - For boolean properties, you still need the attribute name mapping AND the underscore-prefixed metadata entry:
      ```javascript
-     _nudge: {
+     nudge: '${base}-nudge',    // attribute name mapping (REQUIRED - defines what attribute to observe)
+     _nudge: {                   // metadata (optional - provides type/parsing info)
          instanceOf: 'Boolean'
      }
      ```
+   - The underscore-prefixed key (`_propertyName`) is **metadata only** — it tells the framework how to parse the attribute value. It does NOT register the attribute by itself. You must always have the non-underscore entry to define the actual attribute name.
    - The `${base}` template variable references the base attribute name
+   - Special case: `_base` is metadata for the base attribute itself (which is implicitly the `base` value)
 
 4. **Configure weakRef**: 
    - Add `weakRef: { properties: ['enhancedElement'] }` at the start of customData

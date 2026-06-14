@@ -51,6 +51,5 @@ export type ProPAP = Promise<PAP>;
 
 export interface Actions {
     init(self: AP, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
-    noAttrs(self: AP): ProPAP;
     seek(self: AP): ProPAP;
 }

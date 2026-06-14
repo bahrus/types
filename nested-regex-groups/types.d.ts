@@ -85,6 +85,12 @@ export interface ParserOptions {
    * If true, returns detailed error information when no pattern matches
    */
   verbose?: boolean;
+
+  /**
+   * When true, periods inside matched pairs of { } are not treated
+   * as statement delimiters during splitting.
+   */
+  ignorePeriodInsideBraces?: boolean;
 }
 
 /**

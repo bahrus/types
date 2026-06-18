@@ -1,3 +1,5 @@
+import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+
 export interface RenderingHTMLScriptElement extends HTMLScriptElement{
     renderer: (vm: any, html: any) => any,
 }
@@ -22,6 +24,7 @@ export type AP = AllProps;
 export type ProPAP = Promise<PAP>;
 
 export interface Actions {
+    init(self: AP, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
     getRenderer(self: AP): PAP;
     doRender(self: AP): void;
     observe(self: AP): ProPAP;

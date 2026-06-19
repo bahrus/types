@@ -1,3 +1,5 @@
+import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+
 export interface EndUserProps {
     triggerInsertPosition: InsertPosition;
     labelTextContainer: string;
@@ -17,9 +19,8 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
-
-
 export interface Actions{
+    init(self: AP, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
     addTypeBtn(self: AP): ProPAP;
     setBtnContent(self: AP): void;
     openDialog(self: AP): Promise<void>

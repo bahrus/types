@@ -1,5 +1,5 @@
 export interface EndUserProps{
-    to: string;
+    to: string | undefined;
     nudge: boolean;
     on: string;
 }

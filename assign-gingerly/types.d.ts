@@ -184,6 +184,13 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
    * Should make sure it is added to static observedAttribrutes
    */
   sourceOfTruth?: boolean;
+
+  /**
+   * Options to pass to the parser function (e.g., splitStatements behavior).
+   * For named parsers like 'parse-pattern-statements', this is forwarded
+   * as the options argument to the underlying parse function.
+   */
+  parserOptions?: any;
 }
 
 export type AttrPatterns<T = any> = {

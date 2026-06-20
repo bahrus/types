@@ -16,10 +16,12 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
+import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+
 export interface Actions{
     
     addDeleteBtn(self: AP): ProPAP ;
     setBtnContent(self: AP): void;
     beDeleted(self: AP): void;
-    init(self: AP & Actions, enhancedElement: Element, initVals: PAP): Promise<void>;
+    init(self: AP & Actions, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
 }

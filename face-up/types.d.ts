@@ -1,5 +1,3 @@
-import { SpawnContext } from "../assign-gingerly/types";
-
 /**
  * Shared context passed via getSharedContext — contains the
  * ElementInternals instance needed for form control APIs.
@@ -12,7 +10,7 @@ export interface FaceUpSharedContext {
 /**
  * Context passed to the FaceUp feature constructor
  */
-export interface FeatureSpawnContext extends SpawnContext {
+export interface FeatureSpawnContext {
     key: string;
     optIn: any;
     injection: any;

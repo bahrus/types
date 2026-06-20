@@ -1,14 +1,15 @@
-import { Specifier } from "../trans-render/dss/types";
-import {AbsorbingObject, SharingObject} from '../trans-render/asmr/types';
+import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+//import { Specifier } from "../trans-render/dss/types";
+//import { AbsorbingObject, SharingObject} from '../trans-render/asmr/types';
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface EndUserProps{
-    bindingRules?: StatementsResult<BindingRule>;
+    bindingRules: StatementsResult<BindingRule>;
 }
 
 export interface AllProps extends EndUserProps{
-    enhancedElement: Element;
-    bindings: Array<Binding>,
+    enhancedElement: Element & ElementEnhancementGateway;
+    //bindings: Array<Binding>,
     isParsed?: boolean,
     rawStatements?: Array<string>
 }
@@ -17,23 +18,23 @@ export type SignalEnhancement = 'be-value-added' | 'be-propagating' | undefined;
 
 export interface BindingRule {
     
-    localProp?: string,
+    localProp: string,
     localEvent?: string,
     remoteId?: string,
-    remoteProp?: string,
-    remoteSpecifier?: Specifier,
+    remoteProp: string,
+    //remoteSpecifier?: Specifier,
 
 
 }
 
-export interface Binding {
-    //new and improved
-    localAbsObj: AbsorbingObject;
-    localShareObj: SharingObject;
-    remoteAbsObj: AbsorbingObject;
-    remoteShareObj: SharingObject;
-    //remoteRef: WeakRef<Element>;
-}
+// export interface Binding {
+//     //new and improved
+//     localAbsObj: AbsorbingObject;
+//     localShareObj: SharingObject;
+//     remoteAbsObj: AbsorbingObject;
+//     remoteShareObj: SharingObject;
+//     //remoteRef: WeakRef<Element>;
+// }
 
 export type AP = AllProps;
 
@@ -41,12 +42,16 @@ export type PAP = Partial<AP>;
 
 export type ProPAP = Promise<PAP>;
 
+export type Directions = 'rToL' | 'lToR' | 'tie';
+
 
 export interface Actions{
-    noAttrs(self: AP): ProPAP;
+    init(self: AllProps, enhancedElement: Element, ctx: SpawnContext, initVals: PAP): Promise<void>;
+    //noAttrs(self: AP): ProPAP;
     getBindings(self: AP): ProPAP;
     hydrate(self: AP): ProPAP;
     onRawStatements(self: AP): void;
+    reconcileValues(self: AP, rule: BindingRule, direction: Directions): void;
 }
 
 export type WithStatement = string;

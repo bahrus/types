@@ -25,6 +25,8 @@ export interface EndUserProps {
     runScripts: boolean;
     /** Shadow root mode for declarative shadow DOM */
     shadowrootmode: 'open' | 'closed' | undefined;
+    /** Base URL for resolving relative URLs in streamed content (used with shadowrootmode) */
+    baseUrl: string | undefined;
 }
 
 export interface AllProps extends EndUserProps {

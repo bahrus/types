@@ -27,6 +27,10 @@ export interface EndUserProps {
     shadowrootmode: 'open' | 'closed' | undefined;
     /** Whether to inject a <base> element into the shadow root, derived from the fetch URL */
     injectBase: boolean;
+    /** Marker string to begin snipping from (inclusive). Content before this marker is discarded. */
+    start: string | undefined;
+    /** Marker string to stop snipping at (exclusive). Content from this marker onward is discarded. */
+    end: string | undefined;
 }
 
 export interface AllProps extends EndUserProps {

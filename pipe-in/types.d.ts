@@ -33,6 +33,8 @@ export interface EndUserProps {
     end: string | undefined;
     /** Fetch API cache policy for the request */
     cache: string | undefined;
+    /** When true, disables shared stream participation (neither source nor consumer) */
+    noShare: boolean;
 }
 
 export interface AllProps extends EndUserProps {

@@ -31,6 +31,8 @@ export interface EndUserProps {
     start: string | undefined;
     /** Marker string to stop snipping at (exclusive). Content from this marker onward is discarded. */
     end: string | undefined;
+    /** Fetch API cache policy for the request */
+    cache: string | undefined;
 }
 
 export interface AllProps extends EndUserProps {

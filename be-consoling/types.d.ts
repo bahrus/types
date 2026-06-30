@@ -1,16 +1,15 @@
 import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
 
-export interface EndUserProps {
-    triggerInsertPosition: InsertPosition;
-    labelTextContainer: string;
-    buttonContent: string;
-    nudge?: boolean;
+export type ConsoleLevel = 'log' | 'warn' | 'error' | 'info' | 'debug';
+
+export interface EndUserProps{
+    level: ConsoleLevel;
+    ignore: string[];
 }
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element;
-    byob?: boolean;
-    trigger: WeakRef<HTMLButtonElement>
+    resolved: boolean;
 }
 
 export type AP = AllProps;
@@ -20,13 +19,6 @@ export type PAP = Partial<AP>;
 export type ProPAP = Promise<PAP>;
 
 export interface Actions{
+    hydrate(self: AP): PAP;
     init(self: AP, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
-    addTypeBtn(self: AP): ProPAP;
-    setBtnContent(self: AP): void;
-    openDialog(self: AP): Promise<void>
-}
-
-export interface ITyper{
-    showDialog(): void;
-    dispose(): void;
 }

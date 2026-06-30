@@ -481,3 +481,43 @@ export declare class PropertyBag {
     customElementRegistry: any;
     constructor(hostElement: any, ctx?: FeatureSpawnContext, initVals?: any);
 }
+
+// =============================================================================
+// assignFrom handler types
+// =============================================================================
+
+/**
+ * Base configuration for an assignFrom handler invocation.
+ * The `do` field identifies the handler; `resolve` maps named parameters to path strings.
+ */
+export interface HandlerConfig {
+    /** The registered handler name */
+    do: string;
+    /** Named parameters to resolve against the `from` source before passing to the handler */
+    resolve?: Record<string, string>;
+}
+
+/**
+ * Interface for assignFrom handler classes.
+ * Handlers are invoked when a LHS key ends with ' =>'.
+ */
+export interface AssignFromHandler {
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any): Promise<void> | void;
+}
+
+/**
+ * Constructor signature for assignFrom handler classes.
+ */
+export interface AssignFromHandlerConstructor {
+    new (config: HandlerConfig): AssignFromHandler;
+}
+
+/**
+ * Register a handler class for use with the ` =>` operator in assignFrom.
+ */
+export declare function defineHandler(name: string, HandlerClass: AssignFromHandlerConstructor): void;
+
+/**
+ * Get a registered handler by name.
+ */
+export declare function getHandler(name: string): AssignFromHandlerConstructor | undefined;

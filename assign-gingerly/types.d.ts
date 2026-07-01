@@ -521,3 +521,50 @@ export declare function defineHandler(name: string, HandlerClass: AssignFromHand
  * Get a registered handler by name.
  */
 export declare function getHandler(name: string): AssignFromHandlerConstructor | undefined;
+
+// =============================================================================
+// Built-in handler config types
+// =============================================================================
+
+/**
+ * Configuration for the builtIns.lazyLoad handler.
+ */
+export interface LazyLoadConfig extends HandlerConfig {
+    do: 'builtIns.lazyLoad';
+    resolve: {
+        /** Condition to show/hide (resolved from VM) */
+        if: string;
+        /** Template element to clone (resolved via protocol or path) */
+        instantiate: string;
+        /** Insert method: 'appendChild' (default) or 'prepend' */
+        method?: string;
+        /** If true, removes nodes when hiding instead of adding hidden attribute */
+        forget?: boolean | string;
+        /** Optional async callback invoked after cloning, resolved from the VM */
+        onInstantiated?: string;
+    };
+}
+
+/**
+ * Context passed to onInstantiated callbacks after template cloning.
+ */
+export interface LazyLoadInstantiatedContext {
+    /** The inserted child nodes */
+    nodes: Node[];
+    /** The target element containing the markers */
+    target: Element;
+    /** The full handler config */
+    config: any;
+    /** The resolved parameters */
+    resolvedParams: Record<string, any>;
+}
+
+/**
+ * The LazyLoadHandler class (exported for subclassing).
+ */
+export declare class LazyLoadHandler implements AssignFromHandler {
+    config: any;
+    constructor(config: any);
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any): Promise<void>;
+    protected onCloneInserted(nodes: Node[], lhsTarget: Element, resolvedParams: Record<string, any>): Promise<void>;
+}

@@ -512,16 +512,6 @@ export interface AssignFromHandlerConstructor {
     new (config: HandlerConfig): AssignFromHandler;
 }
 
-/**
- * Register a handler class for use with the ` =>` operator in assignFrom.
- */
-export declare function defineHandler(name: string, HandlerClass: AssignFromHandlerConstructor): void;
-
-/**
- * Get a registered handler by name.
- */
-export declare function getHandler(name: string): AssignFromHandlerConstructor | undefined;
-
 // =============================================================================
 // Built-in handler config types
 // =============================================================================

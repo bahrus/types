@@ -64,6 +64,12 @@ export interface EnhancementConfig<T = any, Obj = Element> extends EnhancementCo
 
   //only applicable when spawning from a DOM Element reference
   enhKey?: EnhKey;
+
+  /**
+   * Optional features to associate with the spawn class.
+   * Calls assignFeatures(spawn, features) automatically on registration.
+   */
+  features?: FeatureConfigsMap;
     
 }
 
@@ -300,6 +306,12 @@ export interface ItemscopeManagerConfig<T = any> {
     dispose?: string | symbol;
     resolved?: string | symbol;
   };
+
+  /**
+   * Optional features to associate with the manager class.
+   * Calls assignFeatures(manager, features) automatically on registration.
+   */
+  features?: FeatureConfigsMap;
 }
 
 /**

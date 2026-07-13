@@ -542,9 +542,72 @@ export interface LazyLoadConfig extends HandlerConfig {
         method?: string;
         /** If true, removes nodes when hiding instead of adding hidden attribute */
         forget?: boolean | string;
+        /** Enable view transitions */
+        transitional?: boolean | string;
+        /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+        hideClass?: string;
         /** Optional async callback invoked after cloning, resolved from the VM */
         onInstantiated?: string;
     };
+}
+
+/**
+ * Resolved parameters received by LazyLoadHandler.assign() after resolveValues processing.
+ */
+export interface LazyLoadResolvedParams {
+    /** Condition — resolved to actual truthy/falsy value */
+    if: any;
+    /** Template element — resolved to HTMLTemplateElement or DocumentFragment */
+    instantiate: HTMLTemplateElement | DocumentFragment;
+    /** Insertion method (default: 'appendChild') */
+    method?: 'appendChild' | 'prepend';
+    /** Remove nodes on hide instead of using hidden attribute */
+    forget?: boolean;
+    /** Enable view transitions */
+    transitional?: boolean;
+    /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+    hideClass?: string;
+    /** Callback after clone+insert */
+    onInstantiated?: (ctx: LazyLoadInstantiatedContext) => void | Promise<void>;
+}
+
+/**
+ * Configuration for the builtIns.lazyLoadSwitch handler.
+ */
+export interface LazyLoadSwitchConfig extends HandlerConfig {
+    do: 'builtIns.lazyLoadSwitch';
+    resolve: {
+        /** Left-hand side of comparison (resolved from VM) */
+        lhs: string;
+        /** Comparison operator (default: '===') */
+        op?: '===' | '!==' | '==' | '!=' | '<' | '>' | '<=' | '>=';
+        /** Right-hand side of comparison (resolved from VM or literal) */
+        rhs: string;
+        /** Template element to clone (resolved via protocol or path) */
+        instantiate: string;
+        /** Insert method: 'appendChild' (default) or 'prepend' */
+        method?: string;
+        /** If true, removes nodes when hiding instead of adding hidden attribute */
+        forget?: boolean | string;
+        /** Enable view transitions */
+        transitional?: boolean | string;
+        /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+        hideClass?: string;
+        /** Optional async callback invoked after cloning, resolved from the VM */
+        onInstantiated?: string;
+    };
+}
+
+/**
+ * Resolved parameters received by LazyLoadSwitchHandler.assign() after resolveValues processing.
+ */
+export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParams, 'if'> {
+    /** Left-hand side — resolved to actual value */
+    lhs: any;
+    /** Comparison operator (default: '===') */
+    op?: '===' | '!==' | '==' | '!=' | '<' | '>' | '<=' | '>=';
+    /** Right-hand side — resolved to actual value */
+    rhs: any;
 }
 
 /**

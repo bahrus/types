@@ -538,7 +538,7 @@ export interface LazyLoadConfig extends HandlerConfig {
         if: string;
         /** Template element to clone (resolved via protocol or path) */
         instantiate: string;
-        /** Insert method: 'appendChild' (default) or 'prepend' */
+        /** Insert method: 'appendChild' (default), 'prepend', or 'after' (sibling after target) */
         method?: string;
         /** If true, removes nodes when hiding instead of adding hidden attribute */
         forget?: boolean | string;
@@ -548,6 +548,12 @@ export interface LazyLoadConfig extends HandlerConfig {
         hideClass?: string;
         /** Optional async callback invoked after cloning, resolved from the VM */
         onInstantiated?: string;
+        /** Override auto-derived marker name */
+        markerName?: string;
+        /** Set inert attribute on hidden elements */
+        toggleInert?: boolean | string;
+        /** Set disabled property on hidden form elements */
+        toggleDisabled?: boolean | string;
     };
 }
 
@@ -560,7 +566,7 @@ export interface LazyLoadResolvedParams {
     /** Template element — resolved to HTMLTemplateElement or DocumentFragment */
     instantiate: HTMLTemplateElement | DocumentFragment;
     /** Insertion method (default: 'appendChild') */
-    method?: 'appendChild' | 'prepend';
+    method?: 'appendChild' | 'prepend' | 'after';
     /** Remove nodes on hide instead of using hidden attribute */
     forget?: boolean;
     /** Enable view transitions */
@@ -569,6 +575,12 @@ export interface LazyLoadResolvedParams {
     hideClass?: string;
     /** Callback after clone+insert */
     onInstantiated?: (ctx: LazyLoadInstantiatedContext) => void | Promise<void>;
+    /** Override auto-derived marker name */
+    markerName?: string;
+    /** Set inert attribute on hidden elements (removes from a11y tree + interaction) */
+    toggleInert?: boolean;
+    /** Set disabled property on hidden form elements */
+    toggleDisabled?: boolean;
 }
 
 /**

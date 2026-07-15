@@ -546,6 +546,8 @@ export interface LazyLoadConfig extends HandlerConfig {
         transitional?: boolean | string;
         /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
         hideClass?: string;
+        /** Custom CSS for the hide class (default: 'display: none') */
+        hideCss?: string;
         /** Optional async callback invoked after cloning, resolved from the VM */
         onInstantiated?: string;
         /** Override auto-derived marker name */
@@ -573,6 +575,8 @@ export interface LazyLoadResolvedParams {
     transitional?: boolean;
     /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
     hideClass?: string;
+    /** Custom CSS for the hide class (default: 'display: none') */
+    hideCss?: string;
     /** Callback after clone+insert */
     onInstantiated?: (ctx: LazyLoadInstantiatedContext) => void | Promise<void>;
     /** Override auto-derived marker name */
@@ -597,7 +601,7 @@ export interface LazyLoadSwitchConfig extends HandlerConfig {
         rhs: string;
         /** Template element to clone (resolved via protocol or path) */
         instantiate: string;
-        /** Insert method: 'appendChild' (default) or 'prepend' */
+        /** Insert method: 'appendChild' (default), 'prepend', or 'after' */
         method?: string;
         /** If true, removes nodes when hiding instead of adding hidden attribute */
         forget?: boolean | string;
@@ -605,6 +609,8 @@ export interface LazyLoadSwitchConfig extends HandlerConfig {
         transitional?: boolean | string;
         /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
         hideClass?: string;
+        /** Custom CSS for the hide class (default: 'display: none') */
+        hideCss?: string;
         /** Optional async callback invoked after cloning, resolved from the VM */
         onInstantiated?: string;
     };

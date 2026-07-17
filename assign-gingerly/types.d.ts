@@ -262,6 +262,37 @@ export interface IAssignGingerlyOptions {
 }
 
 /**
+ * Options for synchronous value resolution (getValues / getValue).
+ * Extends IAssignGingerlyOptions with synchronous protocol handlers.
+ */
+export interface GetValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Synchronous protocol handlers for resolving protocol-prefixed values.
+   * Each handler receives the key portion and MUST return synchronously.
+   * For async protocols, use ResolveValuesOptions / resolveValues instead.
+   * 
+   * @example
+   * protocols: {
+   *     globalThis: (key) => globalThis[key],
+   *     localStorage: (key) => JSON.parse(localStorage.getItem(key) || 'null')
+   * }
+   */
+  protocols?: Record<string, (key: string) => any>;
+}
+
+/**
+ * Options for async value resolution (resolveValues).
+ * Same as GetValuesOptions but protocol handlers may return Promises.
+ */
+export interface ResolveValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Protocol handlers for resolving protocol-prefixed values (e.g., 'globalThis://key').
+   * Each handler receives the key portion and returns the resolved value (sync or async).
+   */
+  protocols?: Record<string, (key: string) => any | Promise<any>>;
+}
+
+/**
  * Event dispatched when enhancement configs are registered
  */
 export declare class EnhancementRegisteredEvent extends Event {

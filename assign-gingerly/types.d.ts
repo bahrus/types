@@ -660,6 +660,26 @@ export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParam
 }
 
 /**
+ * Resolved parameters received by ManageTemplateListHandler.assign().
+ */
+export interface ManageTemplateListResolvedParams {
+    /** The iterable to loop over (resolved from VM) */
+    forEach: Iterable<any>;
+    /** Template element to clone per item */
+    instantiate: HTMLTemplateElement | DocumentFragment;
+    /** Insertion method (default: 'appendChild') */
+    method?: 'appendChild' | 'prepend' | 'after';
+    /** Remove nodes on hide instead of using hidden attribute */
+    forget?: boolean;
+    /** Override auto-derived marker name */
+    markerName?: string;
+    /** Wait for async rendering before DOM commit */
+    waitForSettled?: boolean | { idleMs?: number; timeout?: number };
+    /** Yield to browser every N items to prevent jank (default: undefined = no yielding) */
+    yieldEvery?: number;
+}
+
+/**
  * Context passed to onInstantiated callbacks after template cloning.
  */
 export interface LazyLoadInstantiatedContext {

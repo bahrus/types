@@ -616,6 +616,9 @@ export interface LazyLoadResolvedParams {
     toggleInert?: boolean;
     /** Set disabled property on hidden form elements */
     toggleDisabled?: boolean;
+    /** Name of a pre-existing marker pair whose content should be removed on first activation.
+     *  Used for SSR placeholder content (e.g., "Loading..." text) that disappears once real content loads. */
+    placeholder?: string;
 }
 
 /**

@@ -619,6 +619,13 @@ export interface LazyLoadResolvedParams {
     /** Name of a pre-existing marker pair whose content should be removed on first activation.
      *  Used for SSR placeholder content (e.g., "Loading..." text) that disappears once real content loads. */
     placeholder?: string;
+    /** Assignment config applied to cloned content before insertion.
+     *  Same shape as manageTemplateList's fromEachItem: { assignToFragment, withOptions } or { configs: [...] } */
+    assign?: {
+        assignToFragment?: Record<string, any>;
+        withOptions?: Record<string, any>;
+        configs?: Array<{ assignToFragment?: Record<string, any>; withOptions?: Record<string, any> }>;
+    };
 }
 
 /**

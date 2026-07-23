@@ -393,3 +393,313 @@ Create a test file (e.g., `tests/test1.html`):
 - **Check generated JSON**: Run `node emc.mjs` to see the output
 - **Use `@ts-check`**: Catches type errors early in `.js` files
 - **Don't import emc.json in the class**: The config comes through `ctx.emc`
+
+## Parser Registration in HTML
+
+When your enhancement uses a custom parser (see Step 4's custom parser section), you must also register the parser in your test/demo HTML files. The EMC script needs to wait for the parser to be available before processing attributes.
+
+```html
+<be-hive>
+    <script type=emc-parser 
+            src="be-hive/parsers/parse-pattern-statements.js" 
+            parser-name=parse-pattern-statements></script>
+    <script type=emc 
+            src="[project-name]/emc.json" 
+            wait-for-parsers=parse-pattern-statements></script>
+</be-hive>
+<script type=module>
+    import 'be-hive/be-hive.js';
+</script>
+```
+
+**Key attributes:**
+- `type=emc-parser` — Identifies this as a parser registration script
+- `src` — Path to the parser module (e.g., `be-hive/parsers/parse-pattern-statements.js`)
+- `parser-name` — Must match the `parser` string value in your `emc.mjs` `withAttrs` config
+- `wait-for-parsers` — Comma-separated list of parser names to wait for before processing the EMC
+
+If you omit the parser registration, you'll get "Parser not found" errors in the browser console.
+
+## Playwright Configuration
+
+The modern architecture uses JSON imports with `with {type: 'json'}` syntax, which requires Chrome 146+. Update `playwright.config.ts` to only run Chromium tests:
+
+```typescript
+projects: [
+  {
+    name: 'chromium',
+    use: { ...devices['Desktop Chrome'] },
+  },
+  // Commented out - requires Chrome 146+ features (JSON imports with type assertion)
+  // {
+  //   name: 'firefox',
+  //   use: { ...devices['Desktop Firefox'] },
+  // },
+  // {
+  //   name: 'webkit',
+  //   use: { ...devices['Desktop Safari'] },
+  // },
+],
+```
+
+## Using the Infer Pattern for Element Conventions
+
+### Overview
+
+The modern architecture provides a standardized way to infer element properties and event types through the **`infer` pattern** from `inferencer`. This eliminates the need for hardcoded element type checks and provides a consistent, extensible approach to element conventions.
+
+### The Infer Function
+
+Add this helper function at the bottom of your enhancement class file:
+
+```javascript
+/** @import {Infer} from './types/inferencer/types' */
+
+/**
+ * @param {Element & ElementEnhancementGateway} from 
+ */
+async function infer(from){
+    return /** @type {Infer} */ (
+        /** @type {any} */ (
+            from.enh.get((await import('inferencer/inferencer.js')).registryItem)
+        )
+    );
+}
+```
+
+### What It Provides
+
+The `infer` function returns an object with:
+- **`eventType`**: The most appropriate event type for the element (e.g., 'click', 'input', 'change')
+- **`propName`**: The most appropriate property name for the element (e.g., 'checked', 'value', 'textContent')
+- **`value`**: The current value of the inferred property (getter/setter)
+- **`getPropagator()`**: Returns a propagator EventTarget for observing property changes
+
+### Usage Examples
+
+#### Inferring Event Type
+
+```javascript
+// ❌ Hardcoded logic
+if (localEventType === undefined) {
+    const tagName = enhancedElement.tagName.toLowerCase();
+    if(tagName === 'input' || tagName === 'textarea' || tagName === 'select'){
+        localEventType = 'input';
+    } else {
+        localEventType = 'click';
+    }
+}
+
+// ✅ Use infer
+if (localEventType === undefined) {
+    localEventType = (await infer(enhancedElement)).eventType;
+}
+```
+
+#### Inferring Property Name
+
+```javascript
+// ❌ Hardcoded logic
+if(!propertyName){
+    const tagName = target.tagName.toLowerCase();
+    if(tagName === 'input'){
+        const inputType = target.getAttribute('type');
+        propertyName = (inputType === 'checkbox' || inputType === 'radio') ? 'checked' : 'value';
+    } else {
+        propertyName = 'textContent';
+    }
+}
+
+// ✅ Use infer
+if(!propertyName){
+    propertyName = (await infer(target)).propName;
+}
+```
+
+#### Getting/Setting Inferred Property Value
+
+```javascript
+const inference = await infer(target);
+const currentValue = inference.value;
+inference.value = !inference.value;  // Toggle
+```
+
+#### Inferring from Name Attribute (Empty Attribute Value)
+
+When the attribute value is empty, infer both event type and property name:
+
+```javascript
+if(statements.length === 0){
+    const name = enhancedElement.getAttribute('name');
+    if(name){
+        statements.push({
+            value: {
+                prop: name,
+                localEventType: (await infer(enhancedElement)).eventType,
+            }
+        });
+    }
+}
+```
+
+### Benefits
+
+1. **Consistency**: All enhancements use the same inference logic
+2. **Extensibility**: New element types can be supported by updating inferencer, not each enhancement
+3. **Maintainability**: No duplicated element type checking code
+4. **Type Safety**: TypeScript definitions ensure correct usage
+5. **Future-proof**: Custom elements can provide their own inference hints
+
+## Binding Enhancement Patterns
+
+If your enhancement needs to synchronize property values between elements (two-way data binding), the following patterns from be-bound apply.
+
+### The InferencedPropagator Pattern
+
+Binding enhancements need to detect property changes on arbitrary elements — both custom elements (which may have roundabout propagators) and native elements (which don't). The `inferencer` package provides `InferencedPropagator` which handles this transparently:
+
+```javascript
+const localInference = await infer(enhancedElement);
+const localPropagator = await localInference.getPropagator();
+
+// Works for both custom elements and built-in elements
+localPropagator.addEventListener('value', () => {
+    // property changed
+});
+```
+
+**How `getPropagator()` works:**
+- For **custom elements** with roundabout: returns the element's native `propagator` EventTarget
+- For **built-in elements**: creates an `InferencedPropagator` that uses best-effort detection (native events, setter interception, attribute observation, polling fallback)
+
+The propagator's `addEventListener` uses the **property name** as the event type (not a DOM event name).
+
+### contentEditable Elements
+
+The `InferencedPropagator` supports contentEditable elements by detecting `element.isContentEditable` and listening for the native `input` event. The browser does NOT fire property setters when users type in a contentEditable element — it mutates the DOM directly. The `input` event is the only reliable signal.
+
+### upSearch: Resolving Remote Targets
+
+The `inferencer/upSearch.js` function resolves remote binding targets:
+
+```javascript
+const target = await upSearch(enhancedElement, remoteId);
+```
+
+- If `remoteId` is truthy: calls `getRootNode().getElementById(remoteId)`
+- If `remoteId` is falsy: traverses up to the nearest `[itemscope]` ancestor, or the shadow root's host
+
+### Path-Based Property Access
+
+When binding to nested properties, use the `?.` path syntax to avoid conflicts with period-based statement separation:
+
+```html
+<form 🪢="between ?.rating?.value@change and #alternativeRating.">
+```
+
+### Explicit Event Listening with `@` Syntax
+
+When the inferred event isn't appropriate, allow users to specify the event by appending `@eventName`:
+
+```html
+<form 🪢="between ?.rating?.value@change and #alternativeRating.">
+```
+
+In `hydrate`, check for `localEvent` and use it instead of the inferred propagator when present.
+
+### Tie-Breaking for Initial Reconciliation
+
+When two-way binding is first established, a `breakTie` function determines which value wins based on type specificity:
+
+```
+object > function > symbol > bigint > number > boolean > string > null > undefined
+```
+
+Within the same type, longer string representations win. Equal values result in no action.
+
+## Lessons Learned / Common Pitfalls
+
+### Compact/Action Conflicts
+
+Do NOT define the same method in both `actions` and `compacts` in your `emc.mjs` `customData`:
+
+- **Compacts** automatically call methods when properties change (e.g., `when_triggerInsertPosition_changes_call_addDeleteBtn`)
+- **Actions** define when methods should be called based on property availability (e.g., `ifAllOf: ['prop1', 'prop2']`)
+
+If a method is already invoked by a compact, adding it to `actions` will cause a "Conflict detected" error from roundabout.
+
+### Emoji Shorthand: Always Spread `...myJSON`
+
+When creating emoji `.mjs` files, always spread `...myJSON` at the top level:
+
+```javascript
+const emc = {
+    ...myJSON,           // ← CRITICAL: carries over customData
+    enhConfig: {
+        ...myJSON.enhConfig,
+        enhKey: '⿻',
+        withAttrs: {
+            ...myJSON.enhConfig.withAttrs,
+            base: '⿻'
+        }
+    }
+}
+```
+
+Without `...myJSON`, the emoji JSON will be missing `customData` (actions, weakRef, defaultPropVals), and the enhancement will appear to load but won't respond to events.
+
+### Chained Accessor `?.` vs Period `.`
+
+The parsers (`parse-pattern-statements`, `parse-grouped-capture-statements`) split statements on periods. If you need to reference properties using dot notation in attribute values, use `?.` instead:
+
+```html
+<!-- ❌ Period conflicts with statement splitting -->
+<button ⏻="[#myLight].isOn">Toggle</button>
+
+<!-- ✅ Chained accessor avoids conflict -->
+<button ⏻="[#myLight]?.isOn">Toggle</button>
+```
+
+### Parser Selection
+
+| Use case | Parser |
+|----------|--------|
+| Flat target objects, no nesting | `parse-grouped-capture-statements` |
+| Nested object structures via dot notation in capture groups | `parse-pattern-statements` |
+
+Choose based on your data structure needs, not syntax complexity. The parser choice directly affects your type definitions.
+
+### Utility Import Paths
+
+Common utilities live in `be-hive`, not `trans-render`:
+
+```javascript
+// ✅ Correct
+import { findAdjacentElement } from 'be-hive/findAdjacentElement.js';
+
+// ❌ Wrong (legacy path)
+import { findAdjacentElement } from 'trans-render/lib/findAdjacentElement.js';
+```
+
+### Debugging Tips
+
+1. **Check the generated JSON** — Run `node emc.mjs` and verify all sections (especially `customData`) are present
+2. **Console log parsedStatements** — Add `console.log({parsedStatements})` in `hydrate` to see parser output
+3. **Verify parser loading** — Check browser console for "Parser not found" errors
+4. **Test incrementally** — Get one example working before moving to the next
+5. **Compare with working examples** — Use be-clonable (architecture), do-invoke (custom parser), do-toggle (infer pattern) as references
+
+### Testing Strategy
+
+Build incrementally:
+
+1. **Get the basic case working first** (simple property/action trigger)
+2. **Add inference** (infer from name attribute when attribute value is empty)
+3. **Add event customization** (custom event types)
+4. **Add selector/remote support** (target peer elements)
+
+Don't try to implement all features at once.
+
+---
+
+*Last updated: June 2026*

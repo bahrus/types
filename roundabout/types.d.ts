@@ -191,6 +191,19 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
      * See IAssignGingerlyOptions in assign-gingerly for details.
      */
     assignGingerlyOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
+
+    /**
+     * Protocol handlers for resolving protocol-prefixed values in initialPropVals.
+     * When present, roundabout uses assignFrom (with protocol resolution and "..." spread)
+     * instead of plain assignGingerly for applying initial property values.
+     * 
+     * @example
+     * protocols: {
+     *     globalThis: (key) => globalThis[key],
+     *     localStorage: (key) => JSON.parse(localStorage.getItem(key) || 'null')
+     * }
+     */
+    protocols?: Record<string, (key: string) => any | Promise<any>>,
     
 
 }

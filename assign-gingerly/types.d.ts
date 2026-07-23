@@ -64,6 +64,12 @@ export interface EnhancementConfig<T = any, Obj = Element> extends EnhancementCo
 
   //only applicable when spawning from a DOM Element reference
   enhKey?: EnhKey;
+
+  /**
+   * Optional features to associate with the spawn class.
+   * Calls assignFeatures(spawn, features) automatically on registration.
+   */
+  features?: FeatureConfigsMap;
     
 }
 
@@ -184,6 +190,13 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
    * Should make sure it is added to static observedAttribrutes
    */
   sourceOfTruth?: boolean;
+
+  /**
+   * Options to pass to the parser function (e.g., splitStatements behavior).
+   * For named parsers like 'parse-pattern-statements', this is forwarded
+   * as the options argument to the underlying parse function.
+   */
+  parserOptions?: any;
 }
 
 export type AttrPatterns<T = any> = {
@@ -249,6 +262,65 @@ export interface IAssignGingerlyOptions {
 }
 
 /**
+ * Options for assignTentatively — reversible assignment with change tracking.
+ * 
+ * Supports a subset of assignGingerly's path features (nested paths, +=, =!, -=)
+ * with the addition of reversal tracking.
+ */
+export interface IAssignTentativelyOptions {
+  /**
+   * Object to accumulate reversal entries into.
+   * If omitted, a new object is created internally.
+   * Pass an existing object to accumulate reversals across multiple calls.
+   * 
+   * The reversal object can be passed to assignGingerly to undo all changes:
+   * @example
+   * const reversal = {};
+   * assignTentatively(obj, { name: 'Bob' }, { reversal });
+   * // Later:
+   * assignGingerly(obj, reversal); // restores name to original value
+   */
+  reversal?: Record<string | symbol, any>;
+
+  /**
+   * Alias mappings for property and method names.
+   * Same semantics as IAssignGingerlyOptions.aka — substituted before path evaluation.
+   */
+  aka?: Record<string, string>;
+}
+
+/**
+ * Options for synchronous value resolution (getValues / getValue).
+ * Extends IAssignGingerlyOptions with synchronous protocol handlers.
+ */
+export interface GetValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Synchronous protocol handlers for resolving protocol-prefixed values.
+   * Each handler receives the key portion and MUST return synchronously.
+   * For async protocols, use ResolveValuesOptions / resolveValues instead.
+   * 
+   * @example
+   * protocols: {
+   *     globalThis: (key) => globalThis[key],
+   *     localStorage: (key) => JSON.parse(localStorage.getItem(key) || 'null')
+   * }
+   */
+  protocols?: Record<string, (key: string) => any>;
+}
+
+/**
+ * Options for async value resolution (resolveValues).
+ * Same as GetValuesOptions but protocol handlers may return Promises.
+ */
+export interface ResolveValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Protocol handlers for resolving protocol-prefixed values (e.g., 'globalThis://key').
+   * Each handler receives the key portion and returns the resolved value (sync or async).
+   */
+  protocols?: Record<string, (key: string) => any | Promise<any>>;
+}
+
+/**
  * Event dispatched when enhancement configs are registered
  */
 export declare class EnhancementRegisteredEvent extends Event {
@@ -293,6 +365,12 @@ export interface ItemscopeManagerConfig<T = any> {
     dispose?: string | symbol;
     resolved?: string | symbol;
   };
+
+  /**
+   * Optional features to associate with the manager class.
+   * Calls assignFeatures(manager, features) automatically on registration.
+   */
+  features?: FeatureConfigsMap;
 }
 
 /**
@@ -473,4 +551,192 @@ export declare function getFeatureInfoSuggestions(
 export declare class PropertyBag {
     customElementRegistry: any;
     constructor(hostElement: any, ctx?: FeatureSpawnContext, initVals?: any);
+}
+
+// =============================================================================
+// assignFrom handler types
+// =============================================================================
+
+/**
+ * Base configuration for an assignFrom handler invocation.
+ * The `do` field identifies the handler; `resolve` maps named parameters to path strings.
+ */
+export interface HandlerConfig {
+    /** The registered handler name */
+    do: string;
+    /** Named parameters to resolve against the `from` source before passing to the handler */
+    resolve?: Record<string, string>;
+}
+
+/**
+ * Interface for assignFrom handler classes.
+ * Handlers are invoked when a LHS key ends with ' =>'.
+ */
+export interface AssignFromHandler {
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any): Promise<void> | void;
+}
+
+/**
+ * Constructor signature for assignFrom handler classes.
+ */
+export interface AssignFromHandlerConstructor {
+    new (config: HandlerConfig): AssignFromHandler;
+}
+
+// =============================================================================
+// Built-in handler config types
+// =============================================================================
+
+/**
+ * Configuration for the builtIns.lazyLoad handler.
+ */
+export interface LazyLoadConfig extends HandlerConfig {
+    do: 'builtIns.lazyLoad';
+    resolve: {
+        /** Condition to show/hide (resolved from VM) */
+        if: string;
+        /** Template element to clone (resolved via protocol or path) */
+        instantiate: string;
+        /** Insert method: 'appendChild' (default), 'prepend', or 'after' (sibling after target) */
+        method?: string;
+        /** If true, removes nodes when hiding instead of adding hidden attribute */
+        forget?: boolean | string;
+        /** Enable view transitions */
+        transitional?: boolean | string;
+        /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+        hideClass?: string;
+        /** Custom CSS for the hide class (default: 'display: none') */
+        hideCss?: string;
+        /** Optional async callback invoked after cloning, resolved from the VM */
+        onInstantiated?: string;
+        /** Override auto-derived marker name */
+        markerName?: string;
+        /** Set inert attribute on hidden elements */
+        toggleInert?: boolean | string;
+        /** Set disabled property on hidden form elements */
+        toggleDisabled?: boolean | string;
+    };
+}
+
+/**
+ * Resolved parameters received by LazyLoadHandler.assign() after resolveValues processing.
+ */
+export interface LazyLoadResolvedParams {
+    /** Condition — resolved to actual truthy/falsy value */
+    if: any;
+    /** Template element — resolved to HTMLTemplateElement or DocumentFragment */
+    instantiate: HTMLTemplateElement | DocumentFragment;
+    /** Insertion method (default: 'appendChild') */
+    method?: 'appendChild' | 'prepend' | 'after';
+    /** Remove nodes on hide instead of using hidden attribute */
+    forget?: boolean;
+    /** Enable view transitions */
+    transitional?: boolean;
+    /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+    hideClass?: string;
+    /** Custom CSS for the hide class (default: 'display: none') */
+    hideCss?: string;
+    /** Callback after clone+insert */
+    onInstantiated?: (ctx: LazyLoadInstantiatedContext) => void | Promise<void>;
+    /** Override auto-derived marker name */
+    markerName?: string;
+    /** Set inert attribute on hidden elements (removes from a11y tree + interaction) */
+    toggleInert?: boolean;
+    /** Set disabled property on hidden form elements */
+    toggleDisabled?: boolean;
+    /** Name of a pre-existing marker pair whose content should be removed on first activation.
+     *  Used for SSR placeholder content (e.g., "Loading..." text) that disappears once real content loads. */
+    placeholder?: string;
+    /** Assignment config applied to cloned content before insertion.
+     *  Same shape as manageTemplateList's fromEachItem: { assignToFragment, withOptions } or { configs: [...] } */
+    assign?: {
+        assignToFragment?: Record<string, any>;
+        withOptions?: Record<string, any>;
+        configs?: Array<{ assignToFragment?: Record<string, any>; withOptions?: Record<string, any> }>;
+    };
+}
+
+/**
+ * Configuration for the builtIns.lazyLoadSwitch handler.
+ */
+export interface LazyLoadSwitchConfig extends HandlerConfig {
+    do: 'builtIns.lazyLoadSwitch';
+    resolve: {
+        /** Left-hand side of comparison (resolved from VM) */
+        lhs: string;
+        /** Comparison operator (default: '===') */
+        op?: '===' | '!==' | '==' | '!=' | '<' | '>' | '<=' | '>=';
+        /** Right-hand side of comparison (resolved from VM or literal) */
+        rhs: string;
+        /** Template element to clone (resolved via protocol or path) */
+        instantiate: string;
+        /** Insert method: 'appendChild' (default), 'prepend', or 'after' */
+        method?: string;
+        /** If true, removes nodes when hiding instead of adding hidden attribute */
+        forget?: boolean | string;
+        /** Enable view transitions */
+        transitional?: boolean | string;
+        /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+        hideClass?: string;
+        /** Custom CSS for the hide class (default: 'display: none') */
+        hideCss?: string;
+        /** Optional async callback invoked after cloning, resolved from the VM */
+        onInstantiated?: string;
+    };
+}
+
+/**
+ * Resolved parameters received by LazyLoadSwitchHandler.assign() after resolveValues processing.
+ */
+export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParams, 'if'> {
+    /** Left-hand side — resolved to actual value */
+    lhs: any;
+    /** Comparison operator (default: '===') */
+    op?: '===' | '!==' | '==' | '!=' | '<' | '>' | '<=' | '>=';
+    /** Right-hand side — resolved to actual value */
+    rhs: any;
+}
+
+/**
+ * Resolved parameters received by ManageTemplateListHandler.assign().
+ */
+export interface ManageTemplateListResolvedParams {
+    /** The iterable to loop over (resolved from VM) */
+    forEach: Iterable<any>;
+    /** Template element to clone per item */
+    instantiate: HTMLTemplateElement | DocumentFragment;
+    /** Insertion method (default: 'appendChild') */
+    method?: 'appendChild' | 'prepend' | 'after';
+    /** Remove nodes on hide instead of using hidden attribute */
+    forget?: boolean;
+    /** Override auto-derived marker name */
+    markerName?: string;
+    /** Wait for async rendering before DOM commit */
+    waitForSettled?: boolean | { idleMs?: number; timeout?: number };
+    /** Yield to browser every N items to prevent jank (default: undefined = no yielding) */
+    yieldEvery?: number;
+}
+
+/**
+ * Context passed to onInstantiated callbacks after template cloning.
+ */
+export interface LazyLoadInstantiatedContext {
+    /** The inserted child nodes */
+    nodes: Node[];
+    /** The target element containing the markers */
+    target: Element;
+    /** The full handler config */
+    config: any;
+    /** The resolved parameters */
+    resolvedParams: Record<string, any>;
+}
+
+/**
+ * The LazyLoadHandler class (exported for subclassing).
+ */
+export declare class LazyLoadHandler implements AssignFromHandler {
+    config: any;
+    constructor(config: any);
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any): Promise<void>;
+    protected onCloneInserted(nodes: Node[], lhsTarget: Element, resolvedParams: Record<string, any>): Promise<void>;
 }

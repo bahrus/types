@@ -190,6 +190,14 @@ export interface MountConfig<TKeys extends string = string, TCustomData = unknow
     stageOnMount?: Record<string, any>;
     
     /**
+     * Options passed to assign-gingerly for assignOnMount, assignOnDismount, and stageOnMount.
+     * Enables features like method calls (withMethods), aliases (aka), async methods, and signal-based cleanup.
+     * Shared across all assign operations on this observer.
+     * @example { withMethods: ['setAttribute', 'removeAttribute'], aka: { '$': 'querySelector' } }
+     */
+    assignOptions?: Record<string, any>;
+
+    /**
      * When true, enables detailed event dispatching for debugging and monitoring.
      * Provides granular lifecycle events for observation.
      */

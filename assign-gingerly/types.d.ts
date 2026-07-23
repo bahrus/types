@@ -262,6 +262,34 @@ export interface IAssignGingerlyOptions {
 }
 
 /**
+ * Options for assignTentatively — reversible assignment with change tracking.
+ * 
+ * Supports a subset of assignGingerly's path features (nested paths, +=, =!, -=)
+ * with the addition of reversal tracking.
+ */
+export interface IAssignTentativelyOptions {
+  /**
+   * Object to accumulate reversal entries into.
+   * If omitted, a new object is created internally.
+   * Pass an existing object to accumulate reversals across multiple calls.
+   * 
+   * The reversal object can be passed to assignGingerly to undo all changes:
+   * @example
+   * const reversal = {};
+   * assignTentatively(obj, { name: 'Bob' }, { reversal });
+   * // Later:
+   * assignGingerly(obj, reversal); // restores name to original value
+   */
+  reversal?: Record<string | symbol, any>;
+
+  /**
+   * Alias mappings for property and method names.
+   * Same semantics as IAssignGingerlyOptions.aka — substituted before path evaluation.
+   */
+  aka?: Record<string, string>;
+}
+
+/**
  * Options for synchronous value resolution (getValues / getValue).
  * Extends IAssignGingerlyOptions with synchronous protocol handlers.
  */

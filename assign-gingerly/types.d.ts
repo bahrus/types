@@ -290,6 +290,78 @@ export interface IAssignTentativelyOptions {
 }
 
 /**
+ * Options for assignFrom / assignFromAsync.
+ */
+export interface AssignFromOptions {
+  /** Source object to resolve RHS path strings against */
+  from: any;
+
+  /** Protocol handlers (sync or async) */
+  protocols?: Record<string, (key: string) => any | Promise<any>>;
+
+  /** Method names to call during path evaluation */
+  withMethods?: string[] | Set<string>;
+
+  /** Alias mappings for path segments */
+  aka?: Record<string, string>;
+
+  /** AbortSignal for cleanup */
+  signal?: AbortSignal;
+
+  /** Loop variable bindings — expand pattern entries containing ${x} */
+  where_x_in?: string[];
+  /** Loop variable bindings — expand pattern entries containing ${y} */
+  where_y_in?: string[];
+  /** Loop variable bindings — expand pattern entries containing ${z} */
+  where_z_in?: string[];
+
+  /**
+   * Pin element references by variable name.
+   * Used with `#[varName]` syntax in LHS keys for fast repeated element access.
+   * 
+   * - String value: existing element ID (uses getElementById)
+   * - Object value: { qry: 'selector' } — finds element via querySelector on target, auto-assigns an ID
+   * - Object value: { path: [...], expect?, fallback? } — child index path + auto-ID + optional validation
+   */
+  pin?: Record<string, string | { qry: string } | { path: number[]; expect?: string; fallback?: boolean }>;
+
+  /**
+   * Positional element references for use with `#[varName]` syntax.
+   * Resolves elements by child index path — no IDs assigned, no caching.
+   */
+  at?: Record<string, number[] | { path: number[]; expect?: string; fallback?: boolean }>;
+
+  /**
+   * Handler implementations scoped to this call.
+   * Key: the `do` name referenced in handler configs.
+   * Value: a class constructor, an import path, or a builtIns.* alias string.
+   */
+  handlers?: Record<string, AssignFromHandlerConstructor | string>;
+
+  /**
+   * Inferred assignments — automatically distribute source values to matching
+   * DOM elements based on structural conventions (itemprop, name, etc.).
+   */
+  infer?: {
+    byItemprop?: string[] | true;
+    '|'?: string[] | true;
+    byName?: string[] | true | { props: string[] | true; outside: string };
+    '@'?: string[] | true | { props: string[] | true; outside: string };
+    beVigilant?: boolean;
+  };
+
+  /**
+   * Bulk enhancement application via EMC JSON configs.
+   */
+  enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
+
+  /** Registry for enhancement dependency injection (inherited from IAssignGingerlyOptions) */
+  registry?: any;
+
+  [key: string]: any;
+}
+
+/**
  * Options for synchronous value resolution (getValues / getValue).
  * Extends IAssignGingerlyOptions with synchronous protocol handlers.
  */

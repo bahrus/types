@@ -350,7 +350,7 @@ export interface IMountObserver extends EventTarget {
     observe(observedNode: Node): Promise<void>;
     disconnect(): void;
     disconnectedSignal: AbortSignal;
-    assignGingerly(config: Record<string, any> | undefined): Promise<void>;
+    assign(config: Record<string, any> | undefined, options?: Record<string, any>): Promise<void>;
     getNotifier(element: Element): EventTarget;
     readonly options: MountObserverOptions;
 }

@@ -190,7 +190,7 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
      * Options passed to every internal assignGingerly call.
      * See IAssignGingerlyOptions in assign-gingerly for details.
      */
-    assignGingerlyOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
+    assignOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
 
     /**
      * Protocol handlers for resolving protocol-prefixed values in initialPropVals.

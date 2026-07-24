@@ -781,6 +781,11 @@ export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParam
     rhs: any;
 }
 
+export interface ManageTemplateListConfig extends HandlerConfig {
+    do: 'builtIns.manageTemplateList';
+    resolve: ManageTemplateListResolvedParams;
+}
+
 /**
  * Resolved parameters received by ManageTemplateListHandler.assign().
  */

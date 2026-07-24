@@ -8,6 +8,10 @@ export interface EndUserProps{
      */
     listProp?: string,
     
+    /**
+     * Specify id of peer element to pull list from.
+     */
+    src?: string;
     each: any,
     target: string,
     updateOn

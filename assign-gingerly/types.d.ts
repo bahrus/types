@@ -781,9 +781,18 @@ export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParam
     rhs: any;
 }
 
+export interface FromEachItemConfig {
+    assignToFragment?: Record<string, any>;
+    withOptions?: AssignFromOptions;
+    resolve?: {
+      key?: string;
+    }
+}
+
 export interface ManageTemplateListConfig extends HandlerConfig {
     do: 'builtIns.manageTemplateList';
     resolve: ManageTemplateListResolvedParams;
+    fromEachItem: FromEachItemConfig;
 }
 
 /**

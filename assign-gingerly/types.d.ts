@@ -367,6 +367,12 @@ export interface AssignFromOptions {
  */
 export interface GetValuesOptions extends IAssignGingerlyOptions {
   /**
+   * Internal root object for special $0 references.
+   * This is used by assignFrom to resolve values relative to the target object.
+   */
+  root?: any;
+
+  /**
    * Synchronous protocol handlers for resolving protocol-prefixed values.
    * Each handler receives the key portion and MUST return synchronously.
    * For async protocols, use ResolveValuesOptions / resolveValues instead.
@@ -385,6 +391,12 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
  * Same as GetValuesOptions but protocol handlers may return Promises.
  */
 export interface ResolveValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Internal root object for special $0 references.
+   * This is used by assignFrom to resolve values relative to the target object.
+   */
+  root?: any;
+
   /**
    * Protocol handlers for resolving protocol-prefixed values (e.g., 'globalThis://key').
    * Each handler receives the key portion and returns the resolved value (sync or async).

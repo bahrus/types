@@ -1,4 +1,4 @@
-import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/types";
+import { ElementEnhancementGateway, SpawnContext, FromEachItemConfig } from "../assign-gingerly/types";
 
 export interface EndUserProps{
     /**
@@ -12,7 +12,7 @@ export interface EndUserProps{
      * Specify id of peer element to pull list from.
      */
     src?: string;
-    each: any,
+    each: FromEachItemConfig,
     target: string,
-    updateOn
+    updateOn: string,
 }

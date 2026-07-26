@@ -838,3 +838,32 @@ export declare class LazyLoadHandler implements AssignFromHandler {
     assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any): Promise<void>;
     protected onCloneInserted(nodes: Node[], lhsTarget: Element, resolvedParams: Record<string, any>): Promise<void>;
 }
+
+//#region Event Handler
+
+export interface AssignVector {
+    assignToTarget?: Record<string, any>,
+    assignToSource?: Record<string, any>,
+    assignToLHS?: Record<string, any>,
+    withOptions?: AssignFromOptions,
+    withAssignToTargetOptions?: AssignFromOptions,
+    withAssignToSourceOptions?: AssignFromOptions,
+    withAssignToLHSOptions?: AssignFromOptions,
+}
+
+
+export interface AddEventListenerConfig extends AssignVector  {
+   get?: {
+     abortController?: string | AbortController,
+     on?: string,
+     nudge?: boolean,
+     options?: AddEventListenerOptions,
+   },
+   
+   fromLHS?: AssignVector,
+   fromSource?: AssignVector,
+   fromEvent?: AssignVector,
+   
+   
+}
+//#endregion

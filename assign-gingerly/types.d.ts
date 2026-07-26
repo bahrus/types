@@ -250,8 +250,21 @@ export type IEnhancementRegistryItem<T = any> = EnhancementConfig<T>;
 export interface IAssignGingerlyOptions {
   registry?: typeof EnhancementRegistry | EnhancementRegistry;
   bypassChecks?: boolean;
+  /**
+   * Method names to call during path evaluation (e.g., for `?.method()` calls)
+   */
   withMethods?: string[] | Set<string>;
+  /**
+   * Alias mappings for property and method names.
+   */
   aka?: Record<string, string>;
+
+  /**
+   * Shorthand for binding method aliases from the source object.
+   * Each entry maps an alias to a method name and is normalized into
+   * the existing withMethods + aka behavior.
+   */
+  akaMethods?: Record<string, string>;
   
   /**
    * AbortSignal for cleaning up reactive subscriptions (@eachTime)

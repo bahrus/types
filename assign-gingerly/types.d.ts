@@ -867,10 +867,20 @@ export interface AssignVector {
 
 export interface AddEventListenerConfig extends AssignVector  {
    get?: {
-     abortController?: string | AbortController,
-     on?: string,
-     nudge?: boolean,
-     options?: AddEventListenerOptions,
+      abortController?: string | AbortController,
+      on?: string,
+      nudge?: boolean,
+      options?: AddEventListenerOptions,
+      stopPropagation?: boolean,
+      preventDefault?: boolean
+      dispatch:{
+        name?: string,
+        detail?: any,
+        bubbles?: boolean,
+        cancelable?: boolean,
+        composed?: boolean
+
+      }
    },
    
    fromLHS?: AssignVector,

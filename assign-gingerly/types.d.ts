@@ -855,13 +855,13 @@ export declare class LazyLoadHandler implements AssignFromHandler {
 //#region Event Handler
 
 export interface AssignDispatchVector {
-    assignToTarget?: Record<string, any>,
-    assignToSource?: Record<string, any>,
-    assignToLHS?: Record<string, any>,
+    toTarget?: Record<string, any>,
+    toSource?: Record<string, any>,
+    toLHS?: Record<string, any>,
     withOptions?: AssignFromOptions,
-    withAssignToTargetOptions?: AssignFromOptions,
-    withAssignToSourceOptions?: AssignFromOptions,
-    withAssignToLHSOptions?: AssignFromOptions,
+    toTargetOptions?: AssignFromOptions,
+    toSourceOptions?: AssignFromOptions,
+    toLHSOptions?: AssignFromOptions,
     dispatch?: DispatchEventConfig
 }
 
@@ -890,6 +890,7 @@ export interface AddEventListenerConfig extends AssignDispatchVector  {
    fromLHS?: AssignDispatchVector,
    fromSource?: AssignDispatchVector,
    fromEvent?: AssignDispatchVector,
+   fromTarget?: AssignDispatchVector,
    
    
 }

@@ -866,7 +866,7 @@ export interface AssignDispatchVector {
 }
 
 export interface DispatchEventConfig{
-    name?: string,
+    type?: string,
     eventCtr?: string | typeof Event | typeof CustomEvent,
     detail?: any,
     bubbles?: boolean,

@@ -856,11 +856,11 @@ export declare class LazyLoadHandler implements AssignFromHandler {
 
 export interface AssignDispatchVector {
     toTarget?: Record<string, any>,
-    toSource?: Record<string, any>,
+    toHost?: Record<string, any>,
     toLHS?: Record<string, any>,
     withOptions?: AssignFromOptions,
     toTargetOptions?: AssignFromOptions,
-    toSourceOptions?: AssignFromOptions,
+    toHostOptions?: AssignFromOptions,
     toLHSOptions?: AssignFromOptions,
     dispatch?: DispatchEventConfig
 }
@@ -876,9 +876,10 @@ export interface DispatchEventConfig{
 
 
 export interface AddEventListenerConfig extends AssignDispatchVector  {
-   get?: {
+  on: string, 
+  get?: {
       abortController?: string | AbortController,
-      on?: string,
+      
       nudge?: boolean,
       options?: AddEventListenerOptions,
       //make this part of dispatch?
@@ -888,7 +889,7 @@ export interface AddEventListenerConfig extends AssignDispatchVector  {
    },
    
    fromLHS?: AssignDispatchVector,
-   fromSource?: AssignDispatchVector,
+   fromHost?: AssignDispatchVector,
    fromEvent?: AssignDispatchVector,
    fromTarget?: AssignDispatchVector,
    

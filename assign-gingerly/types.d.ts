@@ -745,11 +745,11 @@ export interface LazyLoadResolvedParams {
      *  Used for SSR placeholder content (e.g., "Loading..." text) that disappears once real content loads. */
     placeholder?: string;
     /** Assignment config applied to cloned content before insertion.
-     *  Same shape as manageTemplateList's fromEachItem: { assignToFragment, withOptions } or { configs: [...] } */
+     *  Same shape as manageTemplateList's fromEachItem: { toClone, withOptions } or { configs: [...] } */
     assign?: {
-        assignToFragment?: Record<string, any>;
+        toClone?: Record<string, any>;
         withOptions?: Record<string, any>;
-        configs?: Array<{ assignToFragment?: Record<string, any>; withOptions?: Record<string, any> }>;
+        configs?: Array<{ toClone?: Record<string, any>; withOptions?: Record<string, any> }>;
     };
 }
 
@@ -795,7 +795,7 @@ export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParam
 }
 
 export interface FromEachItemConfig {
-    assignToFragment?: Record<string, any>;
+    toClone?: Record<string, any>;
     withOptions?: AssignFromOptions;
     resolve?: {
       key?: string;

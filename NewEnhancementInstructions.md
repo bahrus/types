@@ -681,6 +681,52 @@ import { findAdjacentElement } from 'be-hive/findAdjacentElement.js';
 import { findAdjacentElement } from 'trans-render/lib/findAdjacentElement.js';
 ```
 
+### Blocking an Action Until All Attributes Are Read
+
+**Use this pattern only when it's predictable that an action (typically `hydrate`) must not run until all relevant attributes have been read.** Attribute-derived props are assigned one at a time during `roundabout()`'s initial pass, so gating on the props themselves isn't enough:
+
+- `ifKeyIn` alone means **at least one** of the listed props is defined — the action fires as soon as the first attribute is read, while later ones are still `undefined`.
+- When `ifKeyIn` is combined with `ifAllOf`, the action only executes when the property that *changed* is in `ifKeyIn` (`shouldExecute = conditionsMet && changedIsInKeyIn` in roundabout). A prop listed only in `ifAllOf` can never trigger the action.
+
+The proven solution (from three-peat) is an `initialized` flag set after `roundabout()` returns:
+
+**1. Add `initialized` to `AllProps` in `types/<name>/types.d.ts`:**
+
+```typescript
+export interface AllProps extends EndUserProps{
+    enhancedElement: Element & ElementEnhancementGateway;
+    resolved?: boolean;
+    initialized?: boolean;
+}
+```
+
+**2. Set it at the end of `init`, after the `await roundabout(...)`:**
+
+```javascript
+async init(self, enhancedElement, ctx, initVals){
+    // ...build raOptions...
+    await (await import('roundabout-lib/roundabout.js')).roundabout(raOptions);
+    self.initialized = true;  // all attribute reads are done at this point
+}
+```
+
+**3. Gate the action on `initialized` in `emc.mjs` — in *both* lists:**
+
+```javascript
+actions: {
+    hydrate: {
+        ifKeyIn: ['src', 'listProp', 'initialized'],
+        ifAllOf: ['enhancedElement', 'initialized']
+    }
+}
+```
+
+- `initialized` is the last prop to change, and it only flips after every attribute has been read, so it is the reliable trigger.
+- It must be in `ifKeyIn`, not just `ifAllOf` — otherwise its change event doesn't satisfy `changedIsInKeyIn` and the action never fires (the other props were already assigned during the initial pass and never change again).
+- Keeping the attribute props (`src`, `listProp`) in `ifKeyIn` preserves re-hydration when those attributes change later at runtime.
+
+Reference implementation: three-peat (`emc.mjs`, `three-peat.js`, `types/three-peat/types.d.ts`).
+
 ### Debugging Tips
 
 1. **Check the generated JSON** — Run `node emc.mjs` and verify all sections (especially `customData`) are present
@@ -702,4 +748,4 @@ Don't try to implement all features at once.
 
 ---
 
-*Last updated: June 2026*
+*Last updated: July 2026*

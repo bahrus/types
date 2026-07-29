@@ -795,15 +795,7 @@ export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParam
 }
 
 export interface FromEachItemConfig {
-    /** @deprecated use assignToFragment (the name the runtime actually reads) */
     toClone?: Record<string, any>;
-    /** Pattern applied to each clone, with `from` set to the current item */
-    assignToFragment?: Record<string, any>;
-    /** For templates with multiple top-level elements: one config per element, zipped */
-    configs?: Array<{
-        assignToFragment?: Record<string, any>;
-        withOptions?: AssignFromOptions;
-    }>;
     withOptions?: AssignFromOptions;
     resolve?: {
       key?: string;

@@ -45,6 +45,7 @@ export interface EndUserProps{
 export interface AllProps extends EndUserProps{
     enhancedElement: Element & ElementEnhancementGateway;
     resolved?: boolean;
+    initialized?: boolean;
 }
 
 export type AP = AllProps;

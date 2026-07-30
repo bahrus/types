@@ -272,6 +272,37 @@ export interface IAssignGingerlyOptions {
    * When the signal is aborted, all event listeners are automatically removed
    */
   signal?: AbortSignal;
+
+  /**
+   * List of property names that should be treated as async methods.
+   * Works together with withMethods — async methods are awaited before
+   * continuing the chain.
+   * 
+   * The path evaluation for keys containing async methods is fire-and-forget:
+   * assignGingerly remains synchronous and returns immediately. The async
+   * chain completes in the background.
+   * 
+   * NOTE: Interaction with @each and @eachTime is not yet implemented.
+   * 
+   * Example:
+   * assignGingerly(el, {
+   *   '?.whenFeatureReady?.photoTaker?.someProp': 'hello'
+   * }, { withAsyncMethods: ['whenFeatureReady'] });
+   * // Calls: (await el.whenFeatureReady('photoTaker')).someProp = 'hello'
+   */
+  withAsyncMethods?: string[] | Set<string>;
+
+    /**
+   * Bulk enhancement application via EMC JSON configs.
+   * Finds matching elements and spawns enhancements on them.
+   * Fire-and-forget (async) — assignGingerly remains synchronous.
+   * 
+   * @example
+   * enhance: [
+   *     { emc: 'be-bound/emc.json', matching: '[name]' },
+   * ]
+   */
+  enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
 }
 
 /**

@@ -252,6 +252,12 @@ export interface IAssignGingerlyOptions {
   bypassChecks?: boolean;
   /**
    * Method names to call during path evaluation (e.g., for `?.method()` calls)
+   *
+   * Append `|` to a path segment (e.g., `?.deref|?.classList?.add`) to call a
+   * listed method with zero arguments instead of consuming the next path segment
+   * as its argument. On the last segment, `|` calls the method with no arguments
+   * and ignores the value. The `|` suffix only applies to names listed here —
+   * for any other segment it is treated as part of a literal property name.
    */
   withMethods?: string[] | Set<string>;
   /**
@@ -343,7 +349,7 @@ export interface AssignFromOptions {
   /** Protocol handlers (sync or async) */
   protocols?: Record<string, (key: string) => any | Promise<any>>;
 
-  /** Method names to call during path evaluation */
+  /** Method names to call during path evaluation (append `|` to a path segment for a zero-argument call) */
   withMethods?: string[] | Set<string>;
 
   /** Alias mappings for path segments */

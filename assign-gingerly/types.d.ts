@@ -933,3 +933,52 @@ export interface AddEventListenerConfig extends AssignDispatchVector  {
    
 }
 //#endregion
+
+
+// =============================================================================
+// Permissions
+// =============================================================================
+
+/**
+ * Phase II+: object form for a restricted property setting.
+ */
+export interface RestrictedPropSetting {
+    prop: string;
+    useMethod?: string;          // Phase II: redirect to a safe method
+    attr?: string;               // Phase III: also watch setAttribute for this attr
+    allowFromSameHost?: boolean; // Phase III
+    allowCrossDomain?: boolean;  // Phase III
+}
+
+/**
+ * Phase IV+: object form for a restricted method setting.
+ */
+export interface RestrictedMethodConfig {
+    method: string;
+    addArgs?: string[];          // Phase V: append sanitizer args
+}
+
+/**
+ * Permissions interface for controlling security-sensitive operations.
+ * Only trusted script can set these — never parsed from HTML attributes.
+ */
+export interface AssignPermissions {
+    /** Allow imports from cross-domain URLs (default: false) */
+    crossDomainImports?: boolean;
+
+    /**
+     * Restricted property settings.
+     * Phase I: string entries are property names that cannot be assigned.
+     * Phase II+: object entries add useMethod/attr/sanitizer support.
+     *
+     * NOTE: This is a property-assignment guard only. Method calls (setAttribute, etc.)
+     * and event-handler assignments are NOT blocked — see Phase III+.
+     */
+    restrictedPropSettings?: Array<string | RestrictedPropSetting>;
+
+    /** Sanitizer options (Phase III+) */
+    sanitizerOptions?: Record<string, any>;
+
+    /** Restricted method settings (Phase IV+) */
+    restrictedMethodSettings?: Array<string | RestrictedMethodConfig>;
+}

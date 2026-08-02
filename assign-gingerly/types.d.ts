@@ -707,7 +707,7 @@ export interface HandlerConfig {
  * Handlers are invoked when a LHS key ends with ' =>'.
  */
 export interface AssignFromHandler {
-    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any): Promise<void> | void;
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any, permissions?: AssignPermissions): Promise<void> | void;
 }
 
 /**
@@ -885,7 +885,7 @@ export interface LazyLoadInstantiatedContext {
 export declare class LazyLoadHandler implements AssignFromHandler {
     config: any;
     constructor(config: any);
-    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any): Promise<void>;
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any, permissions?: AssignPermissions): Promise<void>;
     protected onCloneInserted(nodes: Node[], lhsTarget: Element, resolvedParams: Record<string, any>): Promise<void>;
 }
 
@@ -972,7 +972,8 @@ export interface AssignPermissions {
      * Phase II+: object entries add useMethod/attr/sanitizer support.
      *
      * NOTE: This is a property-assignment guard only. Method calls (setAttribute, etc.)
-     * and event-handler assignments are NOT blocked — see Phase III+.
+     * are not blocked — see Phase III+. Event listeners can still be registered, but
+     * assignments performed by their vectors inherit these permissions.
      */
     restrictedPropSettings?: Array<string | RestrictedPropSetting>;
 

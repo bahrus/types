@@ -969,7 +969,8 @@ export interface AssignPermissions {
     /**
      * Restricted property settings.
      * Phase I: string entries are property names that cannot be assigned.
-     * Phase II+: object entries add useMethod/attr/sanitizer support.
+     * Phase II: an object with useMethod redirects ordinary assignment to that
+     * method; command operations remain blocked. Phase III+ adds attr support.
      *
      * NOTE: This is a property-assignment guard only. Method calls (setAttribute, etc.)
      * are not blocked — see Phase III+. Event listeners can still be registered, but

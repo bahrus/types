@@ -1383,6 +1383,27 @@ const selectorMatch = prop.match(/^\[(.+?)\](?:\?\.(.+))?$/);
 3. **Wrong parser in HTML** - HTML references `parse-pattern-statements` but emc.mjs uses `parse-grouped-capture-statements`
 4. **Period vs chained accessor** - Using `.` instead of `?.` for selector properties
 5. **Forgetting to rebuild** - After changing emc.mjs or emoji.mjs, always run `npm run build`
+6. **Hydrate fires before all attributes are read** - Attribute props are assigned one at a time during initialization; use the `initialized` flag pattern (see below) when an action must wait for all of them
+
+### Blocking an Action Until All Attributes Are Read
+
+When converting an enhancement whose `hydrate` (or other action) depends on multiple attribute-derived props, it's often predictable that nothing should happen until all relevant attributes have been read. Gating on the props alone doesn't work:
+
+- `ifKeyIn` alone means **at least one** of the listed props is defined, so the action can fire after the first attribute is read with the rest still `undefined`.
+- With `ifKeyIn` and `ifAllOf` combined, roundabout only runs the action when the *changed* property is in `ifKeyIn` — a prop listed only in `ifAllOf` never triggers it.
+
+The proven fix (from three-peat): add `initialized?: boolean` to `AllProps`, set `self.initialized = true` in `init` immediately after `await roundabout(...)`, and gate the action on it in both lists:
+
+```javascript
+actions: {
+    hydrate: {
+        ifKeyIn: ['src', 'listProp', 'initialized'],
+        ifAllOf: ['enhancedElement', 'initialized']
+    }
+}
+```
+
+`initialized` flips only after `roundabout()` returns (all attribute reads complete), and including it in `ifKeyIn` makes its change the trigger. Keep the attribute props in `ifKeyIn` too, so later attribute changes still re-trigger the action. See `NewEnhancementInstructions.md` ("Blocking an Action Until All Attributes Are Read") for the full step-by-step recipe.
 
 ### Debugging Tips
 

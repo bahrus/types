@@ -1,3 +1,5 @@
+import {ParserOptions} from '../nested-regex-groups/types.js';
+
 export type EnhKey = string | symbol;
 
 // type NoUnderscore<T extends string> = T extends `_${string}` ? never : T;
@@ -196,7 +198,7 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
    * For named parsers like 'parse-pattern-statements', this is forwarded
    * as the options argument to the underlying parse function.
    */
-  parserOptions?: any;
+  parserOptions?: ParserOptions;
 }
 
 export type AttrPatterns<T = any> = {

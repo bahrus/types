@@ -104,9 +104,6 @@ export interface ParserOptions {
    */
   normalizeWhitespace?: boolean;
 }
-   */
-  normalizeWhitespace?: boolean;
-}
 
 /**
  * Result type for parsing multiple statements

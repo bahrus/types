@@ -91,6 +91,21 @@ export interface ParserOptions {
    * as statement delimiters during splitting.
    */
   ignorePeriodInsideBraces?: boolean;
+
+  /**
+   * When true, normalizes whitespace in the input string before parsing.
+   * This replaces multiple whitespace characters with a single space and trims the string.
+   * Default is false.
+   * 
+   * @example
+   * // Input: "  First.   Second.  "
+   * // With normalizeWhitespace: true -> "First. Second."
+   * // With normalizeWhitespace: false -> "  First.   Second.  "
+   */
+  normalizeWhitespace?: boolean;
+}
+   */
+  normalizeWhitespace?: boolean;
 }
 
 /**

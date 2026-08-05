@@ -616,6 +616,7 @@ export interface FeatureConfig {
     spawn?:
         | { new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }
         | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>);
+        //| string; // import path or builtIns.* alias
 
     /** Attribute patterns for parsing element attributes into initVals. */
     withAttrs?: AttrPatterns<any>;

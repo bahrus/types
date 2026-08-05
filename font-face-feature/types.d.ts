@@ -1,5 +1,5 @@
 export interface FontFaceFeatureConfig {
-    fontFamily: FontFaceConfig | FontFaceConfig[],
+    fontFamilies: FontFaceConfig | FontFaceConfig[],
 }
 
 export interface FontFaceConfig {

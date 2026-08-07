@@ -12,7 +12,7 @@ export interface ElMakerConfig<AllProps = any, TActions = AllProps> {
         fontMgr?: {
             spawn?: string,
             customData: {
-                fontFaceFeatureConfig: FontFaceConfig
+                fontFaceFeatureConfig: FontFaceFeatureConfig
             }
         },
         templateMaker?: {

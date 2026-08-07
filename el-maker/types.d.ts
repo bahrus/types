@@ -14,6 +14,10 @@ export interface ElMakerConfig<AllProps = any, TActions = AllProps> {
             customData: {
                 fontFaceFeatureConfig: FontFaceConfig
             }
+        },
+        templateMaker?: {
+            spawn?: string,
+            customData?: any
         }
     }
 } 

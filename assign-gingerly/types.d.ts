@@ -592,21 +592,6 @@ export interface SupportedFeatureConfig {
 }
 
 /**
- * Class-level configuration for the features system.
- * Declared as `static featuresConfig` on the class.
- */
-export interface FeaturesClassConfig {
-    /**
-     * Lifecycle method configuration.
-     * true = install 'whenFeatureReady' method.
-     * Object = custom method name.
-     */
-    lifecycleKeys?: true | {
-        whenFeatureReady?: string;
-    };
-}
-
-/**
  * Configuration for a feature passed to assignFeatures.
  */
 export interface FeatureConfig {
@@ -615,7 +600,8 @@ export interface FeatureConfig {
      */
     spawn?:
         | { new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }
-        | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>);
+        | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>)
+        | string // import path or builtIns.* alias
 
     /** Attribute patterns for parsing element attributes into initVals. */
     withAttrs?: AttrPatterns<any>;

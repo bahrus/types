@@ -18,6 +18,10 @@ export interface ElMakerConfig<AllProps = any, TActions = AllProps> {
         templateMaker?: {
             spawn?: string,
             customData?: any
+        },
+        faceUp?: {
+            spawn?: string,
+            customData?: any
         }
     }
 } 

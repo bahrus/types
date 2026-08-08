@@ -1,5 +1,3 @@
-import { SpawnContext } from "../assign-gingerly/types";
-
 /**
  * Shared context passed via getSharedContext — contains everything
  * the Reflector needs to self-activate on spawn.
@@ -14,7 +12,7 @@ export interface ReflectorSharedContext {
 /**
  * Context passed to the Reflector feature constructor
  */
-export interface FeatureSpawnContext extends SpawnContext {
+export interface FeatureSpawnContext {
     key: string;
     optIn: any;
     injection: any;

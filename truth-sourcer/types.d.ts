@@ -1,9 +1,7 @@
-import { SpawnContext } from "../assign-gingerly/types";
-
 /**
  * Context passed to the TruthSourcer feature constructor
  */
-export interface FeatureSpawnContext extends SpawnContext {
+export interface FeatureSpawnContext {
     key: string;
     optIn: any;
     injection: any;

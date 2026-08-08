@@ -1,6 +1,6 @@
 // Core types for MountObserver v2 - Polyfill Supported Scenario I
 
-import {EnhancementConfigBase, EnhKey, AttrPatterns} from '../assign-gingerly/types';
+import {EnhancementConfigBase, EnhKey, AttrPatterns, AssignFromOptions} from '../assign-gingerly/types';
 
 export type Constructor = new (...args: any[]) => any;
 
@@ -190,6 +190,14 @@ export interface MountConfig<TKeys extends string = string, TCustomData = unknow
     stageOnMount?: Record<string, any>;
     
     /**
+     * Options passed to assign-gingerly for assignOnMount, assignOnDismount, and stageOnMount.
+     * Enables features like method calls (withMethods), aliases (aka), async methods, and signal-based cleanup.
+     * Shared across all assign operations on this observer.
+     * @example { withMethods: ['setAttribute', 'removeAttribute'], aka: { '$': 'querySelector' } }
+     */
+    assignOptions?: Record<string, any>;
+
+    /**
      * When true, enables detailed event dispatching for debugging and monitoring.
      * Provides granular lifecycle events for observation.
      */
@@ -342,7 +350,7 @@ export interface IMountObserver extends EventTarget {
     observe(observedNode: Node): Promise<void>;
     disconnect(): void;
     disconnectedSignal: AbortSignal;
-    assignGingerly(config: Record<string, any> | undefined): Promise<void>;
+    assign(config: Record<string, any> | undefined, options?: Record<string, any>): Promise<void>;
     getNotifier(element: Element): EventTarget;
     readonly options: MountObserverOptions;
 }

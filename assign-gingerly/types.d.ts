@@ -1,3 +1,5 @@
+import {ParserOptions} from '../nested-regex-groups/types.js';
+
 export type EnhKey = string | symbol;
 
 // type NoUnderscore<T extends string> = T extends `_${string}` ? never : T;
@@ -64,6 +66,12 @@ export interface EnhancementConfig<T = any, Obj = Element> extends EnhancementCo
 
   //only applicable when spawning from a DOM Element reference
   enhKey?: EnhKey;
+
+  /**
+   * Optional features to associate with the spawn class.
+   * Calls assignFeatures(spawn, features) automatically on registration.
+   */
+  features?: FeatureConfigsMap;
     
 }
 
@@ -179,13 +187,25 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
   //  * Defaults to true (initial read only)
   //  */
   // initialOnly?: boolean;
+
+  /**
+   * Should make sure it is added to static observedAttribrutes
+   */
+  sourceOfTruth?: boolean;
+
+  /**
+   * Options to pass to the parser function (e.g., splitStatements behavior).
+   * For named parsers like 'parse-pattern-statements', this is forwarded
+   * as the options argument to the underlying parse function.
+   */
+  parserOptions?: ParserOptions;
 }
 
 export type AttrPatterns<T = any> = {
   /**
    * Base prefix for attribute names
    */
-  base: string;
+  base?: string;
 
   /**
    * Configuration for the base pattern
@@ -232,8 +252,27 @@ export type IEnhancementRegistryItem<T = any> = EnhancementConfig<T>;
 export interface IAssignGingerlyOptions {
   registry?: typeof EnhancementRegistry | EnhancementRegistry;
   bypassChecks?: boolean;
+  /**
+   * Method names to call during path evaluation (e.g., for `?.method()` calls)
+   *
+   * Append `|` to a path segment (e.g., `?.deref|?.classList?.add`) to call a
+   * listed method with zero arguments instead of consuming the next path segment
+   * as its argument. On the last segment, `|` calls the method with no arguments
+   * and ignores the value. The `|` suffix only applies to names listed here —
+   * for any other segment it is treated as part of a literal property name.
+   */
   withMethods?: string[] | Set<string>;
+  /**
+   * Alias mappings for property and method names.
+   */
   aka?: Record<string, string>;
+
+  /**
+   * Shorthand for binding method aliases from the source object.
+   * Each entry maps an alias to a method name and is normalized into
+   * the existing withMethods + aka behavior.
+   */
+  akaMethods?: Record<string, string>;
   
   /**
    * AbortSignal for cleaning up reactive subscriptions (@eachTime)
@@ -241,6 +280,180 @@ export interface IAssignGingerlyOptions {
    * When the signal is aborted, all event listeners are automatically removed
    */
   signal?: AbortSignal;
+
+  /**
+   * List of property names that should be treated as async methods.
+   * Works together with withMethods — async methods are awaited before
+   * continuing the chain.
+   * 
+   * The path evaluation for keys containing async methods is fire-and-forget:
+   * assignGingerly remains synchronous and returns immediately. The async
+   * chain completes in the background.
+   * 
+   * NOTE: Interaction with @each and @eachTime is not yet implemented.
+   * 
+   * Example:
+   * assignGingerly(el, {
+   *   '?.whenFeatureReady?.photoTaker?.someProp': 'hello'
+   * }, { withAsyncMethods: ['whenFeatureReady'] });
+   * // Calls: (await el.whenFeatureReady('photoTaker')).someProp = 'hello'
+   */
+  withAsyncMethods?: string[] | Set<string>;
+
+    /**
+   * Bulk enhancement application via EMC JSON configs.
+   * Finds matching elements and spawns enhancements on them.
+   * Fire-and-forget (async) — assignGingerly remains synchronous.
+   * 
+   * @example
+   * enhance: [
+   *     { emc: 'be-bound/emc.json', matching: '[name]' },
+   * ]
+   */
+  enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
+}
+
+/**
+ * Options for assignTentatively — reversible assignment with change tracking.
+ * 
+ * Supports a subset of assignGingerly's path features (nested paths, +=, =!, -=)
+ * with the addition of reversal tracking.
+ */
+export interface IAssignTentativelyOptions {
+  /**
+   * Object to accumulate reversal entries into.
+   * If omitted, a new object is created internally.
+   * Pass an existing object to accumulate reversals across multiple calls.
+   * 
+   * The reversal object can be passed to assignGingerly to undo all changes:
+   * @example
+   * const reversal = {};
+   * assignTentatively(obj, { name: 'Bob' }, { reversal });
+   * // Later:
+   * assignGingerly(obj, reversal); // restores name to original value
+   */
+  reversal?: Record<string | symbol, any>;
+
+  /**
+   * Alias mappings for property and method names.
+   * Same semantics as IAssignGingerlyOptions.aka — substituted before path evaluation.
+   */
+  aka?: Record<string, string>;
+}
+
+/**
+ * Options for assignFrom / assignFromAsync.
+ */
+export interface AssignFromOptions {
+  /** Source object to resolve RHS path strings against */
+  from: any;
+
+  /** Protocol handlers (sync or async) */
+  protocols?: Record<string, (key: string) => any | Promise<any>>;
+
+  /** Method names to call during path evaluation (append `|` to a path segment for a zero-argument call) */
+  withMethods?: string[] | Set<string>;
+
+  /** Alias mappings for path segments */
+  aka?: Record<string, string>;
+
+  /** AbortSignal for cleanup */
+  signal?: AbortSignal;
+
+  /** Loop variable bindings — expand pattern entries containing ${x} */
+  where_x_in?: string[];
+  /** Loop variable bindings — expand pattern entries containing ${y} */
+  where_y_in?: string[];
+  /** Loop variable bindings — expand pattern entries containing ${z} */
+  where_z_in?: string[];
+
+  /**
+   * Pin element references by variable name.
+   * Used with `#[varName]` syntax in LHS keys for fast repeated element access.
+   * 
+   * - String value: existing element ID (uses getElementById)
+   * - Object value: { qry: 'selector' } — finds element via querySelector on target, auto-assigns an ID
+   * - Object value: { path: [...], expect?, fallback? } — child index path + auto-ID + optional validation
+   */
+  pin?: Record<string, string | { qry: string } | { path: number[]; expect?: string; fallback?: boolean }>;
+
+  /**
+   * Positional element references for use with `#[varName]` syntax.
+   * Resolves elements by child index path — no IDs assigned, no caching.
+   */
+  at?: Record<string, number[] | { path: number[]; expect?: string; fallback?: boolean }>;
+
+  /**
+   * Handler implementations scoped to this call.
+   * Key: the `do` name referenced in handler configs.
+   * Value: a class constructor, an import path, or a builtIns.* alias string.
+   */
+  handlers?: Record<string, AssignFromHandlerConstructor | string>;
+
+  /**
+   * Inferred assignments — automatically distribute source values to matching
+   * DOM elements based on structural conventions (itemprop, name, etc.).
+   */
+  infer?: {
+    byItemprop?: string[] | true;
+    '|'?: string[] | true;
+    byName?: string[] | true | { props: string[] | true; outside: string };
+    '@'?: string[] | true | { props: string[] | true; outside: string };
+    beVigilant?: boolean;
+  };
+
+  /**
+   * Bulk enhancement application via EMC JSON configs.
+   */
+  enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
+
+  /** Registry for enhancement dependency injection (inherited from IAssignGingerlyOptions) */
+  registry?: any;
+
+  [key: string]: any;
+}
+
+/**
+ * Options for synchronous value resolution (getValues / getValue).
+ * Extends IAssignGingerlyOptions with synchronous protocol handlers.
+ */
+export interface GetValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Internal root object for special $0 references.
+   * This is used by assignFrom to resolve values relative to the target object.
+   */
+  root?: any;
+
+  /**
+   * Synchronous protocol handlers for resolving protocol-prefixed values.
+   * Each handler receives the key portion and MUST return synchronously.
+   * For async protocols, use ResolveValuesOptions / resolveValues instead.
+   * 
+   * @example
+   * protocols: {
+   *     globalThis: (key) => globalThis[key],
+   *     localStorage: (key) => JSON.parse(localStorage.getItem(key) || 'null')
+   * }
+   */
+  protocols?: Record<string, (key: string) => any>;
+}
+
+/**
+ * Options for async value resolution (resolveValues).
+ * Same as GetValuesOptions but protocol handlers may return Promises.
+ */
+export interface ResolveValuesOptions extends IAssignGingerlyOptions {
+  /**
+   * Internal root object for special $0 references.
+   * This is used by assignFrom to resolve values relative to the target object.
+   */
+  root?: any;
+
+  /**
+   * Protocol handlers for resolving protocol-prefixed values (e.g., 'globalThis://key').
+   * Each handler receives the key portion and returns the resolved value (sync or async).
+   */
+  protocols?: Record<string, (key: string) => any | Promise<any>>;
 }
 
 /**
@@ -288,6 +501,12 @@ export interface ItemscopeManagerConfig<T = any> {
     dispose?: string | symbol;
     resolved?: string | symbol;
   };
+
+  /**
+   * Optional features to associate with the manager class.
+   * Calls assignFeatures(manager, features) automatically on registration.
+   */
+  features?: FeatureConfigsMap;
 }
 
 /**
@@ -320,4 +539,436 @@ export interface ElementEnhancement{
   get(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): any;
   dispose(registryItem: EnhancementConfig | string | symbol): void;
   whenResolved(registryItem: EnhancementConfig | string | symbol, mountCtx?: any): Promise<any>;
+}
+
+// =============================================================================
+// Custom Element Features types
+// =============================================================================
+
+/**
+ * Context passed to feature spawn constructors
+ */
+export interface FeatureSpawnContext {
+    /** The feature key (e.g., 'photoTaker') */
+    key: string;
+    /** The SupportedFeatureConfig from static supportedFeatures */
+    optIn: SupportedFeatureConfig;
+    /** The FeatureConfig from assignFeatures */
+    injection: FeatureConfig;
+    /** The features registry reference */
+    featuresRegistry: FeaturesRegistry;
+    /** Shared context from the host element (via getSharedContext callback) */
+    shared?: any;
+}
+
+/**
+ * Configuration for a supported feature slot declared via static supportedFeatures
+ */
+export interface SupportedFeatureConfig {
+    /**
+     * Optional fallback class (or async spawner) to use if no implementation is injected.
+     */
+    fallbackSpawn?:
+        | { new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }
+        | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>);
+
+    /**
+     * Optional runtime shape validation for the spawned instance.
+     * Return true if the instance is valid, false to throw.
+     */
+    validateShape?: (spawnedInstance: any) => boolean;
+
+    /**
+     * Optional callback to provide shared context (e.g., ElementInternals, private state)
+     * to the feature at construction time.
+     */
+    getSharedContext?: (instance: any) => any;
+
+    /**
+     * Lifecycle callbacks that this feature requires.
+     * Serves as the default — the consumer can add more via FeatureConfig.callbackForwarding.
+     */
+    callbackForwarding?: string[];
+}
+
+/**
+ * Configuration for a feature passed to assignFeatures.
+ */
+export interface FeatureConfig {
+    /**
+     * The class to instantiate, or an async function returning one.
+     */
+    spawn?:
+        | { new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }
+        | (() => Promise<{ new(hostElement: any, ctx: FeatureSpawnContext, initVals?: any): any }>)
+        | string // import path or builtIns.* alias
+
+    /** Attribute patterns for parsing element attributes into initVals. */
+    withAttrs?: AttrPatterns<any>;
+
+    /** Pass-through custom configuration data (accessible via ctx.injection.customData). */
+    customData?: any;
+
+    /** Lifecycle callbacks to forward to this feature. */
+    callbackForwarding?: string[];
+}
+
+export type SupportedFeaturesMap = Record<string, SupportedFeatureConfig>;
+export type FeatureConfigsMap = Record<string, FeatureConfig>;
+
+/**
+ * Registry for feature configs, keyed by constructor.
+ */
+export declare class FeaturesRegistry {
+    has(ctr: Function): boolean;
+    get(ctr: Function): Map<string, FeatureConfig> | undefined;
+    set(ctr: Function, key: string, config: FeatureConfig): void;
+    hasKey(ctr: Function, key: string): boolean;
+}
+
+/**
+ * A suggestion from one feature to another.
+ */
+export interface FeatureInfoSuggestion {
+    from: Function;
+    withAttrs?: any;
+    customData?: any;
+}
+
+/**
+ * Core assignFeatures function.
+ */
+export declare function assignFeatures(
+    ctr: Function,
+    features: FeatureConfigsMap,
+    featuresRegistry: FeaturesRegistry
+): Promise<void> | undefined;
+
+/**
+ * Captures own-properties that shadow feature getters.
+ */
+export declare function captureFeatureInitVals(instance: any): void;
+
+/**
+ * Suggest configuration to another feature during registration.
+ */
+export declare function suggestFeatureInfo(
+    fromFeatureCtr: Function,
+    toFeatureSymbol: symbol,
+    featureInfo: { withAttrs?: any; customData?: any },
+    targetClass: Function
+): void;
+
+/**
+ * Retrieve suggestions made to a feature by other features.
+ */
+export declare function getFeatureInfoSuggestions(
+    toFeatureSymbol: symbol,
+    targetClass: Function
+): FeatureInfoSuggestion[];
+
+/**
+ * Base class for nested feature containers.
+ */
+export declare class PropertyBag {
+    customElementRegistry: any;
+    constructor(hostElement: any, ctx?: FeatureSpawnContext, initVals?: any);
+}
+
+// =============================================================================
+// assignFrom handler types
+// =============================================================================
+
+/**
+ * Base configuration for an assignFrom handler invocation.
+ * The `do` field identifies the handler; `resolve` maps named parameters to path strings.
+ */
+export interface HandlerConfig {
+    /** The registered handler name */
+    do: string;
+    /** Named parameters to resolve against the `from` source before passing to the handler */
+    resolve?: Record<string, string>;
+}
+
+/**
+ * Interface for assignFrom handler classes.
+ * Handlers are invoked when a LHS key ends with ' =>'.
+ */
+export interface AssignFromHandler {
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any, permissions?: AssignPermissions): Promise<void> | void;
+}
+
+/**
+ * Constructor signature for assignFrom handler classes.
+ */
+export interface AssignFromHandlerConstructor {
+    new (config: HandlerConfig): AssignFromHandler;
+}
+
+// =============================================================================
+// Built-in handler config types
+// =============================================================================
+
+/**
+ * Configuration for the builtIns.lazyLoad handler.
+ */
+export interface LazyLoadConfig extends HandlerConfig {
+    do: 'builtIns.lazyLoad';
+    resolve: {
+        /** Condition to show/hide (resolved from VM) */
+        if: string;
+        /** Template element to clone (resolved via protocol or path) */
+        instantiate: string;
+        /** Insert method: 'appendChild' (default), 'prepend', or 'after' (sibling after target) */
+        method?: string;
+        /** If true, removes nodes when hiding instead of adding hidden attribute */
+        forget?: boolean | string;
+        /** Enable view transitions */
+        transitional?: boolean | string;
+        /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+        hideClass?: string;
+        /** Custom CSS for the hide class (default: 'display: none') */
+        hideCss?: string;
+        /** Optional async callback invoked after cloning, resolved from the VM */
+        onInstantiated?: string;
+        /** Override auto-derived marker name */
+        markerName?: string;
+        /** Set inert attribute on hidden elements */
+        toggleInert?: boolean | string;
+        /** Set disabled property on hidden form elements */
+        toggleDisabled?: boolean | string;
+    };
+}
+
+/**
+ * Resolved parameters received by LazyLoadHandler.assign() after resolveValues processing.
+ */
+export interface LazyLoadResolvedParams {
+    /** Condition — resolved to actual truthy/falsy value */
+    if: any;
+    /** Template element — resolved to HTMLTemplateElement or DocumentFragment */
+    instantiate: HTMLTemplateElement | DocumentFragment;
+    /** Insertion method (default: 'appendChild') */
+    method?: 'appendChild' | 'prepend' | 'after';
+    /** Remove nodes on hide instead of using hidden attribute */
+    forget?: boolean;
+    /** Enable view transitions */
+    transitional?: boolean;
+    /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+    hideClass?: string;
+    /** Custom CSS for the hide class (default: 'display: none') */
+    hideCss?: string;
+    /** Callback after clone+insert */
+    onInstantiated?: (ctx: LazyLoadInstantiatedContext) => void | Promise<void>;
+    /** Override auto-derived marker name */
+    markerName?: string;
+    /** Set inert attribute on hidden elements (removes from a11y tree + interaction) */
+    toggleInert?: boolean;
+    /** Set disabled property on hidden form elements */
+    toggleDisabled?: boolean;
+    /** Name of a pre-existing marker pair whose content should be removed on first activation.
+     *  Used for SSR placeholder content (e.g., "Loading..." text) that disappears once real content loads. */
+    placeholder?: string;
+    /** Assignment config applied to cloned content before insertion.
+     *  Same shape as manageTemplateList's fromEachItem: { toClone, withOptions } or { configs: [...] } */
+    assign?: {
+        toClone?: Record<string, any>;
+        withOptions?: Record<string, any>;
+        configs?: Array<{ toClone?: Record<string, any>; withOptions?: Record<string, any> }>;
+    };
+}
+
+/**
+ * Configuration for the builtIns.lazyLoadSwitch handler.
+ */
+export interface LazyLoadSwitchConfig extends HandlerConfig {
+    do: 'builtIns.lazyLoadSwitch';
+    resolve: {
+        /** Left-hand side of comparison (resolved from VM) */
+        lhs: string;
+        /** Comparison operator (default: '===') */
+        op?: '===' | '!==' | '==' | '!=' | '<' | '>' | '<=' | '>=';
+        /** Right-hand side of comparison (resolved from VM or literal) */
+        rhs: string;
+        /** Template element to clone (resolved via protocol or path) */
+        instantiate: string;
+        /** Insert method: 'appendChild' (default), 'prepend', or 'after' */
+        method?: string;
+        /** If true, removes nodes when hiding instead of adding hidden attribute */
+        forget?: boolean | string;
+        /** Enable view transitions */
+        transitional?: boolean | string;
+        /** CSS class for hiding (default: 'ag-hide', only used when transitional: true) */
+        hideClass?: string;
+        /** Custom CSS for the hide class (default: 'display: none') */
+        hideCss?: string;
+        /** Optional async callback invoked after cloning, resolved from the VM */
+        onInstantiated?: string;
+    };
+}
+
+/**
+ * Resolved parameters received by LazyLoadSwitchHandler.assign() after resolveValues processing.
+ */
+export interface LazyLoadSwitchResolvedParams extends Omit<LazyLoadResolvedParams, 'if'> {
+    /** Left-hand side — resolved to actual value */
+    lhs: any;
+    /** Comparison operator (default: '===') */
+    op?: '===' | '!==' | '==' | '!=' | '<' | '>' | '<=' | '>=';
+    /** Right-hand side — resolved to actual value */
+    rhs: any;
+}
+
+export interface FromEachItemConfig {
+    toClone?: Record<string, any>;
+    withOptions?: AssignFromOptions;
+    resolve?: {
+      key?: string;
+    }
+}
+
+export interface ManageTemplateListConfig extends HandlerConfig {
+    do: 'builtIns.manageTemplateList';
+    resolve: ManageTemplateListResolvedParams;
+    fromEachItem: FromEachItemConfig;
+}
+
+/**
+ * Resolved parameters received by ManageTemplateListHandler.assign().
+ */
+export interface ManageTemplateListResolvedParams {
+    /** The iterable to loop over (resolved from VM) */
+    forEach: Iterable<any>;
+    /** Template element to clone per item */
+    instantiate: HTMLTemplateElement | DocumentFragment;
+    /** Insertion method (default: 'appendChild') */
+    method?: 'appendChild' | 'prepend' | 'after';
+    /** Remove nodes on hide instead of using hidden attribute */
+    forget?: boolean;
+    /** Override auto-derived marker name */
+    markerName?: string;
+    /** Wait for async rendering before DOM commit */
+    waitForSettled?: boolean | { idleMs?: number; timeout?: number };
+    /** Yield to browser every N items to prevent jank (default: undefined = no yielding) */
+    yieldEvery?: number;
+}
+
+/**
+ * Context passed to onInstantiated callbacks after template cloning.
+ */
+export interface LazyLoadInstantiatedContext {
+    /** The inserted child nodes */
+    nodes: Node[];
+    /** The target element containing the markers */
+    target: Element;
+    /** The full handler config */
+    config: any;
+    /** The resolved parameters */
+    resolvedParams: Record<string, any>;
+}
+
+/**
+ * The LazyLoadHandler class (exported for subclassing).
+ */
+export declare class LazyLoadHandler implements AssignFromHandler {
+    config: any;
+    constructor(config: any);
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any, permissions?: AssignPermissions): Promise<void>;
+    protected onCloneInserted(nodes: Node[], lhsTarget: Element, resolvedParams: Record<string, any>): Promise<void>;
+}
+
+//#region Event Handler
+
+export interface AssignDispatchVector {
+    toTarget?: Record<string, any>,
+    toHost?: Record<string, any>,
+    toLHS?: Record<string, any>,
+    withOptions?: AssignFromOptions,
+    toTargetOptions?: AssignFromOptions,
+    toHostOptions?: AssignFromOptions,
+    toLHSOptions?: AssignFromOptions,
+    dispatch?: DispatchEventConfig
+}
+
+export interface DispatchEventConfig{
+    type?: string,
+    eventCtr?: string | typeof Event | typeof CustomEvent,
+    detail?: any,
+    bubbles?: boolean,
+    cancelable?: boolean,
+    composed?: boolean
+}
+
+
+export interface AddEventListenerConfig extends AssignDispatchVector  {
+  on: string, 
+  get?: {
+      abortController?: string | AbortController,
+      
+      nudge?: boolean,
+      options?: AddEventListenerOptions,
+      //make this part of dispatch?
+      stopPropagation?: boolean,
+      preventDefault?: boolean
+      dispatch?: DispatchEventConfig
+   },
+   
+   fromLHS?: AssignDispatchVector,
+   fromHost?: AssignDispatchVector,
+   fromEvent?: AssignDispatchVector,
+   fromTarget?: AssignDispatchVector,
+   
+   
+}
+//#endregion
+
+
+// =============================================================================
+// Permissions
+// =============================================================================
+
+/**
+ * Phase II+: object form for a restricted property setting.
+ */
+export interface RestrictedPropSetting {
+    prop: string;
+    useMethod?: string;          // Phase II: redirect to a safe method
+    attr?: string;               // Phase III: also watch setAttribute for this attr
+    allowFromSameHost?: boolean; // Phase III
+    allowCrossDomain?: boolean;  // Phase III
+}
+
+/**
+ * Phase IV+: object form for a restricted method setting.
+ */
+export interface RestrictedMethodConfig {
+    method: string;
+    addArgs?: string[];          // Phase V: append sanitizer args
+}
+
+/**
+ * Permissions interface for controlling security-sensitive operations.
+ * Only trusted script can set these — never parsed from HTML attributes.
+ */
+export interface AssignPermissions {
+    /** Allow imports from cross-domain URLs (default: false) */
+    crossDomainImports?: boolean;
+
+    /**
+     * Restricted property settings.
+     * Phase I: string entries are property names that cannot be assigned.
+     * Phase II: an object with useMethod redirects ordinary assignment to that
+     * method; command operations remain blocked. Phase III+ adds attr support.
+     *
+     * NOTE: This is a property-assignment guard only. Method calls (setAttribute, etc.)
+     * are not blocked — see Phase III+. Event listeners can still be registered, but
+     * assignments performed by their vectors inherit these permissions.
+     */
+    restrictedPropSettings?: Array<string | RestrictedPropSetting>;
+
+    /** Sanitizer options (Phase III+) */
+    sanitizerOptions?: Record<string, any>;
+
+    /** Restricted method settings (Phase IV+) */
+    restrictedMethodSettings?: Array<string | RestrictedMethodConfig>;
 }

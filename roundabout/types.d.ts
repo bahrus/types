@@ -42,18 +42,17 @@ export type Actions<TProps = any, TActions = TProps> =
     //& Partial<{[key in `do_${keyof TActions & string}_on`]: Key<TActions> | Array<Key<TActions>> }> 
 ;
 
-export type Compacts<TProps = any, TActions = TProps> = 
-    //| Partial<{[key in `${keyof TProps & string}_to_${keyof TProps & string}` & string]: Operation<TProps> }>
-    | Partial<{[key in `negate_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
+export type Compacts<TProps = any, TActions = TProps, TEvents extends string = string> = 
+    Partial<{[key in `negate_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `pass_length_of_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `echo_${keyof TProps & string}_to_${keyof TProps & string}`]: number}>
     | Partial<{[key in `echo_${keyof TProps & string}_to_${keyof TProps & string}_after`]: keyof TProps}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_call_${keyof TActions & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_toggle_${keyof TProps & string}`]: number}>
     | Partial<{[key in `when_${keyof TProps & string}_changes_inc_${keyof TProps & string}_by`]: number}>
-    | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}> //TODO
-    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
-    | Partial<{[key in `on_${string}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
+    | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}>
+    | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
+    | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
 ;
 
 export type Hitches<TProps = any, TActions = TProps> = 
@@ -95,14 +94,48 @@ export interface Merge<TProps = any> extends LogicOp<TProps> {
 
 export type Merges<TProps = any> = Array<Merge<TProps>>;
 
-export interface RAConfig<TProps = unknown, TActions = TProps, ETProps = TProps, TCustomData = unknown> {
+/**
+ * A yield derives a value from a collection using an index or key.
+ * Scenario I: Single selection by index — when the source array or index changes,
+ * the target property is set to source[index].
+ */
+export interface YieldConfig<TProps = any> {
+    /** The source array/collection property name */
+    from: keyof TProps & string;
+    /** The index property name (for array index lookup) */
+    atIndex?: keyof TProps & string;
+    /**
+     * Behavior when the index is out of bounds.
+     * - 'undefined' (default): set target to undefined
+     * - 'clamp': reset the index to 0 (selects first item)
+     */
+    outOfBounds?: 'undefined' | 'clamp';
+    // Future: atKey, atIndices, keyProp, etc.
+}
+
+export type Yields<TProps = any> = {
+    [K in keyof TProps & string]?: YieldConfig<TProps>;
+};
+
+export interface RAConfig<
+        TProps = unknown, TActions = TProps, ETProps = TProps, 
+        TCustomData = unknown, TEvents extends string = string > {
     actions?: Actions<TProps,TActions>,
-    compacts?: Compacts<TProps, TActions>,
+    compacts?: Compacts<TProps, TActions, TEvents>,
     //onsets?: Onsets<TProps, TActions>,
     handlers?: Handlers<ETProps, TActions>,
     hitches?: Hitches<TProps, TActions>,
     positractions?: Positractions<TProps>,
     merges?: Merges<TProps>,
+    yields?: Yields<TProps>,
+    /**
+     * Properties to explicitly monitor and propagate changes for.
+     * Use this to ensure getter/setters are installed for properties
+     * that aren't referenced by actions, compacts, merges, etc.
+     * but still need to fire propagator events (e.g., attribute-parsed
+     * properties that other features subscribe to).
+     */
+    propagate?: keyof TProps & string | Array<keyof TProps & string>,
     /**
      * Configure automatic WeakRef wrapping for properties
      * 
@@ -130,7 +163,6 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
     vm?: TProps & TActions & RoundaboutReady,
     //for enhanced elements, pass in the container, referenced via $0.
     container?: EventTarget,
-    propagate?: keyof TProps & string | Array<keyof TProps & string>,
     
     //mountObservers?: Set<IMountObserver>
     
@@ -158,7 +190,20 @@ export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps 
      * Options passed to every internal assignGingerly call.
      * See IAssignGingerlyOptions in assign-gingerly for details.
      */
-    assignGingerlyOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
+    assignOptions?: import('../assign-gingerly/types.js').IAssignGingerlyOptions,
+
+    /**
+     * Protocol handlers for resolving protocol-prefixed values in initialPropVals.
+     * When present, roundabout uses assignFrom (with protocol resolution and "..." spread)
+     * instead of plain assignGingerly for applying initial property values.
+     * 
+     * @example
+     * protocols: {
+     *     globalThis: (key) => globalThis[key],
+     *     localStorage: (key) => JSON.parse(localStorage.getItem(key) || 'null')
+     * }
+     */
+    protocols?: Record<string, (key: string) => any | Promise<any>>,
     
 
 }

@@ -426,7 +426,7 @@ customElements.assignFeatures(MyElement, {
 3. On first `connectedCallback`, the lazy getter is triggered — spawning the feature at the correct lifecycle moment (when the element is in the DOM and computed styles are available).
 4. For async features, forwarding is skipped until the real instance is available.
 
-**Supported callbacks:** `connectedCallback`, `disconnectedCallback`, `attributeChangedCallback`, `adoptedCallback`
+**Supported callbacks:** `connectedCallback`, `disconnectedCallback`, `attributeChangedCallback`, `adoptedCallback`, `formAssociatedCallback`, `formDisabledCallback`, `formResetCallback`, `formStateRestoreCallback`
 
 **When to use it:**
 
@@ -434,6 +434,7 @@ customElements.assignFeatures(MyElement, {
 - The feature needs `getComputedStyle` (which requires the element to be in the DOM)
 - The feature sets up event listeners that should be cleaned up on disconnect
 - The feature needs to handle elements created via cloned templates (where the constructor fires before DOM insertion)
+- The feature manages form-associated behavior (`formDisabledCallback`, `formResetCallback`, `formStateRestoreCallback`) — e.g., face-up
 
 **Avoiding double-connect on initial spawn:**
 
@@ -480,7 +481,6 @@ This pattern eliminates all manual wiring in the consumer's constructor — the 
 
 ```javascript
 class MyElement extends HTMLElement {
-    propagator = new EventTarget();
     #internals;
 
     static supportedFeatures = {
@@ -489,8 +489,7 @@ class MyElement extends HTMLElement {
             callbackForwarding: ['connectedCallback', 'disconnectedCallback'],
             getSharedContext(instance) {
                 return {
-                    internals: instance.#internals,
-                    hostPropagator: instance.propagator
+                    internals: instance.#internals
                 };
             }
         }
@@ -509,6 +508,18 @@ customElements.assignFeatures(MyElement, {
 
 customElements.define('my-element', MyElement);
 ```
+
+Because the feature is a getter-only property, `assignGingerly` merges directly into the instance. The consumer simply sets properties on the feature and the setters handle side effects:
+
+```javascript
+// Direct property access — triggers the setter
+el.myFeature.myProp = 'new value';
+
+// Via assignGingerly — merges into the existing instance
+el.assignGingerly({ myFeature: { myProp: 'new value' } });
+```
+
+This eliminates the need for an intermediate event bus or propagator — property access is the integration point.
 
 **Async features and `callbackForwarding`:**
 
@@ -544,6 +555,65 @@ class MyFeatureLazy {
         this.#delegate = new MyFeature(hostElement, ctx);
     }
 }
+```
+
+### Class-Level Setup with `static onAssigned`
+
+Features that need one-time class-level setup before any instances are created can define a `static onAssigned` method. This is called by `assignFeatures` immediately after registration, receiving the host constructor and the feature config:
+
+```javascript
+class MyFeature {
+    /**
+     * Called once when assignFeatures processes this feature.
+     * Use for one-time class-level setup: installing prototype properties,
+     * setting static flags, or pre-loading modules.
+     */
+    static onAssigned(ctr, featureConfig) {
+        // Set static properties on the host constructor
+        ctr.formAssociated = true;
+        // Or install prototype getter/setters, pre-load modules, etc.
+    }
+
+    constructor(hostElement, ctx, initVals) {
+        // Instance-level setup (runs on first getter access)
+    }
+}
+```
+
+**Usage:**
+
+```javascript
+// await is safe — returns undefined if no async onAssigned hooks exist
+await customElements.assignFeatures(MyElement, {
+    myFeature: { spawn: MyFeature }
+});
+
+// Now define — class is fully set up
+customElements.define('my-element', MyElement);
+```
+
+**How it works:**
+
+- `assignFeatures` checks if the spawn class defines `static onAssigned` (via `Object.hasOwn`).
+- If found, calls `SpawnClass.onAssigned(ctr, featureConfig)` after installing the getter.
+- If `onAssigned` returns a Promise, `assignFeatures` returns a `Promise<void>` that resolves when all async hooks complete.
+- If no `onAssigned` hooks are async (or none exist), `assignFeatures` returns `undefined` (backward compatible).
+- Only applies to synchronous spawners (the class must be available at registration time).
+
+**When to use it:**
+
+- Setting `static formAssociated = true` on the host (for form-associated custom elements)
+- Installing prototype getter/setters that the feature depends on
+- Pre-loading modules or resources needed at spawn time
+- Any setup that must happen once per class, not once per instance
+
+**`await` is always safe:**
+
+```javascript
+// These are equivalent for features without onAssigned:
+customElements.assignFeatures(MyElement, { feature: { spawn: SyncFeature } });
+await customElements.assignFeatures(MyElement, { feature: { spawn: SyncFeature } });
+// Both work — await on undefined is a no-op
 ```
 
 ### Pre-upgrade Property Capture

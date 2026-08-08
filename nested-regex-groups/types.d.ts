@@ -85,6 +85,24 @@ export interface ParserOptions {
    * If true, returns detailed error information when no pattern matches
    */
   verbose?: boolean;
+
+  /**
+   * When true, periods inside matched pairs of { } are not treated
+   * as statement delimiters during splitting.
+   */
+  ignorePeriodInsideBraces?: boolean;
+
+  /**
+   * When true, normalizes whitespace in the input string before parsing.
+   * This replaces multiple whitespace characters with a single space and trims the string.
+   * Default is false.
+   * 
+   * @example
+   * // Input: "  First.   Second.  "
+   * // With normalizeWhitespace: true -> "First. Second."
+   * // With normalizeWhitespace: false -> "  First.   Second.  "
+   */
+  normalizeWhitespace?: boolean;
 }
 
 /**

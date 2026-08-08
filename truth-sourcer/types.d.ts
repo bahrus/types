@@ -44,3 +44,7 @@ export interface AllProps extends TruthSourcerProps {
 
 export type AP = AllProps;
 export type PAP = Partial<AP>;
+
+export interface CustomData {
+    observedAttributes: string[];
+}

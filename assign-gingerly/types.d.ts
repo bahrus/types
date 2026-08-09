@@ -695,7 +695,7 @@ export interface HandlerConfig {
  * Handlers are invoked when a LHS key ends with ' =>'.
  */
 export interface AssignFromHandler {
-    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any, permissions?: AssignPermissions): Promise<void> | void;
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options: any, permissionProcessor?: PermissionProcessor): Promise<void> | void;
 }
 
 /**
@@ -873,7 +873,7 @@ export interface LazyLoadInstantiatedContext {
 export declare class LazyLoadHandler implements AssignFromHandler {
     config: any;
     constructor(config: any);
-    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any, permissions?: AssignPermissions): Promise<void>;
+    assign(lhsTarget: any, resolvedParams: Record<string, any>, options?: any, permissionProcessor?: PermissionProcessor): Promise<void>;
     protected onCloneInserted(nodes: Node[], lhsTarget: Element, resolvedParams: Record<string, any>): Promise<void>;
 }
 
@@ -978,5 +978,15 @@ export interface AssignPermissions {
 export interface RestrictedPropSettingsMap {
     props: Map<string, RestrictedPropSetting | undefined>;
     attrs: Map<string, RestrictedPropSetting | undefined>;
+}
+
+export declare class PermissionProcessor {
+    constructor(permissions: AssignPermissions | undefined);
+    get crossDomainImports(): boolean;
+    get hasProps(): boolean;
+    get hasAttrs(): boolean;
+    checkRestrictedProp(key: string): boolean;
+    redirectRestrictedProp(target: any, key: string, value: any): boolean;
+    checkRestrictedAttributeCall(methodName: string, args: any[]): { blocked: boolean; attrName?: string };
 }
 //#endregion

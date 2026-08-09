@@ -425,6 +425,11 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
   root?: any;
 
   /**
+   * Optional permission processor for guarding method calls during RHS resolution.
+   */
+  permissionProcessor?: PermissionProcessor;
+
+  /**
    * Synchronous protocol handlers for resolving protocol-prefixed values.
    * Each handler receives the key portion and MUST return synchronously.
    * For async protocols, use ResolveValuesOptions / resolveValues instead.
@@ -448,6 +453,11 @@ export interface ResolveValuesOptions extends IAssignGingerlyOptions {
    * This is used by assignFrom to resolve values relative to the target object.
    */
   root?: any;
+
+  /**
+   * Optional permission processor for guarding method calls during RHS resolution.
+   */
+  permissionProcessor?: PermissionProcessor;
 
   /**
    * Protocol handlers for resolving protocol-prefixed values (e.g., 'globalThis://key').
@@ -986,6 +996,7 @@ export declare class PermissionProcessor {
     get hasProps(): boolean;
     get hasAttrs(): boolean;
     checkRestrictedProp(key: string): boolean;
+    checkRestrictedMethod(methodName: string): boolean;
     redirectRestrictedProp(target: any, key: string, value: any): boolean;
     checkRestrictedAttributeCall(methodName: string, args: any[]): { blocked: boolean; attrName?: string };
 }

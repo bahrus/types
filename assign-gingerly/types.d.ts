@@ -931,11 +931,11 @@ export interface AddEventListenerConfig extends AssignDispatchVector  {
  * Phase II+: object form for a restricted property setting.
  */
 export interface RestrictedPropSetting {
-    prop: string;
-    useMethod?: string;          // Phase II: redirect to a safe method
-    attr?: string;               // Phase III: also watch setAttribute for this attr
-    allowFromSameHost?: boolean; // Phase III
-    allowCrossDomain?: boolean;  // Phase III
+    props: string | string[];
+    useMethod?: string;            // Phase II: redirect to a safe method
+    attr?: boolean | string | string[]; // Phase III: also watch setAttribute for these attrs
+    allowFromSameDomain?: boolean; // Phase III: allow same-origin URLs
+    allowCrossDomain?: boolean;    // Phase III: allow any URL
 }
 
 /**
@@ -958,7 +958,8 @@ export interface AssignPermissions {
      * Restricted property settings.
      * Phase I: string entries are property names that cannot be assigned.
      * Phase II: an object with useMethod redirects ordinary assignment to that
-     * method; command operations remain blocked. Phase III+ adds attr support.
+     * method; command operations remain blocked. Phase III+ adds props, attr,
+     * allowFromSameDomain, and allowCrossDomain support.
      *
      * NOTE: This is a property-assignment guard only. Method calls (setAttribute, etc.)
      * are not blocked — see Phase III+. Event listeners can still be registered, but

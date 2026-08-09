@@ -973,3 +973,10 @@ export interface AssignPermissions {
     /** Restricted method settings (Phase IV+) */
     restrictedMethodSettings?: Array<string | RestrictedMethodConfig>;
 }
+
+//#region Permissions
+export interface RestrictedPropSettingsMap {
+    props: Map<string, RestrictedPropSetting | undefined>;
+    attrs: Map<string, RestrictedPropSetting | undefined>;
+}
+//#endregion

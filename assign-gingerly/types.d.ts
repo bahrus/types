@@ -484,6 +484,8 @@ export declare class EnhancementRegistry extends EventTarget {
   getItems(): EnhancementConfig[];
   findBySymbol(symbol: symbol | string): EnhancementConfig | undefined;
   findByEnhKey(enhKey: string | symbol): EnhancementConfig | undefined;
+  whenDefined(enhKey: string | symbol): Promise<void>;
+  _trackSetup(name: string | symbol, promise: Promise<void>): void;
 }
 
 /**
@@ -652,7 +654,7 @@ export declare function assignFeatures(
     ctr: Function,
     features: FeatureConfigsMap,
     featuresRegistry: FeaturesRegistry
-): Promise<void> | undefined;
+): Promise<void>;
 
 /**
  * Captures own-properties that shadow feature getters.

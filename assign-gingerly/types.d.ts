@@ -982,6 +982,8 @@ export interface AssignPermissions {
     /** Sanitizer options (Phase III+) */
     sanitizerOptions?: Record<string, any>;
 
+    customSettings?: any;
+
     /** Restricted method settings (Phase IV+) */
     restrictedMethodSettings?: Array<string | RestrictedMethodConfig>;
 }

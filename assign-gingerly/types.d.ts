@@ -955,7 +955,8 @@ export interface RestrictedPropSetting {
  */
 export interface RestrictedMethodConfig {
     method: string;
-    addArgs?: string[];          // Phase V: append sanitizer args
+    appendArgs?: string[];       // Phase II: append args to each method call
+    addArgs?: string[];           // Deprecated alias for appendArgs
 }
 
 /**
@@ -1001,6 +1002,7 @@ export declare class PermissionProcessor {
     get hasAttrs(): boolean;
     checkRestrictedProp(key: string): boolean;
     checkRestrictedMethod(methodName: string): boolean;
+    getMethodAppendArgs(methodName: string): any[] | undefined;
     redirectRestrictedProp(target: any, key: string, value: any): boolean;
     checkRestrictedAttributeCall(methodName: string, args: any[]): { blocked: boolean; attrName?: string };
 }

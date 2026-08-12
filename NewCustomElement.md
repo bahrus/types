@@ -8,9 +8,10 @@ This document provides step-by-step instructions for creating a **brand new** cu
 - Custom element features (composable behavior classes injected into elements) — see [NewCustomElementFeature.md](./NewCustomElementFeature.md)
 - Enhancements (declarative behaviors attached to existing elements via attributes) — see [NewEnhancementInstructions.md](./NewEnhancementInstructions.md)
 
-## Reference Implementation
+## Reference Implementations
 
 - **[time-ticker](https://github.com/bahrus/time-ticker)** — A non-visual custom element that fires events periodically. Demonstrates extending `ElementMaker`, a custom feature (`TimeTicker`), roundabout wiring via `defRef.json`, and the `def.js` / `wireFeatures.js` pattern.
+- **[scratch-box](https://github.com/bahrus/scratch-box)** — A visual, form-associated custom element with a declarative shadow DOM template and zero custom element JavaScript. Demonstrates `cede` script definition from a static `root.html` and JSON feature configuration.
 
 ## Prerequisites
 
@@ -375,9 +376,176 @@ Plus infrastructure:
 
 For elements like `time-ticker` that have no HTML template or shadow DOM, simply don't activate the `templateMaker` feature in `wireFeatures.js`. The feature remains declared in `supportedFeatures` (inherited from `ElementMaker`) but is never instantiated because no `assignFeatures` call references it.
 
-## Elements With HTML (Coming Soon)
+## Elements With HTML: Declarative Shadow DOM Without a JS Class
 
-For elements that render static or dynamic HTML, the `templateMaker` feature handles template instantiation and shadow DOM attachment. Documentation for this pattern — including how to declare templates, bind data, and integrate with roundabout — will be added in a future update.
+For visual elements you can skip the `def.js` / `wireFeatures.js` / custom element class entirely and register the element with a `cede` script that extends `el-maker`. The scratch-box checkbox is the reference implementation of this pattern: it is built from a single static HTML file (`root.html`) and a JSON feature configuration (`el-maker.json`).
+
+### How scratch-box is structured
+
+| File | Role |
+|------|------|
+| `root.html` | Declarative shadow DOM template, styles, inner form, and enhancement metadata. |
+| `el-maker.mjs` | Type-checked configuration generator for the ElementMaker features. |
+| `el-maker.json` | Generated JSON consumed by the `cede` script. |
+
+### The template file (`root.html`)
+
+The host element declares its shadow root declaratively, then contains everything needed inside the shadow DOM, including styles, a form element, and a `<be-hive>` block that wires up declarative enhancements:
+
+```html
+<scratch-box>
+    <template shadowrootmode=open>
+        <style adopt>
+            :host[hidden] { display:none; }
+            :host { display:block; background-color: HSL(250, 22%, 41%); padding: 1vw; }
+            /* ... remaining styles ... */
+        </style>
+        <form class="checkbox-wrapper">
+            <input 🪢 name=value type="checkbox" id="option"/>
+            <link itemprop=value>
+            <label for="option">
+                <slot name="labelTxt">scratch-box</slot>
+                <svg viewBox="0 0 60 40" aria-hidden="true" focusable="false">
+                    <path d="M21,2 ..." stroke-width="4" fill="none" stroke-dasharray="270" stroke-dashoffset="270"></path>
+                </svg>
+            </label>
+        </form>
+
+        <be-hive>
+            <script type=emc-parser
+                    src="be-hive/parsers/parse-grouped-capture-statements.js"
+                    parser-name=parse-grouped-capture-statements></script>
+            <script type=emc
+                    src="be-bound/🪢.json"
+                    wait-for-parsers=parse-grouped-capture-statements></script>
+        </be-hive>
+    </template>
+</scratch-box>
+```
+
+Key details:
+
+- `shadowrootmode=open` gives the element a declarative shadow DOM that the browser attaches before any script runs.
+- The internal checkbox is named `value` and carries the `🪢` emoji attribute. That marks it for the `be-bound` enhancement so the host `value` property and the inner checkbox `checked` state stay in sync.
+- `<link itemprop=value>` lets the `faceUp` feature expose the element as a form-associated value without any JS wiring.
+- The `<slot name="labelTxt">` lets users provide the label from light DOM via `<span slot="labelTxt">...</span>`.
+- `<style adopt>` with `adopt` ensures the styles are adopted into the shadow root instead of a separate `<style>` element.
+
+### The feature configuration (`el-maker.mjs` → `el-maker.json`)
+
+Instead of `wireFeatures.js`, the features are declared in JSON and consumed by the `cede` script. The source file is type-checked TypeScript via JSDoc comments and outputs `el-maker.json`:
+
+```javascript
+//@ts-check
+
+import { writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import {akaMethods as m, aka, builtInEmoji} from 'assign-gingerly/DX/emojis.js';
+
+/** @import {FontFaceFeatureConfig} from './types/font-face-feature/types'; */
+/** @import {EndUserProps} from './types'; */
+/** @import {RoundaboutOptions} from './types/roundabout/types' */
+/** @import {ElMakerConfig} from './types/el-maker/types' */
+
+const props = {
+    value: 'value',
+    name: 'name',
+    disabled: 'disabled',
+};
+
+const fontFaceFeatureConfig = {
+    fontFamilies: [
+        {
+            name: 'Indie Flower',
+            url: 'https://fonts.gstatic.com/s/indieflower/v24/m8JVjfNVeKWVnh3QMuKkFcZVZ0uH5dI.woff2',
+            descriptors: {
+                style: 'normal',
+                weight: '400',
+                unicodeRange: '...',
+            },
+        },
+        // additional font-face descriptors...
+    ],
+};
+
+const raConfig = {
+    assignOptions: {
+        akaMethods: {
+            '🔍': m['🔍']
+        }
+    },
+    merges: [
+        {
+            ifKeyIn: ['disabled'],
+            assign: {
+                '?.shadowRoot?.🔍?.input?.disabled': '?.disabled',
+            }
+        },
+    ],
+};
+
+/** @type {ElMakerConfig<EndUserProps>} */
+const features = {
+    assignFeatures: {
+        faceUp: { customData: { integrateWithRoundabout: true } },
+        truthSourcer: {},
+        roundabout: { customData: { raConfig } },
+        fontMgr: { customData: { fontFaceFeatureConfig } },
+        templateMaker: {},
+    },
+};
+
+export function render() {
+    return JSON.stringify(features, null, 4);
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const outputFile = __filename.replace(/\.mjs$/, '.json');
+writeFileSync(outputFile, render(), 'utf8');
+```
+
+Run `node el-maker.mjs` (or `npm run build-el-maker` if your `package.json` includes a watch script) to regenerate `el-maker.json`.
+
+### Registering the element in a page
+
+The element is defined by a `cede` script. Include `imp-h` (or another template importer) to fetch `root.html`, and `el-maker/def.js` to provide the base class machinery:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>scratch-box demo</title>
+    <script type=module>
+        import 'be-hive/be-hive.js';
+        import 'imp-h/imp-h.js';
+        import 'el-maker/def.js';
+    </script>
+</head>
+<body>
+    <scratch-box imp-h="scratch-box/root.html">
+        <span slot=labelTxt>Create demo</span>
+        <script type=cede data-extends=el-maker src="scratch-box/el-maker.json"></script>
+    </scratch-box>
+</body>
+</html>
+```
+
+Notes:
+
+- `imp-h` observes the `imp-h` attribute and imports the declarative shadow DOM template from `root.html`.
+- The `<script type=cede data-extends=el-maker>` tells the mount observer to register the host element by extending `ElementMaker` and applying the feature JSON.
+- No JS class file is required because all behavior is provided by the configured ElementMaker features and the declarative shadow DOM.
+
+### When to use this pattern
+
+Use the declarative shadow DOM + `cede` pattern when:
+
+- The element is primarily visual and static.
+- You want server-side rendering and progressive enhancement with no client-side custom element class.
+- Feature configuration (form association, attribute reflection, reactive wiring, fonts) is sufficient for all behavior.
+
+When you need custom runtime behavior beyond the shared features, fall back to the class-based pattern in the earlier sections and add your own feature.
 
 ## Tips
 

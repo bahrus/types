@@ -100,7 +100,7 @@ export type T = AllProps;
 For visual web components that use declarative Shadow DOM, step 4 should be considered as a last resort, after exausting:
 
 1.  The power of assign-gingerly/assignFrom/RoundaboutLib configuration (JSON)
-2.  Defining a new reusable custom element feature to include with el-maker's package.
+2.  Defining a new reusable custom element feature to include with el-maker's package (Step 5).
 
 Create `[element-name]-element.js` (e.g., `my-element-element.js`):
 

@@ -95,7 +95,12 @@ export type T = AllProps;
 - `AllProps` — includes internal/computed state managed by roundabout
 - Export `T` as a convenience alias for use in `defRef.mjs` type annotations
 
-## Step 4: Create the Element Class
+## Step 4: Create the Element Class, if the complexity is too much for a "code-free" solution.
+
+For visual web components that use declarative Shadow DOM, step 4 should be considered as a last resort, after exausting:
+
+1.  The power of assign-gingerly/assignFrom/RoundaboutLib configuration (JSON)
+2.  Defining a new reusable custom element feature to include with el-maker's package.
 
 Create `[element-name]-element.js` (e.g., `my-element-element.js`):
 

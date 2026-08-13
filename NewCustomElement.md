@@ -52,7 +52,9 @@ This document provides step-by-step instructions for creating a **brand new** cu
   },
   "dependencies": {
     "assign-gingerly": "0.0.48",
-    "el-maker": "0.0.0"
+    "el-maker": "0.0.0",
+    "imp-h": "0.0.5",
+    "mount-observer": "0.1.50"
   }
 }
 ```

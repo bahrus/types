@@ -53,6 +53,11 @@ export interface FaceUpProps {
     value: string | File | FormData | null;
 
     /**
+     * The control name used when submitting the form.
+     */
+    name: string;
+
+    /**
      * Internal state for form restoration (optional).
      * If provided, passed as the second argument to setFormValue().
      */

@@ -210,7 +210,9 @@ If using element enhancement / custom attribute libraries, include the be-hive f
 
 </details>
 
-So what have in this file should be all HTML, css, and the only script tags should be one of the types supported by mount-observer -- emc-parser, emc, mountobserver, cede.
+So what have in this file, within the <?start> and <?end> markers should be all HTML, css, and the only script tags should be one of the types supported by mount-observer -- emc-parser, emc, mountobserver, cede.
+
+Ideally, this standalone html file can serve as a primitive demo of the web component itself, and it's quite acceptable to add a little script or other things outside the <?start> and <?end> markers to make the demo page more functional.
 
 ## Step 7.
 
@@ -325,4 +327,33 @@ Create a build instruction in package.json:
 ...
 "build-el-maker": "node --watch el-maker.mjs",
 },
+```
+
+## Create the Demo Page
+
+For example:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev</title>
+    <!-- #include virtual="/imports.html" -->
+
+    <script type=module>
+        import 'be-hive/be-hive.js';
+        import 'imp-h/imp-h.js';
+        import 'el-maker/def.js';
+    </script>
+</head>
+<body>
+    <be-hive></be-hive>
+    <plus-minus imp-h="plus-minus/root.html">
+        <script type=precede data-extends=el-maker src="plus-minus/el-maker.json"></script>
+    </plus-minus>
+
+</body>
+</html>
 ```

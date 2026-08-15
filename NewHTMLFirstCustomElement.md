@@ -208,6 +208,14 @@ If using element enhancement / custom attribute libraries, include the be-hive f
 
 ```
 
+Key details:
+
+- `shadowrootmode=open` gives the element a declarative shadow DOM that the browser attaches before any script runs.
+- The internal checkbox is named `value` and carries the `🪢` emoji attribute. That marks it for the `be-bound` enhancement so the host `value` property and the inner checkbox `checked` state stay in sync.
+- `<link itemprop=value>` lets the `faceUp` feature expose the element as a form-associated value without any JS wiring.
+- The `<slot name="labelTxt">` lets users provide the label from light DOM via `<span slot="labelTxt">...</span>`.
+- `<style adopt>` with `adopt` ensures the styles are adopted into the shadow root instead of a separate `<style>` element.
+
 </details>
 
 So what have in this file, within the <?start> and <?end> markers should be all HTML, css, and the only script tags should be one of the types supported by mount-observer -- emc-parser, emc, mountobserver, cede.
@@ -320,6 +328,8 @@ writeFileSync(outputFile, render(), 'utf8');
 
 ## Step 8
 
+Run `node el-maker.mjs` (or `npm run build-el-maker` if your `package.json` includes a watch script) to regenerate `el-maker.json`.
+
 Create a build instruction in package.json:
 
 ```JSON
@@ -357,3 +367,65 @@ For example:
 </body>
 </html>
 ```
+
+<details>
+    <summary>How scratch-box is structured</summary>
+
+| File | Role |
+|------|------|
+| `root.html` | Declarative shadow DOM template, styles, inner form, and enhancement metadata. |
+| `el-maker.mjs` | Type-checked configuration generator for the ElementMaker features. |
+| `el-maker.json` | Generated JSON consumed by the `cede` script. |
+
+### The template file (`root.html`)
+
+The host element declares its shadow root declaratively, then contains everything needed inside the shadow DOM, including styles, a form element, and a `<be-hive>` block that wires up declarative enhancements:
+
+```html
+<scratch-box>
+    <template shadowrootmode=open>
+        <style adopt>
+            :host[hidden] { display:none; }
+            :host { display:block; background-color: HSL(250, 22%, 41%); padding: 1vw; }
+            /* ... remaining styles ... */
+        </style>
+        <form class="checkbox-wrapper">
+            <input 🪢 name=value type="checkbox" id="option"/>
+            <link itemprop=value>
+            <label for="option">
+                <slot name="labelTxt">scratch-box</slot>
+                <svg viewBox="0 0 60 40" aria-hidden="true" focusable="false">
+                    <path d="M21,2 ..." stroke-width="4" fill="none" stroke-dasharray="270" stroke-dashoffset="270"></path>
+                </svg>
+            </label>
+        </form>
+
+        <be-hive>
+            <script type=emc-parser
+                    src="be-hive/parsers/parse-grouped-capture-statements.js"
+                    parser-name=parse-grouped-capture-statements></script>
+            <script type=emc
+                    src="be-bound/🪢.json"
+                    wait-for-parsers=parse-grouped-capture-statements></script>
+        </be-hive>
+    </template>
+</scratch-box>
+```
+
+
+Notes:
+
+- `imp-h` observes the `imp-h` attribute and imports the declarative shadow DOM template from `root.html`.
+- The `<script type=cede data-extends=el-maker>` tells the mount observer to register the host element by extending `ElementMaker` and applying the feature JSON.
+- No JS class file is required because all behavior is provided by the configured ElementMaker features and the declarative shadow DOM.
+
+### When to use this pattern
+
+Use the declarative shadow DOM + `cede` pattern when:
+
+- The element is primarily visual and static.
+- You want server-side rendering and progressive enhancement with no client-side custom element class.
+- Feature configuration (form association, attribute reflection, reactive wiring, fonts) is sufficient for all behavior.
+
+When you need custom runtime behavior beyond the shared features, fall back to the class-based pattern in the earlier sections and add your own feature.
+

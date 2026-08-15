@@ -172,3 +172,107 @@ customElements.define('my-element', MyElementElement);
 - `def.js` = "default define" — centralizes all side effects
 - Imports the JSON config and passes it to `wireFeatures`
 - Consumers who want a different tag name, scoped registry, or DI overrides write their own version of this file
+
+
+<details>
+    <summary>Kiro only</summary>
+
+
+## Step 10.5: Set Up Auto-Build Hook
+
+Create `.kiro/hooks/auto-build-config.kiro.hook`:
+
+```json
+{
+    "name": "Auto-build Configuration",
+    "version": "1.0.0",
+    "description": "Automatically runs npm run build when defRef.mjs is saved",
+    "when": {
+        "type": "fileEdited",
+        "patterns": ["**/*.mjs"]
+    },
+    "then": {
+        "type": "askAgent",
+        "prompt": "A .mjs file was changed. Run npm run build to regenerate the output."
+    }
+}
+```
+
+</details>
+
+## Step 11: Create Test HTML
+
+Create `tests/test1.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - my-element</title>
+    <!-- #include virtual="/imports.html" -->
+    <script type=module>
+        import '[project-name]/def.js';
+    </script>
+</head>
+<body>
+    <my-element></my-element>
+</body>
+</html>
+```
+
+
+
+
+
+## Architecture Overview
+
+```
+[project-name]/
+├── .kiro/
+│   ├── hooks/
+│   │   └── auto-build-config.kiro.hook
+│   └── steering/
+│       └── project-context.md
+├── .vscode/
+│   └── settings.json
+├── types/                              (git submodule)
+│   └── [project-name]/
+│       └── types.d.ts
+├── [element-name]-element.js           (element class — extends ElementMaker)
+├── [FeatureName].js                    (element-specific feature, if any)
+├── wireFeatures.js                     (resolves + assigns features)
+├── def.js                              (side-effect: wire + define)
+├── defRef.mjs                          (build script → defRef.json)
+├── defRef.json                         (generated — roundabout config)
+├── imports.html                        (import map for browser)
+├── package.json
+├── tests/
+│   └── test1.html
+└── README.md
+```
+
+## The Three-File Pattern
+
+Every custom element package exports three key modules:
+
+| File | Role | Side effects? |
+|------|------|---------------|
+| `[element-name]-element.js` | Class definition + `supportedFeatures` declaration | No |
+| `wireFeatures.js` | Resolves spawns + calls `assignFeatures` with config | No |
+| `def.js` | Imports config, wires features, calls `define()` | Yes |
+
+This separation enables:
+- **Different tag names** — write your own `def.js` with a different `define()` call
+- **Scoped registries** — call `scopedRegistry.define()` instead of `customElements.define()`
+- **DI / testing** — call `resolveAndAssignFeatures` directly with mock spawns
+- **Declarative definition** — use `defineWithFeatures` from a cede script without any JS class code
+
+## Tips
+
+- **Call `wireFeatures` before `customElements.define()`** — features must be on the prototype before instances exist
+- **Use `@ts-check`** in `.mjs` files — catches type errors in the build configuration
+- **Run `npm run build` after editing `defRef.mjs`** — the JSON must be regenerated
+- **Don't eagerly import inherited features** — let `fallbackSpawn` lazy-load them
+- **Keep `def.js` minimal** — it's the canonical handshake; consumers can deviate as needed

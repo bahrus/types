@@ -35,7 +35,6 @@ This document provides step-by-step instructions for creating a **brand new** cu
   "type": "module",
   "main": "def.js",
   "scripts": {
-    "build": "node defRef.mjs > defRef.json",
     "serve": "node ./node_modules/spa-ssi/serve.js",
     "test": "playwright test",
     "update": "ncu -u && npm install",

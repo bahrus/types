@@ -33,3 +33,296 @@ Add the additional mappings to import.html
     "mount-observer/": "/node_modules/mount-observer/",
 ```
 
+## Step 6
+
+Create an html file that provides the shadowDOM content.
+
+It can contain other stuff outside the start / end markers. 
+
+<details>
+    <summary>For example:</summary>
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>plus-minus</title>
+</head>
+<body>
+    <plus-minus>
+        <template shadowrootmode="open"><?start><?start>
+            <style adopt>
+                div, section {
+                    display: inline;
+                }
+                button {
+                    background-color: transparent;
+                    background-repeat: no-repeat;
+                    border: none;
+                    cursor: pointer;
+                    overflow: hidden;
+                    outline: none;
+                    margin: 0;
+                    padding: 0;
+                    position: relative;
+                    top: 2px;
+                }
+                :host{
+                    margin: 0;
+                    padding: 0;
+                    display: inline;
+                }
+            </style>
+            <section>
+                <button disabled type=button name=expand part="collapsed expand button" aria-label="Show Details">
+                    <svg width="16px" height="16px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-plus-square">
+                        <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                    </svg>
+                </button>
+                <button disabled type=button name=collapse part="expanded collapse button" aria-label="Hide Details" hidden>
+                    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="16px" height="16px" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve">
+                        <g>
+                            <line fill="none" stroke="#000000" stroke-width="4" stroke-miterlimit="10" x1="14" y1="31" x2="50" y2="31"/>
+                        </g>
+                        <rect x="1" y="1" fill="none" stroke="#000000" stroke-width="6" stroke-miterlimit="10" width="62" height="62"/>
+                    </svg>
+                </button>
+            </section>
+        <?end><?end></template>
+    </plus-minus>
+</body>
+</html>
+```
+
+</details>
+
+If using element enhancement / custom attribute libraries, include the be-hive folder:
+
+<details>
+    <summary>For example:</summary>
+
+```html
+<html>
+<head>
+    <title>scratch-box</title>
+    <link rel=stylesheet href="https://fonts.googleapis.com/css?family=Indie+Flower">
+</head>
+<body>
+    <scratch-box>
+        <template shadowrootmode=open><?start><?start>
+            <style adopt>
+                :host[hidden]{
+                    display:none;
+                }
+                :host{
+                    display:block;
+                    background-color: HSL(250, 22%, 41%);
+                    padding: 1vw;
+                }
+                :has(input[disabled]){
+                    opacity: 0.5;
+                }
+                .checkbox-wrapper {
+                    position: relative;
+
+                    margin: .5em 1em;
+                    font-size: 3em;
+                    color: #eee;
+                    font-family: Indie Flower;
+                }
+
+                svg { 
+                    width: 1em;
+                    height: 1em;
+                    position: absolute;
+                    left: 0.5em; 
+                    top: .3em;
+                    border: 2px solid #eee;
+                }
+
+                label {
+                    display: block;
+                    padding: .25em .5em .25em 2em;
+                    position: relative;
+                    cursor: pointer;
+                }
+
+                input[type="checkbox"] {
+                    opacity: 0;
+                    position: absolute;
+                    left: .75em;
+                    top: .75em;
+                }
+
+                label svg path {
+                    transition: stroke-dashoffset .4s linear;
+                }
+
+                input[type="checkbox"]:checked ~ label svg {
+                    border-color: #111;
+                }
+
+                input[type="checkbox"]:checked ~ label svg path {
+                    stroke-dashoffset: 0;
+                    stroke: currentColor;
+                }
+
+                input[type="checkbox"] ~ label svg path {
+                    stroke: #eee;
+                }
+
+                input[type="checkbox"]:checked ~ label {
+                    color: #111;
+                    text-decoration: line-through;
+                }
+
+                input[type="checkbox"]:focus ~ label {
+                    outline: 2px solid black;
+                }
+            </style>
+            <form class="checkbox-wrapper">
+                <!--  length of the path is 270px -->
+                <input 🪢 name=value type="checkbox" id="option"/>
+                <link itemprop=value>
+                <label for="option">
+                    <slot name="labelTxt">scratch-box</slot>
+                    <svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><path d="M21,2 C13.4580219,4.16027394 1.62349378,18.3117469 3,19 C9.03653312,22.0182666 25.2482171,10.3758914 30,8 C32.9363621,6.53181896 41.321398,1.67860195 39,4 C36.1186011,6.8813989 3.11316157,27.1131616 5,29 C10.3223659,34.3223659 30.6434647,19.7426141 35,18 C41.2281047,15.5087581 46.3445303,13.6554697 46,14 C42.8258073,17.1741927 36.9154967,19.650702 33,22 C30.3136243,23.6118254 17,31.162498 17,34 C17,40.4724865 54,12.4064021 54,17 C54,23.7416728 34,27.2286213 34,37" stroke-width="4" fill="none" stroke-dasharray="270" stroke-dashoffset="270" ></path></svg>
+                </label>
+            </form>
+            
+            <be-hive>
+                <script type=emc-parser 
+                        src="be-hive/parsers/parse-grouped-capture-statements.js" 
+                        parser-name=parse-grouped-capture-statements></script>
+                <script type=emc 
+                        src="be-bound/🪢.json" 
+                        wait-for-parsers=parse-grouped-capture-statements></script>
+            </be-hive>
+        <?end><?end></template>
+    </scratch-box>
+</body>
+</html>
+
+```
+
+</details>
+
+So what have in this file should be all HTML, css, and the only script tags should be one of the types supported by mount-observer -- emc-parser, emc, mountobserver, cede.
+
+## Step 7.
+
+Create el-maker.mjs, which generates the el-maker.json file.
+
+<details>
+    <summary>For example</summary>
+
+```JS
+//@ts-check
+
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import {akaMethods as m, aka, builtInEmoji} from 'assign-gingerly/DX/emojis.js';
+import {paths, doAssign, set, smoothOver} from 'assign-gingerly/DX/paths.js';
+
+/** @import {EndUserProps, AP} from './types'; */
+/** @import {RoundaboutOptions} from './types/roundabout/types' */
+/** @import {ElMakerConfig} from './types/el-maker/types' */
+
+const withMethods = [m['🔍']];
+
+const $ = (/** @type {typeof paths<AP>} */ (/** @type {any} */(paths)))({withMethods});
+
+
+/**
+ * @type {RoundaboutOptions<EndUserProps>}
+ */
+const raConfig = {
+    weakRef: {
+        properties: ['expandButton', 'collapseButton'],
+        logIfCollected: 'warn'
+    },
+    assignOptions: {
+        akaMethods:{
+            '🔍': m['🔍']
+        },
+    },
+    compacts: {
+        on_click_of_expandButton_assign: {
+            [$.expandButton.hidden.path]: true,
+            [$.collapseButton.hidden.path]: false,
+            expanded: true,
+            
+        },
+        on_click_of_collapseButton_assign: {
+            expanded: false,
+            [$.expandButton.hidden.path]: false,
+            [$.collapseButton.hidden.path]: true,
+        } 
+    },
+    merges: smoothOver([
+        {
+            ifKeyIn: ['clone'],
+            assign: {
+                expandButton: $.clone.querySelector('[name=expand]'),
+                collapseButton: $.clone.querySelector('[name=collapse]'),
+            }
+        },
+        {
+            ifKeyIn: ['expanded'],
+            ...doAssign(
+                set($.ariaExpanded).to($.expanded),
+                set(`${$.ariaControlsElements.path}?.@each?.hidden =!`).to($.expanded)
+            )
+        },
+        {
+            ifKeyIn: ['disabled'],
+            ifAllOf: ['clone'],
+            ...doAssign(
+                set($.expandButton.disabled).to($.disabled),
+                set($.collapseButton.disabled).to($.disabled),
+            )
+        },
+
+    ]),
+    defaultPropVals: {
+        disabled: false
+    }
+}
+
+/** @type {ElMakerConfig<EndUserProps>} */
+const features = {
+    assignFeatures: {
+        roundabout: {
+            customData: {
+                raConfig,
+            }
+        },
+        templateMaker: {}
+    }
+}
+
+export function render() {
+    return JSON.stringify(features, null, 4);
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const outputFile = __filename.replace(/\.mjs$/, '.json');
+writeFileSync(outputFile, render(), 'utf8');
+```
+
+</details>
+
+## Step 8
+
+Create a build instruction in package.json:
+
+```JSON
+"scripts": {
+...
+"build-el-maker": "node --watch el-maker.mjs",
+},
+```

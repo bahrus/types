@@ -105,7 +105,18 @@ console.log(render());
 
 Run `npm run build` to generate `defRef.json`.
 
-## Step 8: Create wireFeatures.js
+## Step 8:  build script
+
+Add the following to package.json:
+
+```JSON
+  "scripts": {
+    "build": "node defRef.mjs > defRef.json",
+   ...
+  },
+```
+
+## Step 9: Create wireFeatures.js
 
 This module resolves async fallback spawns and calls `assignFeatures` with the element-specific configuration:
 
@@ -144,7 +155,7 @@ export async function wireFeatures(ElementClass, cfg) {
 - `resolveAndAssignFeatures` resolves async fallback spawns before calling `assignFeatures`, ensuring `onAssigned` hooks (like `FaceUp.onAssigned` setting `static formAssociated = true`) run before `define()`
 - `callbackForwarding` and `customData` are per-element configuration that gets unioned with the author defaults from `supportedFeatures`
 
-## Step 9: Create def.js
+## Step 10: Create def.js
 
 The side-effect module that registers the custom element with its canonical tag name and default feature wiring:
 

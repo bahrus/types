@@ -8,6 +8,12 @@ This document provides step-by-step instructions for creating a **brand new** cu
 - Custom element features (composable behavior classes injected into elements) — see [NewCustomElementFeature.md](./NewCustomElementFeature.md)
 - Enhancements (declarative behaviors attached to existing elements via attributes) — see [NewEnhancementInstructions.md](./NewEnhancementInstructions.md)
 
+## Fork in the road -- HTML first vs JS First
+
+When developing such a web component, a fundamental question must be asked -- is the web component heavy on HTML / CSS, or is the web component a (usually non visual) component that is heavy on non-reusable JavaScript - JS First?
+
+If the decision is JS-first, follow the directions of [New JS First Custom Element](./NewJSFirstCustomElement.md).
+
 ## Reference Implementations
 
 - **[time-ticker](https://github.com/bahrus/time-ticker)** — A non-visual custom element that fires events periodically. Demonstrates extending `ElementMaker`, a custom feature (`TimeTicker`), roundabout wiring via `defRef.json`, and the `def.js` / `wireFeatures.js` pattern.

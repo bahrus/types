@@ -119,15 +119,16 @@ If the decision is mostly code free, HTML-first, follow the directions of [New H
 
 ## What ElementMaker Provides
 
-By extending `ElementMaker`, your element inherits:
+By extending `ElementMaker`, your element inherits these loaded on-demand features:
 
-| Feature | What it does |
-|---------|-------------|
-| `roundabout` | Reactive property wiring (compacts, merges, yields, actions) |
-| `truthSourcer` | Attribute → property synchronization via `withAttrs` |
-| `faceUp` | Form association (value, validation, reset, state restoration) |
-| `reflector` | CSS custom state reflection via `ElementInternals` |
-| `templateMaker` | HTML template instantiation and shadow DOM management |
+| Key/Feature          | Package     | Description | Source |
+|--------------|-------------|-------------|--------|
+| truthSourcer | [truth-sourcer](https://www.npmjs.com/package/truth-sourcer) | Attribute/property binding and truth-sourcing for custom elements | [GitHub](https://github.com/bahrus/truth-sourcer) |
+| reflector    | [be-reflective](https://www.npmjs.com/package/be-reflective) | CSS custom state reflection from computed styles | [GitHub](https://github.com/bahrus/be-reflective) |
+| faceUp       | [face-up](https://www.npmjs.com/package/face-up) | Form Associated Custom Element behavior via ElementInternals | [GitHub](https://github.com/bahrus/face-up) |
+| roundabout   | [roundabout-lib](https://www.npmjs.com/package/roundabout-lib) | Reactive view-model binding with template rendering and computed property orchestration | [GitHub](https://github.com/bahrus/roundabout-lib) |
+| templateMaker | [templ-maker](https://www.npmjs.com/package/templ-maker) | Extracts a DOM fragment into a reusable template and clones it per instance (works with cede scripts) | [GitHub](https://github.com/bahrus/templ-maker) |
+| fontMgr       | [font-face-feature](https://www.npmjs.com/package/font-face-feature) | Installs global fonts | [GitHub](https://github.com/bahrus/font-face-feature)
 
 Plus infrastructure:
 - `propagator` (EventTarget) for inter-feature communication

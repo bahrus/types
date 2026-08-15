@@ -53,6 +53,7 @@ export type Compacts<TProps = any, TActions = TProps, TEvents extends string = s
     | Partial<{[key in `when_${keyof TProps & string}_changes_dispatch`]: string}>
     | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_inc_${keyof TProps & string}_by`]: number}>
     | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_set_${keyof TProps & string}_to`]: any}>
+    | Partial<{[key in `on_${TEvents}_of_${keyof TProps & string}_assign`]: Record<string, any>}>
 ;
 
 export type Hitches<TProps = any, TActions = TProps> = 

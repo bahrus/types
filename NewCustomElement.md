@@ -108,13 +108,11 @@ When developing such a web component, a fundamental question must be asked -- is
 
 If the decision is JS-first, follow the directions of [New JS First Custom Element](./NewJSFirstCustomElement.md).
 
-If the decsion is mostly code free, HTML-first, follow the directions of [New HTML First Custom Element](./NewHTMLFirstCustomElement.md).
+If the decision is mostly code free, HTML-first, follow the directions of [New HTML First Custom Element](./NewHTMLFirstCustomElement.md).
 
 
 **Notes:**
 - Use exact versions, not ranges (no `^` or `~`)
-- `el-maker` brings in `roundabout-lib`, `truth-sourcer`, `face-up`, and `be-reflective` transitively
-- Only add direct dependencies for features unique to your element
 - Run `npm run update` after creating package.json to install dependencies
 
 

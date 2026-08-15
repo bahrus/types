@@ -8,23 +8,13 @@ This document provides step-by-step instructions for creating a **brand new** cu
 - Custom element features (composable behavior classes injected into elements) — see [NewCustomElementFeature.md](./NewCustomElementFeature.md)
 - Enhancements (declarative behaviors attached to existing elements via attributes) — see [NewEnhancementInstructions.md](./NewEnhancementInstructions.md)
 
-## Fork in the road -- HTML first vs JS First
-
-When developing such a web component, a fundamental question must be asked -- is the web component heavy on HTML / CSS, or is the web component a (usually non visual) component that is heavy on non-reusable JavaScript - JS First?
-
-If the decision is JS-first, follow the directions of [New JS First Custom Element](./NewJSFirstCustomElement.md).
-
-## Reference Implementations
-
-- **[time-ticker](https://github.com/bahrus/time-ticker)** — A non-visual custom element that fires events periodically. Demonstrates extending `ElementMaker`, a custom feature (`TimeTicker`), roundabout wiring via `defRef.json`, and the `def.js` / `wireFeatures.js` pattern.
-- **[scratch-box](https://github.com/bahrus/scratch-box)** — A visual, form-associated custom element with a declarative shadow DOM template and zero custom element JavaScript. Demonstrates `cede` script definition from a static `root.html` and JSON feature configuration.
-
 ## Prerequisites
 
 - Node.js installed
 - npm installed
 - `ncu` (npm-check-updates) installed globally: `npm install -g npm-check-updates`
 - Chrome 146+ for testing (scoped custom element registry support required)
+
 
 ## Step 1: Initialize the Project
 
@@ -58,18 +48,10 @@ If the decision is JS-first, follow the directions of [New JS First Custom Eleme
   },
   "dependencies": {
     "assign-gingerly": "0.0.48",
-    "el-maker": "0.0.0",
-    "imp-h": "0.0.5",
-    "mount-observer": "0.1.50"
+    "el-maker": "0.0.0"
   }
 }
 ```
-
-**Notes:**
-- Use exact versions, not ranges (no `^` or `~`)
-- `el-maker` brings in `roundabout-lib`, `truth-sourcer`, `face-up`, and `be-reflective` transitively
-- Only add direct dependencies for features unique to your element
-- Run `npm run update` after creating package.json to install dependencies
 
 ## Step 3: Create Type Definitions
 
@@ -101,166 +83,8 @@ export type T = AllProps;
 - `AllProps` — includes internal/computed state managed by roundabout
 - Export `T` as a convenience alias for use in `defRef.mjs` type annotations
 
-## Step 4: Create the Element Class, if the complexity is too much for a "code-free" solution.
 
-For visual web components that use declarative Shadow DOM, step 4 should be considered as a last resort, after exausting:
-
-1.  The power of assign-gingerly/assignFrom/RoundaboutLib configuration (JSON)
-2.  Defining a new reusable custom element feature to include with el-maker's package (Step 5).
-
-Create `[element-name]-element.js` (e.g., `my-element-element.js`):
-
-```javascript
-import { ElementMaker } from 'el-maker/ElementMaker.js';
-
-export class MyElementElement extends ElementMaker {
-    static supportedFeatures = {
-        ...ElementMaker.supportedFeatures,
-        myFeature: {},
-    };
-}
-```
-
-**Key patterns:**
-- Extends `ElementMaker` — inherits `propagator`, `#internals`, `attachInternals()`, and all shared features (`roundabout`, `truthSourcer`, `faceUp`, `reflector`, `templateMaker`)
-- Spreads `ElementMaker.supportedFeatures` to inherit the base feature slots
-- Only declares additional feature slots unique to this element
-- No need for `static formAssociated = true` — `FaceUp.onAssigned` sets it automatically
-- No constructor needed unless you have element-specific initialization
-
-## Step 5: Create the Element-Specific Feature (if any)
-
-If your element has unique behavior beyond what the inherited features provide, create a custom element feature following [NewCustomElementFeature.md](./NewCustomElementFeature.md).
-
-For example, `time-ticker` has a `TimeTicker.js` feature that provides precise drift-correcting ticking.
-
-## Step 6: Create defRef.mjs (Roundabout Configuration)
-
-Create `defRef.mjs` — this generates the JSON configuration that drives the roundabout reactive wiring:
-
-```javascript
-//@ts-check
-
-/** @import {RAConfig} from './types/roundabout/types' */
-/** @import {T} from './types/[project-name]/types' */
-/** @import {AttrPatterns} from './types/assign-gingerly/types' */
-
-/**
- * @type {{ [K in keyof T]: K }}
- */
-const props = {
-    myProp: 'myProp',
-    disabled: 'disabled',
-    // ... all properties that roundabout manages
-};
-
-/**
- * @type {RAConfig<T,T,T>}
- */
-export const raConfig = {
-    propagate: /** @type {Array<keyof T>} */ (Object.keys(props)),
-    compacts: {
-        // Reactive shorthand rules
-    },
-    merges: [
-        // Reactive assignment rules
-    ],
-    yields: {
-        // Derived property rules
-    }
-};
-
-/**
- * @type {AttrPatterns<T>}
- */
-const withAttrs = {
-    // Attribute-to-property mappings for truthSourcer
-};
-
-export const cef = {
-    features: {
-        roundabout: {
-            customData: {
-                raConfig
-            },
-            withAttrs
-        }
-    }
-};
-
-export function render() {
-    return JSON.stringify(cef, null, 4);
-}
-
-console.log(render());
-```
-
-**Key patterns:**
-- The `props` object provides type-safe property name references (keys must be in `T`, values must equal the key)
-- `raConfig` defines the reactive wiring: compacts (shorthand rules), merges (assignment rules), yields (derived values)
-- `withAttrs` maps HTML attributes to properties (used by `truthSourcer`)
-- The `render()` function outputs JSON for the build step
-
-Run `npm run build` to generate `defRef.json`.
-
-## Step 7: Create wireFeatures.js
-
-This module resolves async fallback spawns and calls `assignFeatures` with the element-specific configuration:
-
-```javascript
-import { MyFeature } from './MyFeature.js';
-import { resolveAndAssignFeatures } from 'assign-gingerly/resolveAndAssignFeatures.js';
-
-export async function wireFeatures(ElementClass, cfg) {
-    const { roundabout } = cfg.features;
-    const { customData, withAttrs } = roundabout;
-
-    await resolveAndAssignFeatures(ElementClass, {
-        myFeature: { spawn: MyFeature },
-        truthSourcer: {
-            callbackForwarding: ['connectedCallback', 'attributeChangedCallback'],
-        },
-        faceUp: {
-            customData: { integrateWithRoundabout: true },
-            callbackForwarding: [
-                'connectedCallback', 'disconnectedCallback',
-                'formDisabledCallback', 'formResetCallback', 'formStateRestoreCallback',
-            ],
-        },
-        roundabout: {
-            customData,
-            withAttrs,
-            callbackForwarding: ['connectedCallback'],
-        },
-    });
-}
-```
-
-**Key patterns:**
-- Only eagerly imports the feature(s) unique to this element
-- Inherited features (`truthSourcer`, `faceUp`, `roundabout`, `reflector`) use their async `fallbackSpawn` from `ElementMaker` — no explicit `spawn` needed
-- `resolveAndAssignFeatures` resolves async fallback spawns before calling `assignFeatures`, ensuring `onAssigned` hooks (like `FaceUp.onAssigned` setting `static formAssociated = true`) run before `define()`
-- `callbackForwarding` and `customData` are per-element configuration that gets unioned with the author defaults from `supportedFeatures`
-
-## Step 8: Create def.js
-
-The side-effect module that registers the custom element with its canonical tag name and default feature wiring:
-
-```javascript
-import { MyElementElement } from './my-element-element.js';
-import { wireFeatures } from './wireFeatures.js';
-import defRef from './defRef.json' with { type: 'json' };
-
-await wireFeatures(MyElementElement, defRef);
-customElements.define('my-element', MyElementElement);
-```
-
-**Key patterns:**
-- `def.js` = "default define" — centralizes all side effects
-- Imports the JSON config and passes it to `wireFeatures`
-- Consumers who want a different tag name, scoped registry, or DI overrides write their own version of this file
-
-## Step 9: Create imports.html
+## Step 4: Create imports.html
 
 ```html
 <script type=importmap>
@@ -268,11 +92,8 @@ customElements.define('my-element', MyElementElement);
         "imports": {
             "assign-gingerly/": "/node_modules/assign-gingerly/",
             "el-maker/": "/node_modules/el-maker/",
-            "face-up/": "/node_modules/face-up/",
-            "on-to-me/": "/node_modules/on-to-me/",
             "roundabout-lib/": "/node_modules/roundabout-lib/",
             "[project-name]/": "/",
-            "truth-sourcer/": "/node_modules/truth-sourcer/"
         }
     }
 </script>
@@ -281,6 +102,26 @@ customElements.define('my-element', MyElementElement);
 **Notes:**
 - Include all transitive dependencies that are loaded in the browser
 - The project itself maps to `/` for local development
+
+## Fork in the road -- HTML first vs JS First
+
+When developing such a web component, a fundamental question must be asked -- is the web component heavy on HTML / CSS, or is the web component a (usually non visual) component that is heavy on non-reusable JavaScript - JS First?
+
+If the decision is JS-first, follow the directions of [New JS First Custom Element](./NewJSFirstCustomElement.md).
+
+
+
+
+**Notes:**
+- Use exact versions, not ranges (no `^` or `~`)
+- `el-maker` brings in `roundabout-lib`, `truth-sourcer`, `face-up`, and `be-reflective` transitively
+- Only add direct dependencies for features unique to your element
+- Run `npm run update` after creating package.json to install dependencies
+
+
+
+
+
 
 ## Step 10: Set Up Auto-Build Hook
 

@@ -108,7 +108,7 @@ When developing such a web component, a fundamental question must be asked -- is
 
 If the decision is JS-first, follow the directions of [New JS First Custom Element](./NewJSFirstCustomElement.md).
 
-
+If the decsion is mostly code free, HTML-first, follow the directions of [New HTML First Custom Element](./NewHTMLFirstCustomElement.md).
 
 
 **Notes:**

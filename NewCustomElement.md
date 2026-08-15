@@ -117,7 +117,7 @@ If the decision is mostly code free, HTML-first, follow the directions of [New H
 
 
 
-## What ElementMaker Provides
+## What [ElementMaker](https://github.com/bahrus/el-maker) Provides
 
 By extending `ElementMaker`, your element inherits these loaded on-demand features:
 

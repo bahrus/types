@@ -60,7 +60,7 @@ Create `types/[project-name]/types.d.ts` with the element's property interface:
 /**
  * Properties specific to this custom element
  */
-export interface ElementProps {
+export interface EndUserProps {
     // Properties unique to this element
     myProp: string;
     disabled: boolean;
@@ -69,18 +69,21 @@ export interface ElementProps {
 /**
  * Full property set including internal state
  */
-export interface AllProps extends ElementProps {
+export interface AllProps extends EndUserProps {
     idx: number;
     item: any;
 }
 
-export type T = AllProps;
+export type AP = AllProps;
+
+export interface RunTimeProps extends AllProps, HTMLElement
+
 ```
 
 **Key points:**
-- `ElementProps` — the public API specific to this element
+- `EndUserProps` — the public API specific to this element
 - `AllProps` — includes internal/computed state managed by roundabout
-- Export `T` as a convenience alias for use in `defRef.mjs` type annotations
+- Export `AP` as a convenience alias 
 
 
 ## Step 4: Create imports.html

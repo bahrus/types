@@ -326,6 +326,41 @@ writeFileSync(outputFile, render(), 'utf8');
 
 </details>
 
+Some non obvious scenarios:
+
+### How can I perform an action when the escape key is pressed somewhere on the document?
+
+Answer:
+
+From the side-burger example.
+
+```JS
+const raConfig = {
+    ...
+    compacts: {
+        on_keydown_of_ownerDocument_assignFromEvent: {
+            [$.escapeKeyPressed.QMEq.Path]: [['?.key', 'Escape'], true, false]
+        }
+    },
+    merges: smoothOver([
+        {
+            ifKeyIn: ['expanded'],
+            ...doAssign(
+                ...
+                set($.escapeKeyPressed).to(false)
+            )
+        },
+        ...
+        {
+            ifAllOf: ['escapeKeyPressed'],
+            assign: {
+                expanded: false
+            }
+        }
+    ]),
+};
+```
+
 ## Step 8
 
 Run `node el-maker.mjs` (or `npm run build-el-maker` if your `package.json` includes a watch script) to regenerate `el-maker.json`.

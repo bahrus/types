@@ -361,6 +361,23 @@ const raConfig = {
 };
 ```
 
+## How can I set focus after a delay
+
+Work is underway to improve the DX, but for now:
+
+```JS
+{
+    delay:10, //milliseconds
+    ifAllOf: ['expanded'],
+    assign: {
+        '?.querySelector?.a?.focus|': null
+    }
+    // ...doAssign(
+    //     set($.querySelector('a').focus()).to({}),
+    // )
+},
+```
+
 ## Step 8
 
 Run `node el-maker.mjs` (or `npm run build-el-maker` if your `package.json` includes a watch script) to regenerate `el-maker.json`.

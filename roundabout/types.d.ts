@@ -161,6 +161,13 @@ export interface RAConfig<
     initialPropVals?: Partial<{[key in keyof TProps & string]: unknown}>,
 }
 
+// export interface RoundaboutFeatureConfig<
+//         TProps = unknown, TActions = TProps, ETProps = TProps, 
+//         TCustomData = unknown, TEvents extends string = string>{
+//             RAConfig: RAConfig<TProps, TActions, ETProps, TCustomData, TEvents>,
+            
+// } 
+
 export interface RoundaboutOptions<TProps = unknown, TActions = TProps, ETProps = TProps, EventTypes extends string = string> extends RAConfig<TProps, TActions, ETProps, unknown, EventTypes> {
     vm?: TProps & TActions & RoundaboutReady,
     //for enhanced elements, pass in the container, referenced via $0.

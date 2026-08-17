@@ -303,13 +303,25 @@ const raConfig = {
     }
 }
 
+// withAttrs configuration for parsing element attributes
+const withAttrs = {
+    base: 'user-counter',
+    count: '${base}-count',
+    _count: {
+        instanceOf: 'Number',
+        valIfNull: 0,
+    },
+    username: '${base}-username',
+};
+
 /** @type {ElMakerConfig<AP>} */
 const features = {
     assignFeatures: {
         roundabout: {
             customData: {
                 raConfig,
-            }
+            },
+            withAttrs
         },
         templateMaker: {}
     }
@@ -361,7 +373,7 @@ const raConfig = {
 };
 ```
 
-## How can I set focus after a delay
+## How can I set focus after a delay?
 
 Work is underway to improve the DX a bit, but for now:
 

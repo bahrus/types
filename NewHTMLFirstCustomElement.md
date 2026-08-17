@@ -363,18 +363,15 @@ const raConfig = {
 
 ## How can I set focus after a delay
 
-Work is underway to improve the DX, but for now:
+Work is underway to improve the DX a bit, but for now:
 
 ```JS
 {
     delay:10, //milliseconds
     ifAllOf: ['expanded'],
     assign: {
-        '?.querySelector?.a?.focus|': null
+        set($.querySelector('a').focus()).to({}),
     }
-    // ...doAssign(
-    //     set($.querySelector('a').focus()).to({}),
-    // )
 },
 ```
 

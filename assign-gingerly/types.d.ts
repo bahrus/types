@@ -268,6 +268,17 @@ export interface IAssignGingerlyOptions {
   aka?: Record<string, string>;
 
   /**
+   * Value substitutions for path segments.
+   * Each key names a placeholder; the value is a `?.`-delimited path resolved
+   * against the source (`from`) object. The resolved string value replaces any
+   * matching whole path segment in RHS path strings before path evaluation.
+   * 
+   * Substitution values must be strings and must not contain the `?.` sequence,
+   * otherwise an error is thrown.
+   */
+  substitutions?: Record<string, string>;
+
+  /**
    * Shorthand for binding method aliases from the source object.
    * Each entry maps an alias to a method name and is normalized into
    * the existing withMethods + aka behavior.
@@ -356,6 +367,16 @@ export interface AssignFromOptions {
 
   /** Alias mappings for path segments */
   aka?: Record<string, string>;
+
+  /**
+   * Value substitutions for path segments.
+   * Each key names a placeholder; the value is a `?.`-delimited path resolved
+   * against `from`. The resolved string value replaces any matching whole path
+   * segment in RHS path strings before path evaluation.
+   * 
+   * Substitution values must be strings and must not contain `?.`.
+   */
+  substitutions?: Record<string, string>;
 
   /** AbortSignal for cleanup */
   signal?: AbortSignal;

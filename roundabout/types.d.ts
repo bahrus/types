@@ -224,7 +224,14 @@ export interface WeakRefConfig<TProps = any> {
     /**
      * Properties to automatically wrap in WeakRef
      */
-    properties: Array<keyof TProps & string>;
+    properties?: Array<keyof TProps & string>;
+
+    /**
+     * Array-valued properties whose elements should be stored as WeakRefs.
+     * When accessed, the getter returns a new array with each WeakRef dereferenced.
+     * Collected elements appear as `undefined` in their original positions.
+     */
+    listProperties?: Array<keyof TProps & string>;
     
     /**
      * Logging behavior when deref returns null/undefined

@@ -7,6 +7,8 @@
 
 - **[plus-minus](https://github.com/bahrus/plus-minus)** -- Expand / Collapse component - More robust examples of dynamic DOM manipulation with the help of roundabout configuration.  Also demonstrates use of the DX libraries to get typing intellisense help.
 
+- **[side-burger](https://github.com/bahrus/side-burger)** -- Side Drawer component with menu.  
+
 ## Step 4
 
 Add the following additional dependencies in package.json:
@@ -379,13 +381,76 @@ Work is underway to improve the DX a bit, but for now:
 
 ```JS
 {
-    delay:10, //milliseconds
+    delay:100, //milliseconds
     ifAllOf: ['expanded'],
     assign: {
         set($.querySelector('a').focus()).to({}),
     }
 },
 ```
+
+## How can I set externally specified elements to inert?
+
+This is implemented with the [side-burger](https://github.com/bahrus/side-burger) custom element, to see the full context.
+
+Suppose we define a property on the custom element, "inertTarget" which allows the developer to specify css matches from the root document to set to inert when the sidebar is open.  
+
+```JS
+
+// kept separate because "smoothOver" destroys typechecking
+/** @type Merges<AP> */
+const merges = [
+    ...
+    {
+        ifAllOf: [props.clone, props.inertTarget, props.open],
+        ...doAssign(
+            set(props.inertTargetElements).to($.ownerDocument.querySelectorAll($.inertTarget)),
+            set($.inertTargetElements.Each.inert).to(true)
+        )
+    },
+    {
+        ifAllOf: [props.clone, props.inertTarget],
+        ifNoneOf: [props.open],
+        ...doAssign(
+            set($.inertTargetElements.Each.inert).to(false)
+        )
+    }
+];
+
+/** @type {AttrPatterns<AP>} */
+const withAttrs = {
+    ...
+    [props.inertTarget]: 'inert-target',
+    [`_${props.inertTarget}`]: {
+        mapsTo: props.inertTarget,
+    }
+}
+
+/**
+ * @type {RoundaboutOptions<AP, Actions, AP, 'click' | 'keydown'>}
+ */
+const raConfig = {
+    weakRef: {
+        ...
+        listProperties: [props.inertTargetElements],
+        ...
+    },
+    
+    assignOptions: {
+        akaMethods: {
+            ...
+            '🧺': m['🧺'], //querySelectorAll
+        },
+        substitutions: {
+            inertTarget: '?.inertTarget'
+        }
+    },
+    ...
+    merges: smoothOver(merges),
+    ...
+};
+```
+
 
 ## Step 8
 

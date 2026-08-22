@@ -113,12 +113,51 @@ export interface ParserContext<T = any> {
 }
 
 /**
+ * Tuple reference for custom element static method parsers
+ * [elementName, methodName]
+ */
+export type ParserTuple = [CustomElementName, CustomElementConstructorStaticMethodName];
+
+/**
+ * Class-based parser interface
+ * Classes registered as named parsers are instantiated per attribute parse
+ * and their parse method is called with the attribute value and context
+ */
+export interface AttrParser<T = any> {
+  parse(attrValue: string | null, context?: ParserContext<T>): any;
+}
+
+/**
+ * Constructor signature for class-based parsers
+ */
+export type AttrParserConstructor<T = any> = {
+  new (options?: any): AttrParser<T>;
+};
+
+/**
+ * Object form for referencing a registered named parser with constructor options
+ */
+export interface NamedParserRef {
+  name: string;
+  options?: any;
+}
+
+/**
  * Parser function signature
  * Can accept just the attribute value (simple form) or value + context (advanced form)
  */
 export type ParserFunction<T = any> = 
   | ((attrValue: string | null) => any)
   | ((attrValue: string | null, context?: ParserContext<T>) => any);
+
+/**
+ * Any valid parser specification for AttrConfig.parser
+ */
+export type ParserSpec<T = any> =
+  | ParserFunction<T>
+  | string
+  | ParserTuple
+  | NamedParserRef;
 
 export interface AttrConfig<T = unknown, TParserConfig = unknown> {
   /**
@@ -148,7 +187,9 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
    * - Function: Inline parser function (not JSON serializable)
    *   - Simple form: (attrValue: string | null) => any
    *   - Advanced form: (attrValue: string | null, context: ParserContext) => any
-   * - String: Named parser reference (JSON serializable) - looks up in scoped registry (if available) then global parser registry (e.g., 'timestamp', 'csv')
+   * - String: Named parser reference (JSON serializable) - looks up in scoped registry (if available) then global parser registry (e.g., 'timestamp', 'splitter')
+   * - Tuple: [CustomElementName, StaticMethodName] - looks up a static method on a custom element constructor
+   * - Object: { name: string; options?: any } - looks up a registered class parser and instantiates it with the given options
    * 
    * Parser functions can optionally accept a second parameter (ParserContext) which provides:
    * - attrConfig: The full AttrConfig object for this attribute
@@ -156,10 +197,7 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
    * - element: The element being enhanced
    * - attrName: The resolved attribute name
    */
-  parser?: 
-    | ParserFunction<T>
-    | string
-  ;
+  parser?: ParserSpec<T>;
 
   /**
    * configuration information needed by a custom parser to properly

@@ -224,7 +224,7 @@ Create `.vscode/settings.json`:
 }
 ```
 
-## Step 8: Set Up .kiro Directory
+## Step 8: Set Up .kiro Directory Only if kiro is implementing.
 
 Create `.kiro/steering/project-context.md` to reference the shared types documentation:
 
@@ -349,6 +349,8 @@ customElements.assignFeatures(MyElement, {
 ```
 
 The parsed attributes (`{ myProp: 'hello', count: 42 }`) are passed as `initVals` to the constructor.
+
+See [withAttrs](https://github.com/bahrus/assign-gingerly/blob/baseline/docs/withAttrs.md) for an in-depth discussion of all the various configuration options.
 
 ### Async Spawn (Lazy Loading)
 

@@ -17,10 +17,7 @@ export interface SwipeDismissProps {
     distanceThreshold: number;
     /** Velocity threshold in px/ms; a fast flick commits even under distanceThreshold. */
     velocityThreshold: number;
-    /** CSS selector for the drag handle. Defaults to the host element. */
-    handleSelector: string | null;
-    /** CSS selector for the panel that visually follows the drag. Defaults to the handle. */
-    panelSelector: string | null;
+
     /** Called on every pointermove with the current delta and fraction of the threshold. */
     onProgress: ((deltaPx: number, fraction: number) => void) | null;
     /** Called when the gesture crosses the commit threshold. */
@@ -35,6 +32,10 @@ export interface SwipeDismissProps {
 export interface AllProps extends SwipeDismissProps {
     /** WeakRef to the host custom element. */
     hostRef: WeakRef<Element>;
+        /** CSS selector for the drag handle. Defaults to the host element. */
+    handle: Element;
+    /** CSS selector for the panel that visually follows the drag. Defaults to the handle. */
+    panel: Element;
 }
 
 export type AP = AllProps;

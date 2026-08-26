@@ -24,6 +24,11 @@ export interface SwipeDismissProps {
     onCommit: (() => void) | null;
     /** Called when the gesture is released before the commit threshold. */
     onCancel: (() => void) | null;
+
+    /** Element used for dragging */
+    handle: Element;
+    /** Element used to open / close */
+    panel: Element;
 }
 
 /**
@@ -32,10 +37,7 @@ export interface SwipeDismissProps {
 export interface AllProps extends SwipeDismissProps {
     /** WeakRef to the host custom element. */
     hostRef: WeakRef<Element>;
-        /** CSS selector for the drag handle. Defaults to the host element. */
-    handle: Element;
-    /** CSS selector for the panel that visually follows the drag. Defaults to the handle. */
-    panel: Element;
+
 }
 
 export type AP = AllProps;

@@ -30,11 +30,19 @@ export class MyElementElement extends ElementMaker {
 
 ## Optional Step 6: Create the Element-Specific Feature (if any)
 
-If your element has unique behavior beyond what the inherited features provide, but the functionality is more than trivial in implementing, consider creating a custom element feature for that functionality, following [NewCustomElementFeature.md](./NewCustomElementFeature.md).
+Most element-specific behavior can and should live directly in the element class (see Step 5). Reserve the custom element feature pattern for behavior that is genuinely reusable across multiple custom element projects.
 
-For example, `time-ticker` has a `TimeTicker.js` feature that provides precise drift-correcting ticking.
+Consider creating a custom element feature **only** when:
 
-If the feature proves useful beyond that one component, it is probably a good idea to move that feature into the el-maker package.
+- The behavior is non-trivial to implement, **and**
+- There is a significant chance that other custom element libraries would want to reuse it, **and**
+- Extracting it into a separate module improves testability or dependency management without adding unnecessary indirection.
+
+If the behavior is unique to a single element — for example, rendering chips for a specific `<select multiple>` UI pattern — keep the logic in the element class instead. Follow [NewCustomElementFeature.md](./NewCustomElementFeature.md) when a separate feature is warranted.
+
+`time-ticker`, for example, defines a `TimeTicker.js` feature because precise drift-correcting ticking is a generally useful capability.
+
+If a feature proves useful beyond the element that first introduced it, consider moving it into the `el-maker` catalog or publishing it as a standalone package.
 
 ## Step 7: Create defRef.mjs (Roundabout Configuration)
 

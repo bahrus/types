@@ -21,3 +21,7 @@ export type AP = AllProps;
  * Runtime type for the custom element instance
  */
 export interface RunTimeProps extends AllProps, HTMLElement {}
+
+export interface Actions {
+    hydrate(self: AP): void;
+}

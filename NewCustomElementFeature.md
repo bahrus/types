@@ -71,10 +71,14 @@ A custom element feature is a class that:
 
 ## Step 3: Create Type Definitions
 
+**All types for the feature live in `types/[project-name]/types.d.ts` — nothing else.** Do not scatter `@typedef {Object} ...` blocks through the `.js` file. That includes the `customData` / injection-config shape, the `detail` payload of any event the feature dispatches, and every internal helper type. The `.js` file only ever *imports* these via `@import`; it never defines them. A reader (or the package that later adopts the feature) should be able to learn the whole type surface from the one `.d.ts`.
+
 Create `types/[project-name]/types.d.ts` with the feature structure:
 
 ```typescript
-import { SpawnContext } from "../assign-gingerly/types";
+import { SpawnContext, FeatureSpawnContext } from "../assign-gingerly/types";
+
+export { FeatureSpawnContext };
 
 /**
  * Configuration/properties that the feature exposes
@@ -96,9 +100,26 @@ export type AP = AllProps;
 export type PAP = Partial<AP>;
 
 /**
- * Context passed to the feature constructor
+ * The `customData` passed through the injection config — parsed by the
+ * constructor into initial state. Keep every configurable knob here.
  */
-export interface FeatureSpawnContext extends SpawnContext {
+export interface CustomData {
+    myProp?: string;
+    eventType?: string;
+}
+
+/**
+ * `detail` payload for any CustomEvent the feature dispatches on the host.
+ */
+export interface MyFeatureResolvedDetail {
+    // ...
+}
+```
+
+If a project's `types/assign-gingerly/types.d.ts` does not yet export `FeatureSpawnContext`, define it locally in this file instead (as `truth-sourcer` and `face-up` do):
+
+```typescript
+export interface FeatureSpawnContext {
     key: string;
     optIn: any;
     injection: any;
@@ -110,7 +131,9 @@ export interface FeatureSpawnContext extends SpawnContext {
 **Key points:**
 - `FeatureProps` — the public API of the feature
 - `AllProps` — includes internal state like a WeakRef to the host element
+- `CustomData` — the injection-config shape; the constructor reads `ctx.injection.customData` and narrows it to this type
 - The feature class does NOT need to extend any base class
+- The `.js` file imports all of the above with `/** @import {...} from './types/[project-name]/types' */` — it defines no types of its own
 
 ## Step 4: Create the Feature Class
 
@@ -150,7 +173,7 @@ export { MyFeature };
 - Constructor signature: `(hostElement, ctx, initVals)`
 - Store host as a `WeakRef` to avoid preventing garbage collection
 - Apply `initVals` via `Object.assign` in the constructor
-- Use `@ts-check` with JSDoc type imports from the `types/` folder
+- Use `@ts-check` with JSDoc type imports from the `types/` folder — all type definitions live in `types/[project-name]/types.d.ts`, never as inline `@typedef` blocks in the `.js`
 - No compiled TypeScript — ship raw `.js` files
 
 ## Step 5: Create imports.html
@@ -679,6 +702,7 @@ customElements.define('my-element', MyElement);
 
 - **Call `assignFeatures` before `customElements.define()`** — getters must be on the prototype before instances exist
 - **Use `@ts-check`** — catches type errors early in `.js` files
+- **Keep all types in `types/[project-name]/types.d.ts`** — including `customData` and event `detail` shapes; the `.js` only `@import`s them, it never declares `@typedef`s
 - **Store host as WeakRef** — prevents memory leaks
 - **Keep features focused** — one responsibility per feature class
 - **Use `validateShape`** — catches injection errors early in development

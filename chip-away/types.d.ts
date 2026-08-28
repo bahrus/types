@@ -12,6 +12,7 @@ export interface EndUserProps {
  * Full property set including internal state managed by the custom element
  */
 export interface AllProps extends EndUserProps {
+    splitFor: string[];
 }
 
 export type AP = AllProps;

@@ -103,6 +103,8 @@ export interface ParserOptions {
    * // With normalizeWhitespace: false -> "  First.   Second.  "
    */
   normalizeWhitespace?: boolean;
+
+  delimiter?: string;
 }
 
 /**

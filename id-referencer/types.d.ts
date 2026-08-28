@@ -5,17 +5,15 @@ export { FeatureSpawnContext };
 /**
  * Configuration for the `IdRefs` feature, supplied via the injection's
  * `customData`.
+ *
+ * Note: this local variant is handed its id list directly (via
+ * `idRefs.search(string[])`) rather than reading a host attribute, so there is
+ * no `searchFor` here — the host owns attribute → `string[]` parsing.
  */
 export interface IdRefsCustomData {
     /**
-     * Attribute names on the host to monitor and resolve as space-delimited id
-     * references. Defaults to `['for']`.
-     */
-    searchFor?: string[];
-
-    /**
-     * Event dispatched on the host whenever the resolved set for any monitored
-     * attribute changes. Defaults to `'id-referencer:resolved'`.
+     * Event dispatched on the host whenever a DOM-mutation-driven pass changes
+     * the resolved element set. Defaults to `'id-referencer:resolved'`.
      */
     eventType?: string;
 }
@@ -24,9 +22,7 @@ export interface IdRefsCustomData {
  * `detail` payload of the event named by {@link IdRefsCustomData.eventType}.
  */
 export interface IdRefsResolvedDetail {
-    /** The monitored attribute whose resolved set changed. */
-    attr: string;
-    /** The ordered id list parsed from that attribute. */
+    /** The ordered id list currently being resolved. */
     ids: string[];
     /** The resolved, still-connected elements, in id order. */
     elements: Element[];

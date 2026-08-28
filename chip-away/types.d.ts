@@ -18,9 +18,12 @@ export interface AllProps extends EndUserProps {
 export type AP = AllProps;
 
 /**
- * Runtime type for the custom element instance
+ * Runtime type for the custom element instance, including the lazily-spawned
+ * `idRefs` feature.
  */
-export interface RunTimeProps extends AllProps, HTMLElement {}
+export interface RunTimeProps extends AllProps, HTMLElement {
+    idRefs?: import("../../IdRefs.js").IdRefs;
+}
 
 export interface Actions {
     hydrate(self: AP): void;

@@ -1,3 +1,5 @@
+import {IIdRefs} from '../id-referencer/types.d.ts';
+
 /**
  * Public API properties for the chip-away custom element
  */
@@ -13,18 +15,22 @@ export interface EndUserProps {
  */
 export interface AllProps extends EndUserProps {
     splitFor: string[];
+    readonly isConnected: boolean;
 }
 
 export type AP = AllProps;
+
+
 
 /**
  * Runtime type for the custom element instance, including the lazily-spawned
  * `idRefs` feature.
  */
 export interface RunTimeProps extends AllProps, HTMLElement {
-    idRefs?: import("../../IdRefs.js").IdRefs;
+    idRefs: IIdRefs
 }
 
 export interface Actions {
     hydrate(self: AP): void;
+    temp(self: AP): void;
 }

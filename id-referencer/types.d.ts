@@ -7,8 +7,7 @@ export { FeatureSpawnContext };
  * `customData`.
  *
  * Note: this local variant is handed its id list directly (via
- * `idRefs.search(string[])`) rather than reading a host attribute, so there is
- * no `searchFor` here — the host owns attribute → `string[]` parsing.
+ * `idRefs.searchFor = string[]`) rather than reading a host attribute, so there is
  */
 export interface IdRefsCustomData {
     /**
@@ -26,4 +25,9 @@ export interface IdRefsResolvedDetail {
     ids: string[];
     /** The resolved, still-connected elements, in id order. */
     elements: Element[];
+}
+
+export interface IIdRefs {
+
+    searchFor: string[];
 }

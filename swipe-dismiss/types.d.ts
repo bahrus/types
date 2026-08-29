@@ -38,6 +38,20 @@ export interface AllProps extends SwipeDismissProps {
     /** WeakRef to the host custom element. */
     hostRef: WeakRef<Element>;
 
+    /** Live gesture progress, refreshed on every pointermove and on release. */
+    progressState: {
+        /** Always-positive drag magnitude along the axis, clamped to panel size. */
+        deltaPx: number;
+        /** `deltaPx` as a fraction of panel size (0–1). */
+        fraction: number;
+        /**
+         * `deltaPx` signed for a screen-space `translate`: negative for a
+         * left/up drawer, positive for right/down. Feed this straight into
+         * `translateX()` / `translateY()` so the panel follows the finger
+         * regardless of which edge it is docked to.
+         */
+        translatePx: number;
+    };
 }
 
 export type AP = AllProps;

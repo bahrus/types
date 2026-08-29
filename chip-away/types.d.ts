@@ -15,7 +15,6 @@ export interface EndUserProps {
  */
 export interface AllProps extends EndUserProps {
     splitFor: string[];
-    readonly isConnected: boolean;
 }
 
 export type AP = AllProps;

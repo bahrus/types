@@ -8,12 +8,26 @@ export interface EndUserProps {
      * Space-separated list of IDs for the select elements to mirror as chips
      */
     for: string;
+
+    /**
+     * When `true`, collapse each referenced `<select>` to a **single** chip
+     * whose label is a comma-delimited list of the selected option texts,
+     * instead of one chip per selected option. Its delete (✕) clears every
+     * selected option for that `<select>`.
+     *
+     * The boolean `join` attribute seeds the initial value (server-rendered
+     * config); after that, set the `join` property to change it at runtime — a
+     * `when_join_changes_call_hydrate` compact re-renders. Not a `sourceOfTruth`
+     * attribute, so the attribute is not kept in sync with the property.
+     */
+    join: boolean;
 }
 
 /**
  * Full property set including internal state managed by the custom element
  */
 export interface AllProps extends EndUserProps {
+    /** `for` split on whitespace into an id list. */
     splitFor: string[];
 }
 

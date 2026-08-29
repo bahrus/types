@@ -3,6 +3,7 @@ import {FontFaceFeatureConfig} from '../font-face-feature/types.js';
 import {CustomData as TSCD} from '../truth-sourcer/types.js';
 import {CustomData as FUCD} from '../face-up/types.js';
 import {AttrPatterns} from '../assign-gingerly/types.js';
+import {IdRefsCustomData} from '../id-referencer/types.js';
 
 export interface ElMakerConfig<AllProps = any, TActions = AllProps> {
     assignFeatures: {
@@ -30,6 +31,14 @@ export interface ElMakerConfig<AllProps = any, TActions = AllProps> {
         truthSourcer?: {
             spawn?: string,
             customData?: TSCD
+        },
+        idRefs?: {
+            spawn?: string,
+            customData?: IdRefsCustomData
+        },
+        focusTrap?: {
+            spawn?: string,
+            customData?: any
         }
     }
-} 
+}

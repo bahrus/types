@@ -30,4 +30,6 @@ export interface IdRefsResolvedDetail {
 export interface IIdRefs {
 
     searchFor: string[];
+
+    readonly elements: Element[];
 }

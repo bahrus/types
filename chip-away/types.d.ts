@@ -21,6 +21,17 @@ export interface EndUserProps {
      * attribute, so the attribute is not kept in sync with the property.
      */
     join: boolean;
+
+    /**
+     * When `true`, render chips for display only — no per-option delete (✕), no
+     * per-`<select>` "clear all", and no joined-chip delete. The referenced
+     * `<select>` elements are not otherwise touched.
+     *
+     * Same wiring as {@link join}: boolean `readonly` attribute seeds the
+     * initial value, the `readonly` property is authoritative afterward, and a
+     * `when_readonly_changes_call_hydrate` compact re-renders.
+     */
+    readonly: boolean;
 }
 
 /**

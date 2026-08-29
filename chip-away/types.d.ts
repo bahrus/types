@@ -32,6 +32,17 @@ export interface EndUserProps {
      * `when_readonly_changes_call_hydrate` compact re-renders.
      */
     readonly: boolean;
+
+    /**
+     * `join` only: once the number of selected options **exceeds** this, the
+     * single summary chip's label becomes `"<n> Selected"` instead of the
+     * comma-delimited list. Leave unset for no limit.
+     *
+     * Seeded from the numeric `max-join` attribute; the `maxJoin` property is
+     * authoritative afterward, and a `when_maxJoin_changes_call_hydrate` compact
+     * re-renders. See {@link join}.
+     */
+    maxJoin?: number;
 }
 
 /**

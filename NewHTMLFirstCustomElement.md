@@ -453,6 +453,10 @@ const raConfig = {
 
 [Please fully digest all the attribute parsing tha assign-gingerly provides before configuring the attributes.](https://github.com/bahrus/assign-gingerly/blob/baseline/docs/withAttrs.md) 
 
+### How can I display a number with local formatting
+
+By default, inferencing is 
+
 
 ## Step 8
 

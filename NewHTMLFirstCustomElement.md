@@ -7,7 +7,10 @@
 
 - **[plus-minus](https://github.com/bahrus/plus-minus)** -- Expand / Collapse component - More robust examples of dynamic DOM manipulation with the help of roundabout configuration.  Also demonstrates use of the DX libraries to get typing intellisense help.
 
-- **[side-burger](https://github.com/bahrus/side-burger)** -- Side Drawer component with menu.  
+- **[side-burger](https://github.com/bahrus/side-burger)** -- Side Drawer component with menu. Shows integration with many features, including swipe-dismiss, focus-trap-feature, others
+
+- **[up-down-counter](https://github.com/bahrus/up-down-counter)** -- Shows use of toLocaleString() formatting.
+
 
 ## Step 4
 

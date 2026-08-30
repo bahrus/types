@@ -453,10 +453,37 @@ const raConfig = {
 
 [Please fully digest all the attribute parsing tha assign-gingerly provides before configuring the attributes.](https://github.com/bahrus/assign-gingerly/blob/baseline/docs/withAttrs.md) 
 
-### How can I display a number with local formatting
+### How can I display a number with local formatting?
 
-By default, inferencing is 
+```JS
+import { akaMethods as m } from 'assign-gingerly/DX/emojis.js';
 
+...
+
+const raConfig = {
+    ...
+    assignOptions: {
+        akaMethods: {
+            ...
+            '🌐': m['🌐'],
+        },
+    },
+    merges: [
+        ...
+        {
+            ifKeyIn: ['count'],
+            assign: {
+                '?.countData?.textContent': '?.count?.toLocaleString',
+                value: '?.count',
+            },
+        },
+    ],
+    defaultPropVals: {
+        count: 30000,
+        name: '',
+    },
+};
+```
 
 ## Step 8
 

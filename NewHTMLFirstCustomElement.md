@@ -455,24 +455,46 @@ const raConfig = {
 
 ### How can I display a number with local formatting?
 
+**Goal:** the legacy `xtal-element` transform `"% count": "localize"` wrote
+`count.toLocaleString()` (e.g. `30000` → `"30,000"`) into the display element.
+Reproduce it declaratively by calling `toLocaleString` from inside the RHS path
+string of a `merge`.
+
+**How it works:** the `assign-gingerly` path evaluator normally *reads* each
+segment as a property. If a segment names a method that you listed in
+`withMethods`, it is *invoked* instead. When that method is the **last** segment,
+has **no `|` suffix**, and is **not followed by an argument segment**, it is
+called with zero arguments and its **return value becomes the resolved value**.
+So `'?.count?.toLocaleString'` resolves to `count.toLocaleString()` → `"30,000"`.
+
+> Contrast with the `|` suffix (e.g. `'?.deref|'`): that also calls the method
+> with no arguments but **discards** the return value — use `|` for side effects,
+> omit it when you want the result.
+
+**Wiring (in `el-maker.mjs`):**
+
 ```JS
 import { akaMethods as m } from 'assign-gingerly/DX/emojis.js';
 
-...
+// 1. Register toLocaleString as a callable method for the path evaluator.
+//    m['🌐'] is the DX alias for the string 'toLocaleString'.
+const withMethods = [m['🔍'], m['🌐']];
+
+const $ = (/** @type {typeof paths<RuntimeProps>} */ (/** @type {any} */(paths)))({ withMethods });
 
 const raConfig = {
-    ...
     assignOptions: {
         akaMethods: {
-            ...
-            '🌐': m['🌐'],
+            '🔍': m['🔍'],   // querySelector
+            '🌐': m['🌐'],   // toLocaleString
         },
     },
     merges: [
-        ...
         {
             ifKeyIn: ['count'],
             assign: {
+                // '?.count?.🌐' works too — the emoji is just an alias for the
+                // 'toLocaleString' segment. Both serialize to a plain string.
                 '?.countData?.textContent': '?.count?.toLocaleString',
                 value: '?.count',
             },
@@ -484,6 +506,13 @@ const raConfig = {
     },
 };
 ```
+
+**Passing a locale or options:** append the argument as the next segment, e.g.
+`'?.count?.toLocaleString?.en-US'` → `count.toLocaleString('en-US')`.
+
+**Serialization:** `render()` emits the segment as a literal string
+(`"?.count?.toLocaleString"`), so the generated `el-maker.json` stays fully
+JSON-serializable — no function is ever embedded.
 
 ## Step 8
 
@@ -500,7 +529,20 @@ Create a build instruction in package.json:
 
 ## Create the Demo Page
 
-For example:
+**Only the first instance of the custom element on the page carries the `imp-h`
+attribute and the `<script type=precede>`.** That first instance does the
+one-time global setup:
+
+- `imp-h="<name>/root.html"` imports the declarative shadow-DOM template once.
+- `<script type=precede data-extends=el-maker src="<name>/el-maker.json">`
+  registers the element (extends `ElementMaker`, applies the feature JSON) via
+  `customElements.define`.
+
+Once the element is defined, **every other instance is just the bare tag** —
+repeating `imp-h` or the `precede` script is unnecessary (and wasteful: it
+re-imports and re-registers). Subsequent instances upgrade automatically and
+reuse the same template and configuration; they can still set their own
+attributes.
 
 ```html
 <!DOCTYPE html>
@@ -519,9 +561,15 @@ For example:
 </head>
 <body>
     <be-hive></be-hive>
+
+    <!-- FIRST instance: imp-h + precede => imports the template and defines the element -->
     <plus-minus imp-h="plus-minus/root.html">
         <script type=precede data-extends=el-maker src="plus-minus/el-maker.json"></script>
     </plus-minus>
+
+    <!-- Every later instance is just the bare tag; attributes still work -->
+    <plus-minus></plus-minus>
+    <plus-minus expanded></plus-minus>
 
 </body>
 </html>

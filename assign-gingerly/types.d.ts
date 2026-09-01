@@ -360,6 +360,14 @@ export interface IAssignGingerlyOptions {
    * ]
    */
   enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
+
+  /**
+   * Handler implementations scoped to this call, forwarded to `assignFrom` when
+   * these options are reused by higher-level features (e.g. roundabout merges).
+   * Key: the `do` name referenced in handler configs. Value: a class
+   * constructor, an import path, or a `builtIns.*` alias string.
+   */
+  handlers?: Record<string, AssignFromHandlerConstructor | string>;
 }
 
 /**

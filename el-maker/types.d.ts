@@ -39,6 +39,13 @@ export interface ElMakerConfig<AllProps = any, TActions = AllProps> {
         focusTrap?: {
             spawn?: string,
             customData?: any
+        },
+        h2oTable?: {
+            spawn?: string,
+            customData?: {
+                /** `itemprop` names to scrape from each `[itemscope]` row, in order. */
+                itemprops: string[]
+            }
         }
     }
 }

@@ -34,11 +34,23 @@ export type DataRecord = Record<string, any>;
 export interface IH2OTable {
     /**
      * The host's light-DOM `[itemscope]` rows, projected onto plain objects
-     * using the configured {@link CustomData.itemprops}. Re-scraped from the DOM
-     * on every read — there is no caching, so it always reflects the current
-     * light DOM.
+     * using the configured {@link CustomData.itemprops} and then passed through
+     * {@link IH2OTable.massageData}. Re-scraped from the DOM on every read —
+     * there is no caching, so it always reflects the current light DOM.
      */
     readonly data: DataRecord[];
+
+    /**
+     * The configured `itemprop` names, in order.
+     */
+    readonly itemprops: string[];
+
+    /**
+     * Post-process hook, called by {@link IH2OTable.data} with the freshly
+     * scraped rows. The base class implements this as the identity function;
+     * subclasses override it to add computed columns, filter, sort, etc.
+     */
+    massageData(data: DataRecord[]): DataRecord[];
 }
 
 /**

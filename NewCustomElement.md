@@ -139,6 +139,18 @@ Plus infrastructure:
 - `attachInternals()` called in the constructor
 - Async `fallbackSpawn` for lazy-loading all feature implementations
 
+### Injecting a custom or package-local feature
+
+`assignFeatures` accepts a `spawn` per feature key — a class, an async loader, or
+an **import-path string**. A string `spawn` overrides the catalog `fallbackSpawn`
+and is dynamically `import()`ed through the page's import map, so `el-maker.json`
+stays pure JSON. Use it to add a feature that isn't in the catalog, or to swap in
+a package-local **subclass** of a catalog feature when the generic one needs
+element-specific logic. See
+[NewHTMLFirstCustomElement.md → "give a shared feature element-specific logic"](./NewHTMLFirstCustomElement.md#how-do-i-give-a-shared-feature-element-specific-logic-penciling-in)
+and the [css-charts](https://github.com/bahrus/css-charts) conversion for a
+worked example ("penciling in" `CSSChartsH2OTable extends H2OTable`).
+
 
 
 

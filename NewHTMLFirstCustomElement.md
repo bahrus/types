@@ -11,6 +11,8 @@
 
 - **[up-down-counter](https://github.com/bahrus/up-down-counter)** -- Shows use of toLocaleString() formatting.
 
+- **[css-charts](https://github.com/bahrus/css-charts)** -- Wrapper around [charts.css](https://chartscss.org/). Demonstrates: reflecting boolean props onto a child element as CSS classes with the multi-invoke (`=*`) operator (see [Step 7 → "toggle a CSS class from a boolean property"](#how-can-i-toggle-a-css-class-from-a-boolean-property)); list rendering with `manageTemplateList`; and **"penciling in"** a package-local feature subclass (`CSSChartsH2OTable extends H2OTable`) via a string `spawn` when a shared feature needs element-specific logic (see [Step 7 → "give a shared feature element-specific logic"](#how-do-i-give-a-shared-feature-element-specific-logic-penciling-in)). Its `Chats/Conversion.md` is a blow-by-blow log of the trans-render → assign-gingerly conversion.
+
 
 ## Step 4
 
@@ -516,6 +518,116 @@ const raConfig = {
 **Serialization:** `render()` emits the segment as a literal string
 (`"?.count?.toLocaleString"`), so the generated `el-maker.json` stays fully
 JSON-serializable — no function is ever embedded.
+
+### How can I toggle a CSS class from a boolean property?
+
+**Goal:** the legacy `trans-render` transform `{sa: '.show-primary-axis', o: 'showPrimaryAxis'}`
+means "add class `show-primary-axis` when `showPrimaryAxis` is truthy, remove it
+otherwise." Reproduce it with the assign-gingerly **multi-invoke** (`=*`)
+operator, which calls one `withMethods` method **once per argument-list** on the RHS.
+
+**How it works:** `'?.el?.classList?.toggle =*'` calls `el.classList.toggle(...)`
+once for each entry in the RHS array. Each entry is `[className, condition]`. The
+`!!` prefix coerces the condition to a real boolean, so a missing / falsy source
+*removes* the class instead of flipping it — the whole merge is idempotent.
+`toggle` must be listed in `withMethods`.
+
+**Wiring (in `el-maker.mjs`):**
+
+```JS
+const raConfig = {
+    assignOptions: {
+        withMethods: ['querySelector', 'toggle'],
+    },
+    merges: smoothOver([
+        {
+            // capture the child once…
+            ifAllOf: ['clone'],
+            ...doAssign(set($.tableEl).to($.clone.querySelector('table'))),
+        },
+        {
+            // …then (re)run the toggles when the ref appears or any input flips
+            ifAllOf: ['tableEl'],
+            ifKeyIn: ['tableEl', 'isBar', 'isColumn', 'showLabels', 'showPrimaryAxis'],
+            assign: {
+                '?.tableEl?.classList?.toggle =*': [
+                    ['bar',               '!!?.isBar'],
+                    ['column',            '!!?.isColumn'],
+                    ['show-labels',       '!!?.showLabels'],
+                    ['show-primary-axis', '!!?.showPrimaryAxis'],
+                ],
+            },
+        },
+    ]),
+};
+```
+
+There is no DX (`$` / `set`) token for `=*` yet — write the key and the
+`[class, '!!?.prop']` pairs as plain strings inside `assign`. `smoothOver` leaves
+them untouched and they serialize straight to JSON.
+
+See [multi-invoke.md](https://github.com/bahrus/assign-gingerly/blob/baseline/docs/multi-invoke.md)
+and [css-charts](https://github.com/bahrus/css-charts) (a 10-class example) for more.
+
+### How do I give a shared feature element-specific logic? ("penciling in")
+
+Sometimes a reusable el-maker feature does *most* of what you need but not the
+last mile. Example: the `h2o-table` feature scrapes a slotted `<table>` into
+`[{ key, value }, …]`, but [css-charts](https://github.com/bahrus/css-charts) also
+has to scale those values per `chart-type` (`Math.max`, cumulative sums) —
+genuinely imperative code that can't be expressed as a merge.
+
+Rather than fork the feature or drop back to a full custom-element class, **pencil
+in a subclass defined inside your package and inject it by string `spawn`:**
+
+1. `MyH2OTable.js` at your package root — override just the hook the base exposes:
+
+   ```JS
+   import { H2OTable } from 'h2o-table/H2OTable.js';   // the generic base
+
+   export default class MyH2OTable extends H2OTable {
+       massageData(rows) {
+           const { chartType } = /** @type {any} */ (this.hostElement);
+           /* …element-specific transform… */
+           return rows;
+       }
+   }
+   ```
+
+2. Point the feature at it in `el-maker.mjs`:
+
+   ```JS
+   const features = {
+       assignFeatures: {
+           roundabout: { customData: { raConfig }, withAttrs },
+           templateMaker: {},
+           h2oTable: {
+               spawn: 'my-element/MyH2OTable.js',   // resolved via the import map
+               customData: { itemprops: ['key', 'value'] },
+           },
+       },
+   };
+   ```
+
+Why it works:
+
+- `assignFeatures` uses `featureConfig.spawn` when present and only falls back to
+  the catalog `fallbackSpawn` otherwise — so your subclass wins.
+- A string `spawn` is dynamically `import()`ed through the page's import map
+  (`"my-element/": "/"`), and the module's `default` export (or first exported
+  class) is used. `el-maker.json` stays pure JSON — the string is all that's stored.
+- The base must expose the hook (`massageData()` here) and any state the subclass
+  needs as **public** getters — `#private` fields are invisible across the
+  subclass boundary.
+- Pull the feature's output into the reactive graph with a merge, gated on
+  whatever changes its inputs:
+  `{ ifKeyIn: ['slotChangeCount', 'chartType'], assign: { data: '?.h2oTable?.data' } }`.
+  The feature re-computes lazily on read; the merge is what makes roundabout
+  re-read it.
+
+This keeps the generic feature reusable while the element-specific bit lives where
+it belongs. Once the pattern proves out, that logic can be promoted into the
+feature itself (config-driven) or published as its own feature.
 
 ## Step 8
 

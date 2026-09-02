@@ -24,6 +24,8 @@ export declare class Infer<TValue = any, TDisplay = any> {
     get eventType(): string;
     /** The inferred value property name (e.g. 'value', 'checked', 'dateTime'). */
     get valueProperty(): string;
+    /** Effective language: nearest `lang`/`xml:lang` ancestor (across shadow hosts), then `<html lang>`, then `navigator.language`. */
+    get lang(): string | undefined;
     get defaultRemoteBindingPropName(): string;
     /**
      * EventTarget that emits an event named after the changed property.
@@ -40,6 +42,18 @@ export declare class Infer<TValue = any, TDisplay = any> {
  * schema.org itemtype hints honored, textContent verbatim).
  */
 export declare function coerceElementValue(element: Element, propName?: string): any;
+
+/**
+ * Serialize a JS value for assignment to a DOM value property: Date -> ISO string,
+ * plain object/array -> JSON string, DOM-typed props (checked/valueAsNumber/valueAsDate) pass through.
+ */
+export declare function serializeForProperty(propName: string, nv: any): any;
+
+/**
+ * Resolve the effective language for an element: nearest `lang`/`xml:lang` ancestor
+ * (crossing shadow-root hosts), then `<html lang>`, then `navigator.language`.
+ */
+export declare function resolveLang(element: Element): string | undefined;
 
 /**
  * Registry item for the Infer enhancement

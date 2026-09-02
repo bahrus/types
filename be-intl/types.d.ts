@@ -23,14 +23,17 @@ export interface EndUserProps {
     day?: string;
 
     /**
-     * BCP-47 locale tag. When not supplied explicitly it is derived from the
-     * enhanced element's `lang` attribute, falling back to the runtime default locale.
+     * BCP-47 locale tag. When not supplied explicitly it is the element's
+     * *effective* language (`inferencer.resolveLang`: nearest `lang`/`xml:lang`
+     * ancestor, crossing shadow-root hosts, then `<html lang>`, then
+     * `navigator.language`), falling back to the runtime default locale.
      */
     locale?: string;
 
     /**
-     * When true, re-derive `locale` whenever the enhanced element's `lang` attribute changes.
-     * Off by default (the legacy `observeAttr` behavior).
+     * When true, re-derive `locale` whenever the enhanced element's own `lang`
+     * attribute changes. Off by default (the legacy `observeAttr` behavior).
+     * Container-`lang` changes after mount are not observed.
      */
     observeLang?: boolean;
 }

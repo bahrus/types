@@ -15,13 +15,31 @@ export declare const display: symbol;
  */
 export declare class Infer<TValue = any, TDisplay = any> {
     get enhancedElement(): Element;
-    constructor(enhancedElement?: Element);
+    constructor(enhancedElement?: Element, propName?: string);
+    /** Live, type-coerced read of the element's inferred value property. */
     get value(): TValue | undefined;
     set value(nv: TValue);
     get display(): TDisplay | undefined;
     set display(nv: TDisplay);
     get eventType(): string;
+    /** The inferred value property name (e.g. 'value', 'checked', 'dateTime'). */
+    get valueProperty(): string;
+    get defaultRemoteBindingPropName(): string;
+    /**
+     * EventTarget that emits an event named after the changed property.
+     * Custom elements with a native propagator return that; otherwise an
+     * InferencedPropagator using best-effort change detection.
+     */
+    getPropagator(): Promise<EventTarget>;
+    setDisplay(vm: any): void;
 }
+
+/**
+ * Read the inferred value property off an element and coerce it to a natural
+ * JavaScript type (Date for <time>, number/boolean via JSON parse for <data>,
+ * schema.org itemtype hints honored, textContent verbatim).
+ */
+export declare function coerceElementValue(element: Element, propName?: string): any;
 
 /**
  * Registry item for the Infer enhancement

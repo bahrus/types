@@ -98,37 +98,32 @@ Update the package.json to use the modern architecture's dependencies and build 
    - Replace `[emoji]` with the emoji from your README.md title (e.g., `⿻` for be-clonable)
    - If there's no emoji in the README title, omit the `&& node [emoji].mjs > [emoji].json` part
 
-2. Update the `dependencies` section:
+2. Update the `dependencies` section to the modern set:
    ```json
    "dependencies": {
-     "be-hive": "0.1.9",
-     "mount-observer": "0.0.16",
-     "roundabout-lib": "0.0.2",
-     "nested-regex-groups": "0.0.1"
+     "be-hive": "*",
+     "mount-observer": "*",
+     "roundabout-lib": "*",
+     "nested-regex-groups": "*"
    }
    ```
-   
-   **IMPORTANT - Use Specific Versions:** Always use specific point versions (e.g., `"0.1.9"`) rather than version ranges (e.g., `"^0.1.9"` or `"~0.1.9"`). This ensures:
-   - Reproducible builds across environments
-   - No unexpected breaking changes from automatic updates
-   - Explicit control over when dependencies are updated
-   - Easier debugging when issues arise
-   
-   **Note:** Including `mount-observer` as a direct dependency ensures it's installed at the root `node_modules/` level, making it accessible via the import map and available for direct use in your code. The `nested-regex-groups` package is optional but recommended if your enhancement requires complex attribute parsing.
+   - Drop the legacy dependencies (`be-enhanced`, `trans-render`, etc.). Keep a legacy dependency **only** if a converted action still imports from it and the modern stack has no replacement (e.g. `trans-render/XV/set.js` for the Uniform Storage Path protocol) — note any such carry-over in your conversion notes.
+   - `mount-observer` is listed as a direct dependency so it lands at the root `node_modules/` level, accessible via the import map. `nested-regex-groups` is optional but recommended if your enhancement needs custom attribute parsing (Step 7a).
+   - The exact version strings do not matter here — the next step replaces them all with the latest published versions.
 
-3. **DO NOT modify the `devDependencies` section** - leave it as-is. The conversion only updates runtime dependencies, not development/testing dependencies.
-
-4. Verify the `update` script exists in the `scripts` section:
+3. **Upgrade everything to the latest version**, including `devDependencies`. Do not preserve the versions the legacy project pinned, and do not hand-pick versions from this document — the version numbers in these instructions are illustrative only and go stale. Verify the `update` script exists in `scripts`:
    ```json
    "update": "ncu -u && npm install"
    ```
-   This script uses npm-check-updates (ncu) to update all dependencies to their latest versions. If it's missing, add it.
+   If it's missing, add it. Then run:
+   ```
+   npm run update
+   ```
+   `npm run update` runs npm-check-updates (`ncu -u`), which rewrites **every** entry in both `dependencies` and `devDependencies` to the latest published version (as an exact point version, no `^`/`~` range), then installs. This is the single source of truth for dependency versions after conversion — `@playwright/test`, the SSI dev server, and every runtime package included.
 
-5. Run `npm run update` to fetch and install the latest versions of all dependencies
+**IMPORTANT:** You MUST run `npm run update` before proceeding — the subsequent steps require these packages to be installed. Use `npm run update` (not a bare `npm install`) so you get the latest versions.
 
-**IMPORTANT:** After updating package.json, you MUST run `npm run update` to install the new dependencies before proceeding with the conversion. The subsequent steps require these packages to be installed. Use `npm run update` (not `npm install`) to ensure you get the latest compatible versions.
-
-**Result:** Your package.json should now use the modern dependency set, and running the update script will ensure you have the latest compatible versions.
+**Result:** `package.json` uses the modern dependency set, and every dependency (runtime and dev) is at its latest published point version.
 
 ### Step 4: Update imports.html
 
@@ -278,7 +273,9 @@ Transform the legacy browser-based emc.js into a build-time emc.mjs configuratio
  */
 export const emc = {
     enhConfig: {
-        enhKey: '[EnhancementKey]',
+        // Keep the SAME key the legacy project used for `enhPropKey`
+        // (traditional camelCase JS property naming, e.g. 'beLiterate').
+        enhKey: '[enhPropKey]',
         spawn: '[project-name]/[project-name].js',
         withAttrs: {
             base: '[project-name]',
@@ -370,11 +367,11 @@ static config = {
 }
 ```
 
-Modern emc.mjs:
+Modern emc.mjs (note `enhKey` keeps the legacy `enhPropKey` value verbatim — `'beCommitted'`, not `'BeCommitted'`):
 ```javascript
 export const emc = {
     enhConfig: {
-        enhKey: 'BeCommitted',
+        enhKey: 'beCommitted',
         spawn: 'be-committed/be-committed.js',
         withAttrs: {
             base: 'be-committed',
@@ -491,7 +488,7 @@ Reference the built-in parser by name and pass your pattern configuration:
 ```javascript
 export const emc = {
     enhConfig: {
-        enhKey: 'DoInvoke',
+        enhKey: 'doInvoke',
         spawn: 'do-invoke/do-invoke.js',
         withAttrs: {
             base: 'do-invoke',
@@ -612,7 +609,7 @@ const parsePatterns = [
  */
 export const emc = {
     enhConfig: {
-        enhKey: 'DoInvoke',
+        enhKey: 'doInvoke',
         spawn: 'do-invoke/do-invoke.js',
         withAttrs: {
             base: 'do-invoke',
@@ -854,6 +851,7 @@ Transform the legacy enhancement class to use the modern architecture with round
 6. **Single library call**: Only roundabout is called - no separate assignGingerly import needed
 7. **No bootUp/export boilerplate**: Simply export the class, no await bootUp() needed
 8. **BAP → AP**: Replace all BAP type references with AP
+9. **Class name stays PascalCase**: The exported JS class keeps its `Be[ClassName]` / `Do[ClassName]` name. Only the *registration key* differs — `enhKey` in `emc.mjs` keeps the legacy `enhPropKey` (camelCase, e.g. `beLiterate`), because that is what consumers use to read the enhancement (`event.enh`, and traditional camelCase property access reads better).
 
 **Instructions:**
 

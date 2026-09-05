@@ -406,7 +406,7 @@ export interface AssignFromOptions {
   from: any;
 
   /** Protocol handlers (sync or async) */
-  protocols?: Record<string, (key: string) => any | Promise<any>>;
+  protocols?: ProtocolHandlers;
 
   /** Method names to call during path evaluation (append `|` to a path segment for a zero-argument call) */
   withMethods?: string[] | Set<string>;
@@ -481,6 +481,37 @@ export interface AssignFromOptions {
 }
 
 /**
+ * A protocol handler resolves the key portion of a protocol-prefixed value
+ * (the text between `://` and the first `?.`) to a value. May be sync or async.
+ */
+export type ProtocolHandler = (key: string) => any | Promise<any>;
+
+/**
+ * A synchronous-only protocol handler, as accepted by getValues / getValue /
+ * assignFrom. For handlers that may return a Promise, use ProtocolHandler.
+ */
+export type SyncProtocolHandler = (key: string) => any;
+
+/** Map of protocol name (the text before `://`) to a handler (sync or async). */
+export type ProtocolHandlers = Record<string, ProtocolHandler>;
+
+/** Map of protocol name to a synchronous handler. */
+export type SyncProtocolHandlers = Record<string, SyncProtocolHandler>;
+
+/**
+ * The outer grammar of a protocol-prefixed value string,
+ * `‹protocol›://‹key›?.‹path›`, as produced by `parseProtocolRef`.
+ */
+export interface ParsedProtocolRef {
+    /** Text before `://`; `''` when the value contains no `://`. */
+    protocol: string;
+    /** Text between `://` and the first `?.` (or the end of the string). */
+    key: string;
+    /** Text from the first `?.` onward (always starts with `?.`), or `null`. */
+    path: string | null;
+}
+
+/**
  * Options for synchronous value resolution (getValues / getValue).
  * Extends IAssignGingerlyOptions with synchronous protocol handlers.
  */
@@ -507,7 +538,7 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
    *     localStorage: (key) => JSON.parse(localStorage.getItem(key) || 'null')
    * }
    */
-  protocols?: Record<string, (key: string) => any>;
+  protocols?: SyncProtocolHandlers;
 }
 
 /**
@@ -530,7 +561,7 @@ export interface ResolveValuesOptions extends IAssignGingerlyOptions {
    * Protocol handlers for resolving protocol-prefixed values (e.g., 'globalThis://key').
    * Each handler receives the key portion and returns the resolved value (sync or async).
    */
-  protocols?: Record<string, (key: string) => any | Promise<any>>;
+  protocols?: ProtocolHandlers;
 }
 
 /**

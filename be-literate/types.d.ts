@@ -1,6 +1,6 @@
 /**
  * Uniform Storage Path string (e.g. "indexedDB://myDB/myFiles/{file.name}").
- * Inlined here (was imported from trans-render/XV/types) to keep this file standalone.
+ * Consumed by `fifteenth`'s `set`. Kept as a local alias so this file stays standalone.
  */
 export type USL = string;
 

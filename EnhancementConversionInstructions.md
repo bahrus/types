@@ -107,7 +107,7 @@ Update the package.json to use the modern architecture's dependencies and build 
      "nested-regex-groups": "*"
    }
    ```
-   - Drop the legacy dependencies (`be-enhanced`, `trans-render`, etc.). Keep a legacy dependency **only** if a converted action still imports from it and the modern stack has no replacement (e.g. `trans-render/XV/set.js` for the Uniform Storage Path protocol) — note any such carry-over in your conversion notes.
+   - Drop the legacy dependencies (`be-enhanced`, `trans-render`, etc.). There is a modern replacement for most legacy utilities — e.g. Uniform Storage Path writes move from `trans-render/XV/set.js` to [`fifteenth`](https://github.com/bahrus/fifteenth) (`fifteenth/set.js`, see Step 9). Keep a legacy dependency **only** if a converted action still imports from it and no replacement exists — and note any such carry-over in your conversion notes.
    - `mount-observer` is listed as a direct dependency so it lands at the root `node_modules/` level, accessible via the import map. `nested-regex-groups` is optional but recommended if your enhancement needs custom attribute parsing (Step 7a).
    - The exact version strings do not matter here — the next step replaces them all with the latest published versions.
 
@@ -969,6 +969,14 @@ export interface Actions{
 7. **Update utility imports**:
    - Replace `trans-render/lib/findAdjacentElement.js` with `be-hive/findAdjacentElement.js`
    - The be-hive package provides common utilities that were previously in trans-render
+   - **Uniform Storage Path (USL) writes** — if a legacy action wrote values to `indexedDB://…`, `localStorage://…`, etc. via `trans-render/XV/set.js`, use [`fifteenth`](https://github.com/bahrus/fifteenth) instead:
+     ```javascript
+     const { set } = await import('fifteenth/set.js');
+     await set('indexedDB://myDB/myStore/myKey', value);   // same (usl, val, ctx?) signature as XV/set
+     ```
+     - Add `"fifteenth"` to `dependencies` and a `"fifteenth/": "/node_modules/fifteenth/"` entry to the import map.
+     - `fifteenth` imports `parseProtocolRef` from `assign-gingerly@0.0.96`+. `roundabout-lib` / `mount-observer` may still pin an older `assign-gingerly` exactly, and the flat import map can only serve one copy — so also add `"assign-gingerly": "<the version fifteenth needs>"` to `dependencies` to hoist a single root copy. Verify the be-hive/mount-observer/roundabout read path still works against that version.
+     - **Behavior change to note in your conversion notes:** `fifteenth`'s `set` broadcasts `window.postMessage([usp])` (or `[usp, usl]` when the USL has a `?.` accessor chain) — a plain `Array` of path strings, *not* the `Set` (protocol + store-root + full-path) that `trans-render/XV` posted. Update any `message` listeners accordingly.
 
 **CRITICAL - Avoid Compact/Action Conflicts:**
 

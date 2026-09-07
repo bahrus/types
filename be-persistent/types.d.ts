@@ -8,6 +8,15 @@ export interface EndUserProps {
      * `parse-grouped-capture-statements` built-in parser.
      */
     persistenceRules: StatementsResult<PersistenceRule>;
+    /**
+     * Opt-in flag set by the boolean `be-persistent-nudge` / `💾-nudge`
+     * attribute.  When present, `hydrate` waits for every rule to finish its
+     * initial storage reconciliation and then calls `assign-gingerly`'s
+     * `nudge` on the enhanced element — decrementing its `disabled` counter so
+     * an element that was disabled only to block edits before its persisted
+     * value loaded becomes interactive.
+     */
+    nudge?: boolean;
 }
 
 export interface AllProps extends EndUserProps {

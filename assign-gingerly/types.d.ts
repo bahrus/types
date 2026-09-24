@@ -72,6 +72,8 @@ export interface EnhancementConfig<T = any, Obj = Element> extends EnhancementCo
    * Calls assignFeatures(spawn, features) automatically on registration.
    */
   features?: FeatureConfigsMap;
+
+  customData?: any;
     
 }
 

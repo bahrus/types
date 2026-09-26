@@ -1,6 +1,8 @@
 # Enhancement Conversion Instructions
 
 > **Scope:** This document applies to **enhancements** (declarative behaviors added to existing HTML elements via attributes using `be-hive` and `mount-observer`). It does NOT apply to custom elements. If you are creating a brand new enhancement (not converting a legacy one), see [NewEnhancementInstructions.md](./NewEnhancementInstructions.md) instead.
+>
+> **Also see:** [Important Enhancement Addendum](./ImportantEnhancementAddendum.md) for the additional steps needed to make a converted enhancement compatible with *programmatic* (attribute-free) attachment — `enh.set`/`enh.get()` instead of HTML attributes.
 
 ## Introduction
 

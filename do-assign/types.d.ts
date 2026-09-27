@@ -3,8 +3,10 @@ import { ElementEnhancementGateway, SpawnContext, AddEventListenerConfig } from 
 export interface EndUserProps{
     /**
      * Event-binding configuration(s), parsed from the JSON value of the
-     * do-assign (or 🪧) attribute.  A single config object, or an array of
-     * them.  See assign-gingerly's event-binding documentation for the shape.
+     * do-assign (or 🪧) attribute -- or set directly when attaching
+     * programmatically.  A single config object, or an array of them.  See
+     * assign-gingerly's event-binding documentation for the shape.
+     * Reassigning replaces the listeners from the previous value.
      */
     assignConfig: AddEventListenerConfig | AddEventListenerConfig[],
 
@@ -18,6 +20,7 @@ export interface EndUserProps{
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element & ElementEnhancementGateway;
+    initialized?: boolean;
     resolved?: boolean;
 }
 

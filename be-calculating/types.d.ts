@@ -8,19 +8,31 @@ export interface RemoteSpecifier {
 }
 
 export interface EndUserProps {
-    handler: string;
+    /**
+     * Name of a registered handler (e.g. '+', or one registered via 🧮.js),
+     * or, when attaching programmatically, the handler function itself.
+     */
+    handler: string | ((e: Event) => void);
     eventArg: string;
     js: string;
     format: string;
-    raw: boolean;
+    /**
+     * Attribute presence (any string) or true turns on raw mode.
+     */
+    raw: boolean | string;
+    /**
+     * ID references to calculate from -- space-separated (from the for / 🧮-for
+     * attribute), or an array when set programmatically.
+     */
+    forAttr: string | string[];
 }
 
 export interface AllProps extends EndUserProps {
     enhancedElement: Element;
+    initialized?: boolean;
     enhKey: string;
     enhElLocalName: string;
     categorized: boolean;
-    forAttr: string;
     forArgs: string[];
     handlerObj: EventListenerOrEventListenerObject | Function | undefined;
     defaultEventType: string;

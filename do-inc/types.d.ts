@@ -2,11 +2,24 @@ import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/type
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface EndUserProps{
+    /**
+     * Parsed from the do-inc / ➕ attribute.  Converted into `increments`.
+     */
     parsedStatements: StatementsResult<IncParameters>,
+    /**
+     * The rules hydrate acts on.  Set this directly when attaching the
+     * enhancement programmatically:  a property name, a single rule, or an
+     * array of either.  An empty array means a single rule with everything
+     * inferred.  Reassigning replaces the previous listeners.
+     */
+    increments: Increments,
 }
+
+export type Increments = string | IncParameters | Array<string | IncParameters>;
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element & ElementEnhancementGateway;
+    initialized?: boolean;
     resolved: boolean;
 }
 
@@ -17,6 +30,7 @@ export type PAP = Partial<AP>;
 export type ProPAP  = Promise<PAP>
 
 export interface Actions{
+    onParsedStatementsChange(self: AP): PAP;
     hydrate(self: AP & Actions): ProPAP;
     handleEvent(self: AP, event: Event, incParameters: IncParameters): void;
     init(self: AP, enhancedElement: Element, ctx: SpawnContext, initVals: PAP): Promise<void>;
@@ -48,9 +62,14 @@ export type EventName = string;
 // }
 
 export interface IncParameters {
+    /** Property to increment.  Defaults to the name attribute, else inferred. */
     prop?: string | null,
+    /** Attribute syntax for the amount (e.g. "`12`"). */
     byAmtS?: string,
+    /** The amount, as a number.  Takes precedence over byAmtS.  Defaults to 1. */
     byAmtN?: number,
+    /** id of a peer element to increment, instead of the host. */
     targetElementId?: string,
+    /** Event that triggers the increment.  Defaults to the inferred event. */
     localEventType?: string,
 }

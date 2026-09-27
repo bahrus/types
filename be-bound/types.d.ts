@@ -4,12 +4,21 @@ import { ElementEnhancementGateway, SpawnContext } from "../assign-gingerly/type
 import { StatementsResult } from "../nested-regex-groups/types";
 
 export interface EndUserProps{
+    /**
+     * Parsed from the be-bound / 🪢 attribute.  Converted into `bindings`.
+     */
     bindingRules: StatementsResult<BindingRule>;
+    /**
+     * The binding rules hydrate acts on.  Set this directly when attaching
+     * the enhancement programmatically.  An empty array means a single,
+     * fully inferred binding.
+     */
+    bindings: Array<Partial<BindingRule>>;
 }
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element & ElementEnhancementGateway;
-    //bindings: Array<Binding>,
+    initialized?: boolean,
     isParsed?: boolean,
     rawStatements?: Array<string>
 }
@@ -22,6 +31,7 @@ export interface BindingRule {
     localEvent?: string,
     remoteId?: string,
     remoteProp: string,
+    remoteEvent?: string,
     //remoteSpecifier?: Specifier,
 
 
@@ -50,8 +60,9 @@ export interface Actions{
     //noAttrs(self: AP): ProPAP;
     getBindings(self: AP): ProPAP;
     hydrate(self: AP): ProPAP;
+    onBindingRulesChange(self: AP): PAP;
     onRawStatements(self: AP): void;
-    reconcileValues(self: AP, rule: BindingRule, direction: Directions): void;
+    reconcileValues(self: AP, rule: Partial<BindingRule>, direction: Directions): void;
 }
 
 export type WithStatement = string;

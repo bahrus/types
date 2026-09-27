@@ -8,11 +8,14 @@ export interface EndUserProps{
     parsedStatements: StatementsResult<IncParameters>,
     /**
      * The rules hydrate acts on.  Set this directly when attaching the
-     * enhancement programmatically.  An empty array means a single rule with
-     * everything inferred.  Reassigning replaces the previous listeners.
+     * enhancement programmatically:  a property name, a single rule, or an
+     * array of either.  An empty array means a single rule with everything
+     * inferred.  Reassigning replaces the previous listeners.
      */
-    increments: Array<IncParameters>,
+    increments: Increments,
 }
+
+export type Increments = string | IncParameters | Array<string | IncParameters>;
 
 export interface AllProps extends EndUserProps{
     enhancedElement: Element & ElementEnhancementGateway;

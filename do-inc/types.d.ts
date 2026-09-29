@@ -70,6 +70,14 @@ export interface IncParameters {
     byAmtN?: number,
     /** id of a peer element to increment, instead of the host. */
     targetElementId?: string,
+    /**
+     * A peer element to increment, instead of the host -- the element itself,
+     * or a WeakRef to it.  Either way it is only ever held weakly:  an element
+     * is replaced by a WeakRef as soon as the enhancement sees it.  If the
+     * element is garbage collected, the increment becomes a no-op.  Takes
+     * precedence over targetElementId.
+     */
+    targetElement?: Element | WeakRef<Element>,
     /** Event that triggers the increment.  Defaults to the inferred event. */
     localEventType?: string,
 }

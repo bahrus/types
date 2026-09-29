@@ -29,6 +29,14 @@ export interface FlatInvokingParameters {
     hostOrPeerMethodName?: string,
     /** id of a peer element whose method to call, instead of the host's. */
     targetElementId?: string,
+    /**
+     * A peer element whose method to call, instead of the host's -- the
+     * element itself, or a WeakRef to it.  Either way it is only ever held
+     * weakly:  an element is replaced by a WeakRef as soon as the enhancement
+     * sees it.  If the element is garbage collected, the call becomes a no-op.
+     * Takes precedence over targetElementId.
+     */
+    targetElement?: Element | WeakRef<Element>,
     /** Event that triggers the call.  Defaults to the inferred event. */
     localEventType?: string,
 }
@@ -61,6 +69,8 @@ export interface InvokingParameters {
     targetSpecifier: {
         hostOrPeerMethodName: string,
         targetElementId?: string,
+        /** Peer element, held weakly.  Takes precedence over targetElementId. */
+        targetElement?: WeakRef<Element>,
     },
     //defaults to "click" if not specified (via the attribute); inferred otherwise
     localEventType?: string,

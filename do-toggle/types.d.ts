@@ -45,6 +45,8 @@ export interface TogglingParameters {
     targetSpecifier?: {
         /** id of a peer element to toggle. */
         targetElementId?: string;
+        /** Peer element to toggle, held weakly.  Takes precedence over targetElementId. */
+        targetElement?: WeakRef<Element>;
         /** Property to toggle on the peer.  Inferred if omitted. */
         targetProp?: string;
     };
@@ -61,6 +63,14 @@ export interface FlatTogglingParameters {
     prop?: string;
     /** id of a peer element to toggle, instead of the host. */
     targetElementId?: string;
+    /**
+     * A peer element to toggle, instead of the host -- the element itself, or
+     * a WeakRef to it.  Either way it is only ever held weakly:  an element is
+     * replaced by a WeakRef as soon as the enhancement sees it.  If the element
+     * is garbage collected, the toggle becomes a no-op.  Takes precedence over
+     * targetElementId.
+     */
+    targetElement?: Element | WeakRef<Element>;
     /** Event that triggers the toggle.  Defaults to the inferred event. */
     localEventType?: string;
 }

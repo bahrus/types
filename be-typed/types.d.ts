@@ -11,6 +11,7 @@ export interface AllProps extends EndUserProps{
     enhancedElement: Element;
     byob?: boolean;
     trigger: WeakRef<HTMLButtonElement>
+    initialized?: boolean;
 }
 
 export type AP = AllProps;

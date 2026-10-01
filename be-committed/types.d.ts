@@ -1,3 +1,5 @@
+import { SpawnContext } from "../assign-gingerly/types";
+
 export interface EndUserProps{
     to: string | undefined;
     nudge: boolean;
@@ -16,7 +18,7 @@ export type PAP = Partial<AP>;
 export type ProPAP = Promise<PAP>;
 
 export interface Actions{
-    
+
     hydrate(self: AP): ProPAP;
-    init(self: AP, enhancedElement: Element, initVals: PAP): Promise<void>
+    init(self: AP, enhancedElement: Element, ctx: SpawnContext, initVals: PAP): Promise<void>;
 }

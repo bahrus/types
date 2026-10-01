@@ -7,13 +7,22 @@ export interface SubmitOptions {
 }
 
 export interface EndUserProps{
-    baseLink: string,
+    /**
+     * The id of a link element whose href is the base URL -- or (programmatically)
+     * the link element itself, or a WeakRef to it.  An element is only ever held weakly.
+     */
+    baseLink: string | Element | WeakRef<Element>,
     baseURL: string,
     path: string,
     headers: HeadersInit | undefined,
     updateOn: 'input' | 'change' | 'submit',
     submitOptions: SubmitOptions,
-    headerFields: Array<string>
+    /**
+     * Selectors ("#myHeader", "%part-name") of inputs whose values become headers --
+     * or (programmatically) the input elements themselves, or WeakRefs to them.
+     * Elements are only ever held weakly.
+     */
+    headerFields: Array<string | Element | WeakRef<Element>>
 }
 
 type BeforeToken = string;
@@ -30,6 +39,7 @@ export interface AllProps extends EndUserProps{
     readonly resolvedBaseURL: true,
     readonly fetchOptions: RequestInit,
     readonly isFetchReady: boolean,
+    initialized?: boolean,
 }
 
 export type AP = AllProps;
@@ -41,6 +51,7 @@ export type ProPAP = Promise<PAP>;
 export interface Actions {
     init(self: AP, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
     resolveBaseLink(self: AP): PAP;
+    weakenHeaderFields(self: AP): PAP | undefined;
     specifyDefaultBaseURL(self: AP): PAP;
     hydrate(self: AP): ProPAP;
     updateAction(self: AP): ProPAP;

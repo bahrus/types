@@ -593,6 +593,28 @@ export declare class EnhancementRegistry extends EventTarget {
  */
 export type ItemscopeManager<T = any> = {
   new (element: HTMLElement, initVals?: Partial<T>): T;
+  /**
+   * Optional factory used by builtIns.itemscopeTree to create the element for a
+   * VM entry. Synchronous by contract. Returning anything other than an
+   * HTMLElement causes the entry to be skipped.
+   */
+  instantiate?(value: any, ctx: ItemscopeTreeContext): HTMLElement | null | undefined;
+}
+
+/**
+ * Context passed to a manager's static `instantiate` by builtIns.itemscopeTree.
+ */
+export interface ItemscopeTreeContext {
+  /** The element the new node will be appended to */
+  target: Element;
+  /** The VM key being instantiated */
+  key: string;
+  /** The full VM (options.from) */
+  from: any;
+  /** The assignFrom options */
+  options: AssignFromOptions;
+  /** The itemscope registry the manager was found in */
+  registry: ItemscopeRegistry;
 }
 
 /**
@@ -943,6 +965,14 @@ export interface ManageTemplateListConfig extends HandlerConfig {
     do: 'builtIns.manageTemplateList';
     resolve: ManageTemplateListResolvedParams;
     fromEachItem: FromEachItemConfig;
+}
+
+/**
+ * Configuration for the builtIns.itemscopeTree handler.
+ * Phase I takes no parameters — it iterates the top-level keys of options.from.
+ */
+export interface ItemscopeTreeConfig extends HandlerConfig {
+    do: 'builtIns.itemscopeTree';
 }
 
 /**

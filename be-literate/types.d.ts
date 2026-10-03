@@ -15,6 +15,7 @@ export interface AllProps extends EndUserProps {
     enhancedElement: HTMLInputElement;
     fileContents: Array<FileAndContents>;
     writtenTo: Array<USL>;
+    initialized?: boolean;
     resolved?: boolean;
     rejected?: boolean;
 }

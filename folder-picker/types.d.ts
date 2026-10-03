@@ -9,6 +9,7 @@ export interface AllProps extends EndUserProps{
     enhancedElement: Element;
     directoryHandle: FileSystemDirectoryHandle | undefined;
     resolved: boolean;
+    initialized?: boolean;
 }
 
 export type AP = AllProps;

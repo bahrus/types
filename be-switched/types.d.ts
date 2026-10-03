@@ -15,8 +15,11 @@ export interface ValueSpecifier {
     evtName?: string;
     /** Attribute name (source of truth) */
     attr?: string;
-    /** Constant value (backtick-delimited) */
-    constVal?: string;
+    /**
+     * Constant value (backtick-delimited in the attribute, so always a string
+     * there).  Programmatically, may be an actual number or boolean.
+     */
+    constVal?: any;
     /** Type casting */
     as?: 'number' | 'string' | 'boolean';
 }
@@ -48,7 +51,11 @@ export interface SingleValSwitch {
  */
 export interface NValueSwitch {
     dependencies: ValueSpecifier[];
-    registeredHandler?: string;
+    /**
+     * Name of a registered handler, or, when attaching programmatically, the
+     * handler itself.
+     */
+    registeredHandler?: string | AggHandler | EventListenerObject;
 }
 
 /**
@@ -67,10 +74,23 @@ export interface EndUserProps {
     transitional?: boolean;
     /** Delete content when invalid instead of hiding */
     minMem?: boolean;
+    /**
+     * Parsed from the attribute; set directly when attaching programmatically.
+     */
+    singleValSwitches?: SingleValSwitch[];
+    /**
+     * Parsed from the attribute; set directly when attaching programmatically.
+     */
+    twoValueSwitches?: TwoValueSwitch[];
+    /**
+     * Parsed from the attribute; set directly when attaching programmatically.
+     */
+    nValueSwitches?: NValueSwitch[];
 }
 
 export interface AllProps extends EndUserProps {
     enhancedElement: Element & ElementEnhancementGateway;
+    initialized?: boolean;
     /** Raw parsed statements from the DSL */
     parsedStatements: StatementsResult<ParsedStatements>;
     /** The JS expression for CSP-safe evaluation */
@@ -115,6 +135,7 @@ export type ProPAP = Promise<PAP>;
 export interface Actions {
     init(self: AP, enhancedElement: Element & ElementEnhancementGateway, ctx: SpawnContext, initVals: PAP): Promise<void>;
     hydrate(self: AP): ProPAP;
+    resolveWithoutStatements(self: AP): PAP;
     onTrue(self: AP): Promise<void>;
     onFalse(self: AP): Promise<void>;
     calcVal(self: AP): PAP;

@@ -6,6 +6,8 @@ This document provides step-by-step instructions for creating a **brand new** "b
 
 **Note:** This guide is specifically for **enhancements** (declarative behaviors added to existing HTML elements via attributes). It does NOT apply to custom elements. Enhancements use `be-hive` and `mount-observer` to attach behavior to elements without requiring custom element registration.
 
+**Also see:** [Important Enhancement Addendum](./ImportantEnhancementAddendum.md) for the additional steps needed to make your new enhancement compatible with *programmatic* (attribute-free) attachment — `enh.set`/`enh.get()` instead of HTML attributes. Worth doing from the start rather than retrofitting later.
+
 ## Reference Implementations
 
 - **[do-invoke](https://github.com/bahrus/do-invoke)** — Custom parser with nested paths and default values

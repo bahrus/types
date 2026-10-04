@@ -594,9 +594,15 @@ export declare class EnhancementRegistry extends EventTarget {
 export type ItemscopeManager<T = any> = {
   new (element: HTMLElement, initVals?: Partial<T>): T;
   /**
+   * Optional explicit itemscope name, used by builtIns.itemscopeTree's `map` in
+   * preference to the class's `.name` (which bundlers/minifiers may rename).
+   */
+  itemscope?: string;
+  /**
    * Optional factory used by builtIns.itemscopeTree to create the element for a
-   * VM entry. Synchronous by contract. Returning anything other than an
-   * HTMLElement causes the entry to be skipped.
+   * VM entry. Synchronous by contract. Receives the VM value as-is (any type,
+   * including undefined). Returning anything other than an HTMLElement causes
+   * the entry to be skipped.
    */
   instantiate?(value: any, ctx: ItemscopeTreeContext): HTMLElement | null | undefined;
 }
@@ -969,10 +975,18 @@ export interface ManageTemplateListConfig extends HandlerConfig {
 
 /**
  * Configuration for the builtIns.itemscopeTree handler.
- * Phase I takes no parameters — it iterates the top-level keys of options.from.
+ * Without `map`, it iterates the top-level keys of options.from and looks up
+ * `<PascalCasedKey>ISM` managers.
  */
 export interface ItemscopeTreeConfig extends HandlerConfig {
     do: 'builtIns.itemscopeTree';
+    /**
+     * Ordered VM key → manager. When present, only these keys are processed, in
+     * this order (VM keys aren't iterated). A class is auto-defined in the registry
+     * under `Class.itemscope ?? Class.name`; a string must name an already
+     * registered manager.
+     */
+    map?: Record<string, ItemscopeManager | string>;
 }
 
 /**

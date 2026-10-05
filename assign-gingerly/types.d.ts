@@ -605,6 +605,26 @@ export type ItemscopeManager<T = any> = {
    * the entry to be skipped.
    */
   instantiate?(value: any, ctx: ItemscopeTreeContext): HTMLElement | null | undefined;
+  /**
+   * Optional hook deciding how a value assigned to `element.ish` is applied.
+   * When present, the manager is constructed without initVals and every assigned
+   * value (any type, including the first) is passed here instead of being merged.
+   * Called synchronously; if it returns a thenable, later values wait for it to
+   * settle so they are applied in order.
+   */
+  onAssigned?(instance: T, value: any, ctx: IshAssignContext): void | PromiseLike<void>;
+}
+
+/**
+ * Context passed to a manager's static `onAssigned` when `element.ish` is set.
+ */
+export interface IshAssignContext {
+  /** The element whose `ish` was set */
+  element: HTMLElement;
+  /** Whether this is the value that constructed the instance */
+  initial: boolean;
+  /** The options in effect */
+  options: IAssignGingerlyOptions | undefined;
 }
 
 /**

@@ -1,14 +1,17 @@
 type tagName = string;
 
+type Pattern = Record<string, any>;
+
 type RegisteredItemScopeManagerName = string;
 
-type itemScopeManagerName = `$:{RegisteredItemScopeManagerName}`;
 
-type Attrs = Record<string, string>;
+//Phase TBD
+type itemScopeManagerName = `$:{RegisteredItemScopeManagerName}`;
 
 interface HElement {
     tag: tagName;
-    a: Attrs;
+    //a standards for assign from
+    a: Pattern;
     c: HElement[];
 }
 
@@ -19,6 +22,6 @@ type ElementSpecificationHeader =
 
 type ElementSpecification = 
     | ElementSpecificationHeader
-    | [ElementSpecificationHeader, Attrs]
-    | [ElementSpecificationHeader, Attrs, ElementSpecification[]]
+    | [ElementSpecificationHeader, Pattern]
+    | [ElementSpecificationHeader, Pattern, ElementSpecification[]]
 ;

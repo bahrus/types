@@ -418,6 +418,9 @@ export interface AssignFromOptions {
    */
   fromStack?: any[];
 
+  /** Named unary functions usable as RHS path segments (see Pipes) */
+  pipes?: Pipes;
+
   /** Protocol handlers (sync or async) */
   protocols?: ProtocolHandlers;
 
@@ -512,6 +515,14 @@ export type ProtocolHandlers = Record<string, ProtocolHandler>;
 export type SyncProtocolHandlers = Record<string, SyncProtocolHandler>;
 
 /**
+ * Named unary functions usable as RHS path segments: `'?.date?.parseDate?.longUtc'`
+ * calls `pipes.parseDate(date)`, then `pipes.longUtc(result)`. A pipe takes
+ * precedence over a property of the same name, and is never called with null/undefined
+ * (path navigation stops there first). Called with `this` undefined — pass bound functions.
+ */
+export type Pipes = Record<string, (value: any) => any>;
+
+/**
  * The outer grammar of a protocol-prefixed value string,
  * `‹protocol›://‹key›?.‹path›`, as produced by `parseProtocolRef`.
  */
@@ -537,6 +548,9 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
 
   /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
   fromStack?: any[];
+
+  /** Named unary functions usable as path segments (see Pipes) */
+  pipes?: Pipes;
 
   /**
    * Optional permission processor for guarding method calls during RHS resolution.
@@ -570,6 +584,9 @@ export interface ResolveValuesOptions extends IAssignGingerlyOptions {
 
   /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
   fromStack?: any[];
+
+  /** Named unary functions usable as path segments (see Pipes) */
+  pipes?: Pipes;
 
   /**
    * Optional permission processor for guarding method calls during RHS resolution.

@@ -407,6 +407,17 @@ export interface AssignFromOptions {
   /** Source object to resolve RHS path strings against */
   from: any;
 
+  /**
+   * Enclosing `from`s, outermost first (excluding the current `from`).
+   * `$root` resolves against `fromStack[0]` (or `from` when empty), `$parent`
+   * against `fromStack.at(-1)` (or undefined when empty).
+   *
+   * Nested call sites (builtIns.tree, builtIns.manageTemplateList) push the outer
+   * `from` when they switch to a nested value. Code that nests its own assignFrom
+   * calls can do the same: `{ from: inner, fromStack: [...(fromStack ?? []), from] }`.
+   */
+  fromStack?: any[];
+
   /** Protocol handlers (sync or async) */
   protocols?: ProtocolHandlers;
 
@@ -524,6 +535,9 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
    */
   root?: any;
 
+  /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
+  fromStack?: any[];
+
   /**
    * Optional permission processor for guarding method calls during RHS resolution.
    */
@@ -553,6 +567,9 @@ export interface ResolveValuesOptions extends IAssignGingerlyOptions {
    * This is used by assignFrom to resolve values relative to the target object.
    */
   root?: any;
+
+  /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
+  fromStack?: any[];
 
   /**
    * Optional permission processor for guarding method calls during RHS resolution.

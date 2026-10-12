@@ -1,4 +1,4 @@
-import type { HandlerConfig } from './types.js';
+import type { HandlerConfig, ItemscopeManager } from './types.js';
 
 export type tagName = string;
 
@@ -19,11 +19,26 @@ export type itemScopeManagerName = `$:${RegisteredItemScopeManagerName}`;
 
 export interface TBD{}
 
+/**
+ * Object header: a tag, plus (optionally) an itemscope manager attached to the element.
+ * The manager is structure: it's attached once, and a different manager rebuilds the element.
+ * The element's own pattern and its children's patterns resolve against the manager
+ * instance (`el.ish`) rather than the raw value, so computed values are just getters.
+ */
+export interface ElementHeader {
+    tag: tagName;
+    /**
+     * A registered manager name (JSON-friendly), or a class — auto-registered under
+     * `Class.is ?? Class.itemscope ?? Class.name`. No `itemscope` attribute is set.
+     */
+    ish?: RegisteredItemScopeManagerName | ItemscopeManager;
+}
+
 export type ElementSpecificationHeader =
     | tagName
+    | ElementHeader
     | itemScopeManagerName // Phase TBD
     | {new(el: Element, ctx: any): TBD} // Phase TBD
-    //| { tag: tagName | itemScopeManagerName | {new(el: Element, ctx: any): TBD}, a: Pattern, c } // Phase TBD
 
 /**
  * One element: a header alone, or a tuple of header, pattern and (static) children.

@@ -626,12 +626,20 @@ export declare class EnhancementRegistry extends EventTarget {
  * Constructor signature for ItemScope Manager classes
  */
 export type ItemscopeManager<T = any> = {
-  new (element: HTMLElement, initVals?: Partial<T>): T;
+  /**
+   * `ctx` is present when the manager is attached by builtIns.tree (it carries `rebind`).
+   */
+  new (element: HTMLElement, initVals?: Partial<T>, ctx?: IshManagerContext): T;
   /**
    * Optional explicit itemscope name, used by builtIns.itemscopeTree's `map` in
    * preference to the class's `.name` (which bundlers/minifiers may rename).
    */
   itemscope?: string;
+  /**
+   * Optional explicit registration name, used by builtIns.tree for class headers
+   * (`{ tag, ish: Class }`) in preference to `itemscope` and `.name`.
+   */
+  is?: string;
   /**
    * Optional factory used by builtIns.itemscopeTree to create the element for a
    * VM entry. Synchronous by contract. Receives the VM value as-is (any type,
@@ -659,6 +667,31 @@ export interface IshAssignContext {
   initial: boolean;
   /** The options in effect */
   options: IAssignGingerlyOptions | undefined;
+  /** Present when attached by builtIns.tree: re-applies the element's subtree (see IshManagerContext) */
+  rebind?: () => void;
+}
+
+/**
+ * Context given to a manager attached by builtIns.tree: passed as the constructor's
+ * third argument, and merged into `onAssigned`'s context.
+ */
+export interface IshManagerContext {
+  /**
+   * Re-apply the element's own pattern and its children's patterns against the
+   * manager instance. Call it after changing the manager's state outside a tree
+   * rerun (e.g. from a setter). Tree calls it itself after an async `onAssigned` settles.
+   */
+  rebind(): void;
+}
+
+/**
+ * Optional extension to defineIshCore, used by builtIns.tree.
+ */
+export interface IshExtension {
+  /** Passed to the manager's constructor (third argument) and merged into `onAssigned`'s context */
+  ctx?: IshManagerContext;
+  /** Called after an async `onAssigned` (and any values queued behind it) has settled */
+  onSettled?: () => void;
 }
 
 /**

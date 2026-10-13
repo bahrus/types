@@ -41,13 +41,30 @@ export type ElementSpecificationHeader =
     | {new(el: Element, ctx: any): TBD} // Phase TBD
 
 /**
- * One element: a header alone, or a tuple of header, pattern and (static) children.
- * Children resolve their patterns against the same VM value as their parent.
+ * A repeat, in place of static children: the element's content is `each`, stamped once
+ * per item of the array at `of`. Inside `each`, `?.` is the item and `$parent` is the
+ * object holding the array.
+ */
+export interface RepeatSpecification {
+    /** The specification stamped once per item */
+    each: ElementSpecification;
+    /** Path to the array (any iterable), relative to the element's value. Default `'?.'`: the value itself */
+    of?: string;
+    /** Path into each item identifying it across calls (e.g. `'?.id'`, or `'?.'` for primitives). Default: the index */
+    key?: string;
+    /** Rendered instead of the items when the array is empty or missing */
+    empty?: ElementSpecification;
+}
+
+/**
+ * One element: a header alone, or a tuple of header, pattern, and either static
+ * children or a repeat. Static children resolve their patterns against the same
+ * value as their parent.
  */
 export type ElementSpecification =
     | ElementSpecificationHeader
     | [ElementSpecificationHeader, Pattern]
-    | [ElementSpecificationHeader, Pattern, ElementSpecification[]]
+    | [ElementSpecificationHeader, Pattern, ElementSpecification[] | RepeatSpecification]
 ;
 
 /**

@@ -5,6 +5,12 @@ export type tagName = string;
 /** An assignFrom pattern, applied to the created element with `from` set to the key's VM value */
 export type Pattern = Record<string, any>;
 
+/**
+ * The pattern slot: a pattern object, or a string as shorthand for `{ textContent: string }`
+ * (a literal, or a `?.` path / reference that's resolved).
+ */
+export type PatternOrText = Pattern | string;
+
 export type RegisteredItemScopeManagerName = string;
 
 //Phase TBD
@@ -63,8 +69,8 @@ export interface RepeatSpecification {
  */
 export type ElementSpecification =
     | ElementSpecificationHeader
-    | [ElementSpecificationHeader, Pattern]
-    | [ElementSpecificationHeader, Pattern, ElementSpecification[] | RepeatSpecification]
+    | [ElementSpecificationHeader, PatternOrText]
+    | [ElementSpecificationHeader, PatternOrText, ElementSpecification[] | RepeatSpecification]
 ;
 
 /**
@@ -89,4 +95,9 @@ export interface TreeConfig extends HandlerConfig {
      * such keys are skipped, and an existing element is removed).
      */
     keepNullish?: boolean;
+    /**
+     * Aliases for this tree's patterns, merged over `options.aka` (e.g. `{ _: 'textContent' }`).
+     * Like `options.aka`, they apply to LHS keys and to RHS path segments.
+     */
+    aka?: Record<string, string>;
 }

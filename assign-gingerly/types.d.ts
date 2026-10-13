@@ -631,22 +631,11 @@ export type ItemscopeManager<T = any> = {
    */
   new (element: HTMLElement, initVals?: Partial<T>, ctx?: IshManagerContext): T;
   /**
-   * Optional explicit itemscope name, used by builtIns.itemscopeTree's `map` in
-   * preference to the class's `.name` (which bundlers/minifiers may rename).
-   */
-  itemscope?: string;
-  /**
    * Optional explicit registration name, used by builtIns.tree for class headers
-   * (`{ tag, ish: Class }`) in preference to `itemscope` and `.name`.
+   * (`{ tag, ish: Class }`) in preference to the class's `.name` (which
+   * bundlers/minifiers may rename).
    */
   is?: string;
-  /**
-   * Optional factory used by builtIns.itemscopeTree to create the element for a
-   * VM entry. Synchronous by contract. Receives the VM value as-is (any type,
-   * including undefined). Returning anything other than an HTMLElement causes
-   * the entry to be skipped.
-   */
-  instantiate?(value: any, ctx: ItemscopeTreeContext): HTMLElement | null | undefined;
   /**
    * Optional hook deciding how a value assigned to `element.ish` is applied.
    * When present, the manager is constructed without initVals and every assigned
@@ -692,22 +681,6 @@ export interface IshExtension {
   ctx?: IshManagerContext;
   /** Called after an async `onAssigned` (and any values queued behind it) has settled */
   onSettled?: () => void;
-}
-
-/**
- * Context passed to a manager's static `instantiate` by builtIns.itemscopeTree.
- */
-export interface ItemscopeTreeContext {
-  /** The element the new node will be appended to */
-  target: Element;
-  /** The VM key being instantiated */
-  key: string;
-  /** The full VM (options.from) */
-  from: any;
-  /** The assignFrom options */
-  options: AssignFromOptions;
-  /** The itemscope registry the manager was found in */
-  registry: ItemscopeRegistry;
 }
 
 /**
@@ -1060,21 +1033,6 @@ export interface ManageTemplateListConfig extends HandlerConfig {
     fromEachItem: FromEachItemConfig;
 }
 
-/**
- * Configuration for the builtIns.itemscopeTree handler.
- * Without `map`, it iterates the top-level keys of options.from and looks up
- * `<PascalCasedKey>ISM` managers.
- */
-export interface ItemscopeTreeConfig extends HandlerConfig {
-    do: 'builtIns.itemscopeTree';
-    /**
-     * Ordered VM key → manager. When present, only these keys are processed, in
-     * this order (VM keys aren't iterated). A class is auto-defined in the registry
-     * under `Class.itemscope ?? Class.name`; a string must name an already
-     * registered manager.
-     */
-    map?: Record<string, ItemscopeManager | string>;
-}
 
 /**
  * Resolved parameters received by ManageTemplateListHandler.assign().

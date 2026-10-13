@@ -29,7 +29,7 @@ export interface ElementHeader {
     tag: tagName;
     /**
      * A registered manager name (JSON-friendly), or a class — auto-registered under
-     * `Class.is ?? Class.itemscope ?? Class.name`. No `itemscope` attribute is set.
+     * `Class.is ?? Class.name`. No `itemscope` attribute is set.
      */
     ish?: RegisteredItemScopeManagerName | ItemscopeManager;
 }

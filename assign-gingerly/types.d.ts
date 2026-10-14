@@ -1102,7 +1102,12 @@ export interface DispatchEventConfig{
 
 
 export interface AddEventListenerConfig extends AssignDispatchVector  {
-  on: string, 
+  on: string,
+  /**
+   * Name of a method on the host (`options.from`) to call with the event, before the
+   * assignment vectors run — e.g. `{ on: 'click', call: 'increaseHeightByOne' }`.
+   */
+  call?: string,
   get?: {
       abortController?: string | AbortController,
       

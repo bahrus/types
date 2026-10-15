@@ -683,6 +683,16 @@ export interface SyncOpContext {
    * ops that compute a value (e.g. `join`) ignore it and return the value to assign.
    */
   lhsTarget: any;
+  /** The object holding the LHS path's last segment, and that segment (e.g. an element and `'textContent'`) */
+  lhsParent?: any;
+  lhsKey?: string;
+  /**
+   * The op's arguments *before* resolution (same shape as the resolved args), so an op can
+   * tell a resolved reference (`'?.name'`) from a literal string with the same text.
+   */
+  rawArgs?: any;
+  /** Protocol handlers in effect, for recognizing protocol references in rawArgs */
+  protocols?: SyncProtocolHandlers;
 }
 
 /**

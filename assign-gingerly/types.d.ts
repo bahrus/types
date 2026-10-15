@@ -695,6 +695,34 @@ export interface SyncOpContext {
   protocols?: SyncProtocolHandlers;
 }
 
+/** A `microJoin` item rendered as an element: from a segment (with `prop`) or a reference (without). */
+export interface MicroJoinElementItem {
+  prop?: string;
+  val: any;
+  text?: any;
+}
+
+/** A `microJoin` item: text, or an element item. */
+export type MicroJoinItem = string | MicroJoinElementItem;
+
+/** What a `microJoin` element item renders as. */
+export interface MicroJoinShape {
+  tag: 'time' | 'data' | 'span';
+  attr?: 'datetime' | 'value';
+  attrValue?: string;
+  text: string;
+}
+
+/** `microJoin`'s rendering plan for one set of resolved args (see planMicroJoin). */
+export interface MicroJoinPlan {
+  /** Text and element items, adjacent text merged and empty text dropped */
+  items: MicroJoinItem[];
+  /** Each element item's shape (undefined for text items) */
+  shapes: (MicroJoinShape | undefined)[];
+  /** Whether every item was present: nothing nullish, no optional group dropped */
+  complete: boolean;
+}
+
 /**
  * Optional extension to defineIshCore, used by builtIns.tree.
  */

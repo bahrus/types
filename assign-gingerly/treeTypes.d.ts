@@ -1,4 +1,4 @@
-import type { HandlerConfig, ItemscopeManager } from './types.js';
+import type { GetValuesOptions, HandlerConfig, ItemscopeManager } from './types.js';
 
 export type tagName = string;
 
@@ -72,6 +72,90 @@ export type ElementSpecification =
     | [ElementSpecificationHeader, PatternOrText]
     | [ElementSpecificationHeader, PatternOrText, ElementSpecification[] | RepeatSpecification]
 ;
+
+/** A manager reference from an object header: a registered name or a class. */
+export type ManagerRef = RegisteredItemScopeManagerName | ItemscopeManager;
+
+/** An element specification, normalized (see handlers/treeSpec.ts). */
+export type NormalizedSpec = [
+    header: string | ElementHeader,
+    tag: string,
+    ish: ManagerRef | undefined,
+    pattern: Pattern | undefined,
+    children: ElementSpecification[],
+    repeat: RepeatSpecification | undefined,
+];
+
+// ── compileTree (see handlers/compileTree.ts) ───────────────────────────────
+
+/**
+ * An element of a compiled template, as pure data: its tag, baked attributes, and baked
+ * content (leading text, spec children, or microJoin text and element shells).
+ */
+export interface TemplateElement {
+    tag: string;
+    /** Baked attributes, in application order */
+    attrs: [name: string, value: string][];
+    content: (TemplateElement | string)[];
+}
+
+/** A repeat in a compiled template: its specification and the ids of its item templates. */
+export interface CompiledRepeat {
+    spec: RepeatSpecification;
+    /** Template id for `each` */
+    each: string;
+    /** Template id for `empty`, if any */
+    empty?: string;
+}
+
+/**
+ * One spec node of a compiled template, nested like the spec. A clone's elements match
+ * these nodes in order: a node's `children` are its element's element children (inside
+ * `.content` for a `template`).
+ */
+export interface CompiledNode {
+    /** The specification this node was compiled from */
+    spec: ElementSpecification;
+    tag: string;
+    ish?: ManagerRef;
+    /** The node's whole pattern, as normalized */
+    pattern?: Pattern;
+    /** The keys still to apply per instance (undefined when everything was baked) */
+    dynamic?: Pattern;
+    children: CompiledNode[];
+    repeat?: CompiledRepeat;
+}
+
+/** One flat template: its element, the node tree to bind, and a structural signature. */
+export interface CompiledTemplate {
+    id: string;
+    element: TemplateElement;
+    node: CompiledNode;
+    /** A hash of the template's markup and node shape, for validating cached or server-rendered copies */
+    signature: string;
+}
+
+/** compileTree's output: one template per map key, plus one per repeat `each` / `empty`. */
+export interface CompiledTree {
+    /** Map keys in order (`'*'` included); each key's template id is the key itself */
+    keys: string[];
+    templates: Record<string, CompiledTemplate>;
+}
+
+export interface CompileTreeOptions {
+    /**
+     * A sample VM (what the tree's `from` will be), used to choose microJoin element shells.
+     * Without one, microJoin content isn't baked.
+     */
+    sample?: any;
+    /** Options for resolving sample values (pipes, withMethods, …), as at runtime */
+    resolveOptions?: GetValuesOptions;
+    /**
+     * Whether a literal ` :=` attribute may be baked (e.g. per the active permission
+     * profile). Refused attributes stay per-instance keys. Default: all but `on*`.
+     */
+    canBake?: (name: string, value: string) => boolean;
+}
 
 /**
  * Configuration for the builtIns.tree handler.

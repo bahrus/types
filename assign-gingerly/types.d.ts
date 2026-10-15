@@ -674,6 +674,18 @@ export interface IshManagerContext {
 }
 
 /**
+ * Context passed to a ` =&` sync op (third argument), alongside its resolved args and extra keys.
+ */
+export interface SyncOpContext {
+  /**
+   * What the ` =&` key's left-hand path resolves to (the target itself for `'?. =&'`).
+   * Ops that render into an element (e.g. `microJoin`) use it and return undefined;
+   * ops that compute a value (e.g. `join`) ignore it and return the value to assign.
+   */
+  lhsTarget: any;
+}
+
+/**
  * Optional extension to defineIshCore, used by builtIns.tree.
  */
 export interface IshExtension {

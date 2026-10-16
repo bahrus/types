@@ -86,6 +86,24 @@ export type NormalizedSpec = [
     repeat: RepeatSpecification | undefined,
 ];
 
+// ── The tree`…` tagged template (see DX/tree.ts) ─────────────────────────────
+
+/** Options for `each(of, options)` in a tree`…` template. */
+export interface EachOptions {
+    /** Path into each item identifying it across calls (a `?.` string or a paths() proxy) */
+    key?: any;
+    /** Rendered instead of the items when the array is empty or missing (e.g. another tree`…`) */
+    empty?: ElementSpecification;
+}
+
+/** What `each()` returns: placed in an element's attribute position, it makes the element a repeat. */
+export interface EachDirective {
+    readonly kind: 'each';
+    of: string;
+    key?: string;
+    empty?: ElementSpecification;
+}
+
 // ── compileTree (see handlers/compileTree.ts) ───────────────────────────────
 
 /**

@@ -184,4 +184,12 @@ export interface TreeConfig extends HandlerConfig {
      * Like `options.aka`, they apply to LHS keys and to RHS path segments.
      */
     aka?: Record<string, string>;
+    /**
+     * Experimental: create elements by cloning compiled templates, with static parts
+     * (literal text and literal ` :=` attributes) baked in, instead of createElement plus
+     * per-key assignment. A string works like `true` for now; it will name server-rendered
+     * templates later. Treat the map's specifications as immutable (replace them to
+     * change them). Rebinding is unchanged.
+     */
+    compile?: boolean | string;
 }

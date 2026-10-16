@@ -953,6 +953,12 @@ export interface AssignFromHandler {
  */
 export interface AssignFromHandlerConstructor {
     new (config: HandlerConfig): AssignFromHandler;
+    /**
+     * Optional: called before each instantiation, so a handler can load what this config
+     * needs (e.g. builtIns.tree loads its compiler only for `compile` configs). Return a
+     * promise only when something must be awaited; returning nothing keeps the call cheap.
+     */
+    prepare?(config: HandlerConfig): Promise<void> | void;
 }
 
 // =============================================================================

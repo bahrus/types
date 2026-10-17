@@ -99,14 +99,49 @@ export interface EachOptions {
 /**
  * Where a tree`…` error is, for editors and tools (TreeTemplateError carries it).
  * `part` / `offset` are exact: the index into the template's static strings (`strings[part]`,
- * the template literal's "quasis") and the offset within that string. `line` / `column` are
- * 1-based, in the template as displayed with each `${…}` shown as `${…}` (as in the message).
+ * the template literal's "quasis") and the offset within that string. The offset is in the
+ * **raw** string (`strings.raw[part]`, escapes as written), so it maps straight to a source
+ * position; without `raw`, it's in the cooked string. `line` / `column` are 1-based, in the
+ * template as displayed with each `${…}` shown as `${…}` (as in the message).
  */
 export interface TreeTemplateLocation {
     part: number;
     offset: number;
     line: number;
     column: number;
+}
+
+/** A template's static strings, as analyzeTree takes them: a TemplateStringsArray, or any string array (with `raw` for source offsets). */
+export type TreeTemplateStrings = readonly string[] & { readonly raw?: readonly string[] };
+
+/** What analyzeTree returns: the produced notation (unless there's an error), the elements, and any errors. */
+export interface TreeAnalysis {
+    /** The tree notation, with `TreeUnknown` stand-ins where values weren't known */
+    spec?: ElementSpecification;
+    /** The root element (empty if the template couldn't be parsed), for checks and completions */
+    elements: TreeTemplateElement[];
+    /** At most one, for now: tree`…` stops at its first error */
+    errors: (Error & TreeTemplateLocation)[];
+}
+
+/** An element of an analyzed template, with locations. */
+export interface TreeTemplateElement {
+    tag: string;
+    /** Where its `<tag` starts */
+    location: TreeTemplateLocation;
+    attributes: TreeTemplateAttribute[];
+    /** `${…}` placed in attribute position (each(…), pattern objects) */
+    directives: { hole: number; location: TreeTemplateLocation }[];
+    /** Its child elements (text and `${…}` content are left out) */
+    children: TreeTemplateElement[];
+}
+
+/** An attribute of an analyzed element: `name`, `.prop`, `@event` or `ish`, as written. */
+export interface TreeTemplateAttribute {
+    name: string;
+    location: TreeTemplateLocation;
+    /** The `${…}` index, when the value is a single `${…}` */
+    hole?: number;
 }
 
 /** What `each()` returns: placed in an element's attribute position, it makes the element a repeat. */

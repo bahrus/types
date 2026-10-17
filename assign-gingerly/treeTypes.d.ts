@@ -63,14 +63,24 @@ export interface RepeatSpecification {
 }
 
 /**
+ * A nested tree, in place of static children: shorthand for a builtIns.tree config (minus
+ * `do`) applied to the element, with the element's value as the nested tree's VM. Told
+ * apart from a repeat by having `map` and no `each`. Equivalent to the pattern
+ * `{ '?. =>': { do: 'builtIns.tree', ...nested } }`, minus the handler dispatch: always
+ * synchronous. The nested tree's own `compile` only applies once the compiler is loaded
+ * (e.g. by an enclosing `compile` tree).
+ */
+export type NestedTreeSpecification = Omit<TreeConfig, 'do' | 'resolve'>;
+
+/**
  * One element: a header alone, or a tuple of header, pattern, and either static
- * children or a repeat. Static children resolve their patterns against the same
- * value as their parent.
+ * children, a repeat or a nested tree. Static children resolve their patterns against
+ * the same value as their parent.
  */
 export type ElementSpecification =
     | ElementSpecificationHeader
     | [ElementSpecificationHeader, PatternOrText]
-    | [ElementSpecificationHeader, PatternOrText, ElementSpecification[] | RepeatSpecification]
+    | [ElementSpecificationHeader, PatternOrText, ElementSpecification[] | RepeatSpecification | NestedTreeSpecification]
 ;
 
 /** A manager reference from an object header: a registered name or a class. */
@@ -84,6 +94,7 @@ export type NormalizedSpec = [
     pattern: Pattern | undefined,
     children: ElementSpecification[],
     repeat: RepeatSpecification | undefined,
+    nested: NestedTreeSpecification | undefined,
 ];
 
 // ── The tree`…` tagged template (see DX/tree.ts) ─────────────────────────────
@@ -190,6 +201,8 @@ export interface CompiledNode {
     dynamic?: Pattern;
     children: CompiledNode[];
     repeat?: CompiledRepeat;
+    /** A nested tree in the children slot (rendered at bind time, not compiled into this template) */
+    nested?: NestedTreeSpecification;
 }
 
 /** One flat template: its element, the node tree to bind, and a structural signature. */

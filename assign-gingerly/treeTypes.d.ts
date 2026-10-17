@@ -73,14 +73,34 @@ export interface RepeatSpecification {
 export type NestedTreeSpecification = Omit<TreeConfig, 'do' | 'resolve'>;
 
 /**
+ * A switch: one of several specifications, chosen from the data on every render. Goes
+ * anywhere an element specification goes (a map value, a static child, a repeat's `each`
+ * or `empty`, another switch's case). Told apart from a header by its `switch` key.
+ *
+ * The discriminant (`switch`) resolves against the switch position's value, and is
+ * matched with `String(value)` against the `cases` keys; nullish or unmatched → `default`.
+ * The chosen case renders against that same value. No case and no `default` (or a `null`
+ * case) renders nothing, while keeping the switch's slot. The same case as last time is
+ * rebound in place; a different case is rebuilt (the previous one is discarded).
+ */
+export interface SwitchSpecification {
+    /** The discriminant: a path (`'?.phase'`, `'$parent?.mode'`, pipes too) */
+    switch: string;
+    cases: Record<string, ElementSpecification | null>;
+    /** Rendered when the discriminant is nullish or matches no case */
+    default?: ElementSpecification | null;
+}
+
+/**
  * One element: a header alone, or a tuple of header, pattern, and either static
  * children, a repeat or a nested tree. Static children resolve their patterns against
- * the same value as their parent.
+ * the same value as their parent. Or a switch between specifications.
  */
 export type ElementSpecification =
     | ElementSpecificationHeader
     | [ElementSpecificationHeader, PatternOrText]
     | [ElementSpecificationHeader, PatternOrText, ElementSpecification[] | RepeatSpecification | NestedTreeSpecification]
+    | SwitchSpecification
 ;
 
 /** A manager reference from an object header: a registered name or a class. */
@@ -155,6 +175,9 @@ export interface TreeTemplateAttribute {
     hole?: number;
 }
 
+/** `choose(on, cases, fallback?)`'s cases: case key → what to render (`null`: nothing). */
+export type ChooseCases = Record<string, ElementSpecification | null>;
+
 /** What `each()` returns: placed in an element's attribute position, it makes the element a repeat. */
 export interface EachDirective {
     readonly kind: 'each';
@@ -203,6 +226,20 @@ export interface CompiledNode {
     repeat?: CompiledRepeat;
     /** A nested tree in the children slot (rendered at bind time, not compiled into this template) */
     nested?: NestedTreeSpecification;
+    /**
+     * A switch among the static children: it has no element in the template (its case is
+     * cloned from its own template and placed at bind time), so `tag` is `''`.
+     */
+    switch?: CompiledSwitch;
+}
+
+/** A switch's cases, compiled: each case is its own template (or, for a nested switch, its own CompiledSwitch). */
+export interface CompiledSwitch {
+    spec: SwitchSpecification;
+    /** Case key → template (or switch) id */
+    cases: Record<string, string>;
+    /** Id for `default`, if any */
+    default?: string;
 }
 
 /** One flat template: its element, the node tree to bind, and a structural signature. */
@@ -214,11 +251,13 @@ export interface CompiledTemplate {
     signature: string;
 }
 
-/** compileTree's output: one template per map key, plus one per repeat `each` / `empty`. */
+/** compileTree's output: one template per map key, plus one per repeat `each` / `empty` and per switch case. */
 export interface CompiledTree {
     /** Map keys in order (`'*'` included); each key's template id is the key itself */
     keys: string[];
     templates: Record<string, CompiledTemplate>;
+    /** Switches where a template would otherwise be (a map value, a repeat's `each` / `empty`, a case), by the same ids */
+    switches: Record<string, CompiledSwitch>;
 }
 
 export interface CompileTreeOptions {

@@ -96,6 +96,19 @@ export interface EachOptions {
     empty?: ElementSpecification;
 }
 
+/**
+ * Where a tree`…` error is, for editors and tools (TreeTemplateError carries it).
+ * `part` / `offset` are exact: the index into the template's static strings (`strings[part]`,
+ * the template literal's "quasis") and the offset within that string. `line` / `column` are
+ * 1-based, in the template as displayed with each `${…}` shown as `${…}` (as in the message).
+ */
+export interface TreeTemplateLocation {
+    part: number;
+    offset: number;
+    line: number;
+    column: number;
+}
+
 /** What `each()` returns: placed in an element's attribute position, it makes the element a repeat. */
 export interface EachDirective {
     readonly kind: 'each';

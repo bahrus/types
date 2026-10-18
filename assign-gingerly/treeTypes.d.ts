@@ -34,8 +34,9 @@ export interface TBD{}
 export interface ElementHeader {
     tag: tagName;
     /**
-     * A registered manager name (JSON-friendly), or a class — auto-registered under
-     * `Class.is ?? Class.name`. No `itemscope` attribute is set.
+     * A registered manager name (JSON-friendly; looked up in the `registry` option's
+     * itemscopeRegistry first), or a class, attached directly and registered nowhere.
+     * No `itemscope` attribute is set.
      */
     ish?: RegisteredItemScopeManagerName | ItemscopeManager;
 }

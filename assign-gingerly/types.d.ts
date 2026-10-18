@@ -287,10 +287,29 @@ export interface SpawnContext<T = any, TMountContext = any> {
 export type IEnhancementRegistryItem<T = any> = EnhancementConfig<T>;
 
 /**
+ * The `registry` option: registries for one call, with the same property names as the
+ * addenda on CustomElementRegistry. Each kind is looked up here first, then on the
+ * target's `customElementRegistry`, then on `customElements`.
+ * - `enhancementRegistry`: symbol keys and `enh` paths (assignGingerly).
+ * - `itemscopeRegistry`: manager names (the `ish` property, Tree's `{ tag, ish: 'name' }`).
+ * - `featuresRegistry`: accepted for symmetry; nothing consults it per call yet.
+ */
+export interface RegistryOption {
+  enhancementRegistry?: EnhancementRegistry;
+  itemscopeRegistry?: ItemscopeRegistry;
+  featuresRegistry?: FeaturesRegistry;
+}
+
+/**
  * Interface for the options passed to assignGingerly
  */
 export interface IAssignGingerlyOptions {
-  registry?: typeof EnhancementRegistry | EnhancementRegistry;
+  /**
+   * Registries for this call, shaped like a CustomElementRegistry's addenda (so a scoped
+   * `customElementRegistry` can be passed as is). Each kind present here takes precedence;
+   * see RegistryOption.
+   */
+  registry?: RegistryOption;
   bypassChecks?: boolean;
   /**
    * Method names to call during path evaluation (e.g., for `?.method()` calls)
@@ -490,8 +509,8 @@ export interface AssignFromOptions {
    */
   enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
 
-  /** Registry for enhancement dependency injection (inherited from IAssignGingerlyOptions) */
-  registry?: any;
+  /** Registries for this call: { enhancementRegistry?, itemscopeRegistry?, featuresRegistry? } (see RegistryOption) */
+  registry?: RegistryOption;
 
   [key: string]: any;
 }
@@ -614,6 +633,8 @@ export declare class EnhancementRegisteredEvent extends Event {
  * Extends EventTarget to dispatch events when configs are registered
  */
 export declare class EnhancementRegistry extends EventTarget {
+  /** Optional configs to register right away (same as `push`) */
+  constructor(items?: EnhancementConfig | EnhancementConfig[]);
   push(items: EnhancementConfig | EnhancementConfig[]): void;
   getItems(): EnhancementConfig[];
   findBySymbol(symbol: symbol | string): EnhancementConfig | undefined;
@@ -764,7 +785,10 @@ export interface ItemscopeManagerConfig<T = any> {
  * Extends EventTarget to support lazy registration via events
  */
 export declare class ItemscopeRegistry extends EventTarget {
-  define(name: string, config: ItemscopeManagerConfig): void;
+  /** Optional managers to define right away, by name: a class (shorthand for `{ manager: Class }`) or a config */
+  constructor(managers?: Record<string, ItemscopeManager | ItemscopeManagerConfig>);
+  /** A manager class is shorthand for `{ manager: Class }` */
+  define(name: string, config: ItemscopeManagerConfig | ItemscopeManager): void;
   get(name: string): ItemscopeManagerConfig | undefined;
   whenDefined(name: string): Promise<void>;
 }

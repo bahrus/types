@@ -965,6 +965,28 @@ export interface HandlerConfig {
 }
 
 /**
+ * How builtIns.scope binds the element's scope: an assignFrom call on the element, with
+ * `from` set to the scope's view model (the manager, or else the value). `pattern` is its
+ * pattern; the other keys are its options (`infer`, `withMethods`, `pin`, …).
+ */
+export interface ScopeBinding extends Partial<Omit<AssignFromOptions, 'from' | 'fromStack'>> {
+    pattern?: Record<string, any>;
+}
+
+/**
+ * Configuration for builtIns.scope: bind an existing element's scope (e.g. server-rendered
+ * markup) against a sub-value of `from`, optionally through an itemscope manager.
+ */
+export interface ScopeConfig extends HandlerConfig {
+    do: 'builtIns.scope';
+    /** `value`: what the scope binds to (default: `from[itemprop]`, from the element's itemprop) */
+    get?: Record<string, any>;
+    /** The manager, overriding the itemscope attribute's name: a registered name or a class */
+    ish?: string | ItemscopeManager;
+    bind?: ScopeBinding;
+}
+
+/**
  * Interface for assignFrom handler classes.
  * Handlers are invoked when a LHS key ends with ' =>'.
  */

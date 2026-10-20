@@ -34,24 +34,24 @@ export interface O2HOptions {
      * from the raw value.
      */
     managers?: Record<string, O2HManager>;
-    /** Element children the container has before the tree's output (they shift residue paths) */
-    elementOffset?: number;
+    /**
+     * Prepend the default style, which hides elements still waiting for their residue, but only
+     * when scripts run (so crawlers and no-JS readers see everything):
+     * `<style>@media (scripting: enabled) { [data-residue] { visibility: hidden; } }</style>`
+     */
+    style?: boolean;
 }
 
 /**
- * What HTML can't carry, for the client to apply with one call:
- * `assignFrom(container, residue.pattern, { at: residue.at, from: host })`.
+ * What HTML can't carry: the element marked data-residue="eN" → its leftover pattern (properties
+ * without an attribute, event bindings, an itemscope manager's value). The client applies it, and
+ * removes the marks, with assign-gingerly's `await applyResidue(container, residue, { from: host })`.
  */
-export interface O2HResidue {
-    /** `#[eN]` → the element's leftover pattern (properties, events, ish) */
-    pattern: Record<string, Record<string, any>>;
-    /** `eN` → the element's path: element-child indices from the container */
-    at: Record<string, number[]>;
-}
+export type O2HResidue = Record<string, Record<string, any>>;
 
 /** A key o2h could neither render nor hand over (reported, not guessed). */
 export interface O2HUnrendered {
-    /** The element's path (element-child indices from the container) */
+    /** The element's path (element-child indices from the tree's first element), to help find it */
     path: number[];
     key: string;
 }
@@ -62,6 +62,12 @@ export interface O2HResult {
     residue: O2HResidue | null;
     unrendered: O2HUnrendered[];
 }
+
+/** Marks an element that still needs its residue entry (assign-gingerly's RESIDUE_ATTRIBUTE). */
+export declare const RESIDUE_ATTRIBUTE: 'data-residue';
+
+/** The opt-in default style (options.style): pending parts hidden, only when scripts run. */
+export declare const RESIDUE_STYLE: string;
 
 /** Render a builtIns.tree config against data, to HTML (plus what HTML can't carry). */
 export declare function o2h(config: O2HConfig, from: any, options?: O2HOptions): O2HResult;

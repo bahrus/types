@@ -317,7 +317,7 @@ export interface TreeConfig extends HandlerConfig {
      * elements, attaches managers, then binds as usual (events, properties; unchanged text isn't
      * rewritten), so later runs and managers' ctx.rebind() update it in place. Any structural
      * mismatch falls back to the rebuild. Carried down to nested trees. Also removes the
-     * `data-residue` marks of what it adopted.
+     * `data-pending` marks of what it adopted.
      */
     adopt?: boolean;
 }

@@ -311,4 +311,13 @@ export interface TreeConfig extends HandlerConfig {
      * change them). Rebinding is unchanged.
      */
     compile?: boolean | string;
+    /**
+     * Adopt existing markup (e.g. server-rendered by o2h) found between the tree's markers on
+     * the first run, instead of clearing and rebuilding it: Tree pairs the spec with the existing
+     * elements, attaches managers, then binds as usual (events, properties; unchanged text isn't
+     * rewritten), so later runs and managers' ctx.rebind() update it in place. Any structural
+     * mismatch falls back to the rebuild. Carried down to nested trees. Also removes the
+     * `data-residue` marks of what it adopted.
+     */
+    adopt?: boolean;
 }

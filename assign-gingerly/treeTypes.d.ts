@@ -318,6 +318,11 @@ export interface TreeConfig extends HandlerConfig {
      * rewritten), so later runs and managers' ctx.rebind() update it in place. Any structural
      * mismatch falls back to the rebuild. Carried down to nested trees. Also removes the
      * `data-pending` marks of what it adopted.
+     *
+     * Experimental: `'pending'` adopts the same way, but the first run binds only the elements
+     * holding a `data-pending` mark (with their contents and ancestors). The rest is trusted as
+     * the server rendered it, so client data or formatting that differs from the server's shows
+     * only once a later run (or a manager's ctx.rebind()) reaches it.
      */
-    adopt?: boolean;
+    adopt?: boolean | 'pending';
 }

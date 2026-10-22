@@ -97,13 +97,29 @@ export interface SwitchSpecification {
  * code, never from a config or the data). Goes anywhere an element specification goes, and may
  * have several root elements. Parsed once into a template (and checked: no `<script>`, `on*`
  * attributes or `javascript:` URLs, plus the permission processor), cloned per instance, and
- * never visited again on later runs. Told apart from a header by its `snippet` key.
- * (Holes, i.e. dynamic parts inside a snippet, are planned: see Tree/TODO/SnippetHoles.md.)
+ * never visited again on later runs, except for its holes. Told apart from a header by its `snippet` key.
  */
 export interface SnippetSpecification {
     /** The snippet's name in the `snippets` option */
     snippet: string;
+    /**
+     * What fills the snippet's holes (its `data-hole="name"` elements), by hole name. A hole the
+     * spec doesn't name is left as written, fallback content included; a name the snippet doesn't
+     * have is ignored. Holes resolve against the same value as the snippet's position.
+     */
+    holes?: Record<string, HoleSpecification>;
 }
+
+/**
+ * What fills a hole: an element tuple without its header (the snippet supplies the element).
+ * Text (a string, as in tuples), a pattern for the hole element, or a pattern and then children
+ * (static children, a repeat or a nested tree). Content (text or children) replaces the hole's
+ * fallback content; a pattern alone keeps it.
+ */
+export type HoleSpecification =
+    | PatternOrText
+    | [PatternOrText]
+    | [PatternOrText, ElementSpecification[] | RepeatSpecification | NestedTreeSpecification];
 
 /**
  * One element: a header alone, or a tuple of header, pattern, and either static

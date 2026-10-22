@@ -440,6 +440,12 @@ export interface AssignFromOptions {
   /** Named unary functions usable as RHS path segments (see Pipes) */
   pipes?: Pipes;
 
+  /**
+   * Static HTML for builtIns.tree's `{ snippet: 'name' }` specifications, by name. Author
+   * content: checked when first parsed (no `<script>`, `on*` attributes or `javascript:` URLs).
+   */
+  snippets?: Record<string, string>;
+
   /** Protocol handlers (sync or async) */
   protocols?: ProtocolHandlers;
 

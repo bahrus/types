@@ -35,6 +35,11 @@ export interface O2HOptions {
      */
     managers?: Record<string, O2HManager>;
     /**
+     * Static HTML for `{ snippet: 'name' }` specifications, by name: written as is (trimmed).
+     * The same option builtIns.tree takes, which also checks it on the client.
+     */
+    snippets?: Record<string, string>;
+    /**
      * Prepend the default style, which hides the elements marked data-pending (until the client
      * restores them), but only when scripts run (so crawlers and no-JS readers see everything):
      * `<style>@media (scripting: enabled) { [data-pending] { visibility: hidden; } }</style>`

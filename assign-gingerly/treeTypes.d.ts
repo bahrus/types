@@ -93,15 +93,29 @@ export interface SwitchSpecification {
 }
 
 /**
+ * A snippet: static HTML, named here and supplied by the `snippets` option (so markup comes from
+ * code, never from a config or the data). Goes anywhere an element specification goes, and may
+ * have several root elements. Parsed once into a template (and checked: no `<script>`, `on*`
+ * attributes or `javascript:` URLs, plus the permission processor), cloned per instance, and
+ * never visited again on later runs. Told apart from a header by its `snippet` key.
+ * (Holes, i.e. dynamic parts inside a snippet, are planned: see Tree/TODO/SnippetHoles.md.)
+ */
+export interface SnippetSpecification {
+    /** The snippet's name in the `snippets` option */
+    snippet: string;
+}
+
+/**
  * One element: a header alone, or a tuple of header, pattern, and either static
  * children, a repeat or a nested tree. Static children resolve their patterns against
- * the same value as their parent. Or a switch between specifications.
+ * the same value as their parent. Or a switch between specifications, or a snippet.
  */
 export type ElementSpecification =
     | ElementSpecificationHeader
     | [ElementSpecificationHeader, PatternOrText]
     | [ElementSpecificationHeader, PatternOrText, ElementSpecification[] | RepeatSpecification | NestedTreeSpecification]
     | SwitchSpecification
+    | SnippetSpecification
 ;
 
 /** A manager reference from an object header: a registered name or a class. */
@@ -232,6 +246,11 @@ export interface CompiledNode {
      * cloned from its own template and placed at bind time), so `tag` is `''`.
      */
     switch?: CompiledSwitch;
+    /**
+     * A snippet among the static children: it has no element in the template (its own
+     * template is cloned in when the template is), so `tag` is `''`. The snippet's name.
+     */
+    snippet?: string;
 }
 
 /** A switch's cases, compiled: each case is its own template (or, for a nested switch, its own CompiledSwitch). */
@@ -318,6 +337,11 @@ export interface TreeConfig extends HandlerConfig {
      * rewritten), so later runs and managers' ctx.rebind() update it in place. Any structural
      * mismatch falls back to the rebuild. Carried down to nested trees. Also removes the
      * `data-pending` marks of what it adopted.
+     *
+     * Experimental: `'pending'` adopts the same way, but the first run binds only the elements
+     * holding a `data-pending` mark (with their contents and ancestors). The rest is trusted as
+     * the server rendered it, so client data or formatting that differs from the server's shows
+     * only once a later run (or a manager's ctx.rebind()) reaches it.
      */
-    adopt?: boolean;
+    adopt?: boolean | 'pending';
 }

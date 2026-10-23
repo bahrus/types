@@ -312,9 +312,19 @@ export interface CompileTreeOptions {
 }
 
 /**
- * Configuration for the builtIns.tree handler.
+ * A tree's map. With a VM type, its keys (and `'*'`) are suggested in editors, but none is
+ * required, and any other key is allowed (e.g. one with a trailing comment, `'rocket /* summary *\/'`).
+ * Without one (`T = any`), it's any string key.
  */
-export interface TreeConfig extends HandlerConfig {
+export type TreeMap<T = any> =
+    & { [K in Extract<keyof T, string> | '*']?: ElementSpecification }
+    & { [key: string]: ElementSpecification };
+
+/**
+ * Configuration for the builtIns.tree handler. `T`, the VM's type, is optional: with it, the
+ * map's keys are suggested (see TreeMap).
+ */
+export interface TreeConfig<T = any> extends HandlerConfig {
     do: 'builtIns.tree';
     /**
      * Ordered VM key → element specification. Keys are processed in map order.
@@ -322,7 +332,7 @@ export interface TreeConfig extends HandlerConfig {
      * (appended after the mapped keys, in VM key order). A `'*'` specification
      * without a pattern gets `{ textContent: '?.' }`.
      */
-    map: Record<string, ElementSpecification>;
+    map: TreeMap<T>;
     /**
      * Name of the comment markers that delimit the tree's nodes inside the target
      * (default `'tree'`). Give each config its own name to run several trees in one target.

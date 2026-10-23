@@ -441,8 +441,10 @@ export interface AssignFromOptions {
   pipes?: Pipes;
 
   /**
-   * Static HTML for builtIns.tree's `{ snippet: 'name' }` specifications, by name. Author
-   * content: checked when first parsed (no `<script>`, `on*` attributes or `javascript:` URLs).
+   * Static HTML by name: for builtIns.tree's `{ snippet: 'name' }` specifications, and for the
+   * built-in `snippets://name` protocol, which resolves to the snippet's `<template>` wherever a
+   * handler takes one (e.g. `instantiate`). Author content: checked when first parsed (no
+   * `<script>`, `on*` attributes or `javascript:` URLs).
    */
   snippets?: Record<string, string>;
 

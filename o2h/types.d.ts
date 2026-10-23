@@ -45,6 +45,22 @@ export interface O2HOptions {
      * `<style>@media (scripting: enabled) { [data-pending] { visibility: hidden; } }</style>`
      */
     style?: boolean;
+    /**
+     * Append the data the HTML was rendered from (`from`), as JSON, right after the tree's end marker:
+     * `<script type="application/json" data-tree="<markerName>">…</script>`, with `<` escaped (so the data
+     * can't end the element). The client hydrates with it. By default, values JSON drops or changes (functions,
+     * Dates, Maps, class instances, NaN …) are reported in `notSerializable`; `{ check: false }` skips that
+     * (the check costs about 3× a plain JSON.stringify).
+     */
+    embed?: boolean | { check?: boolean };
+}
+
+/** A value `embed` serialized differently from the original (or dropped), and where. */
+export interface O2HNotSerializable {
+    /** Its path in the data, as a `?.` path (`?.` for the data itself) */
+    path: string;
+    /** What it is, and what JSON makes of it */
+    kind: string;
 }
 
 /** A key o2h couldn't render (reported, not guessed). */
@@ -58,6 +74,8 @@ export interface O2HResult {
     /** Elements that lost something HTML can't carry (event bindings, properties without an attribute, managers) are marked data-pending */
     html: string;
     unrendered: O2HUnrendered[];
+    /** With `embed` (and its check): the values JSON dropped or changed (empty when everything survived) */
+    notSerializable?: O2HNotSerializable[];
 }
 
 /** Marks an element that lost something HTML can't carry (assign-gingerly's PENDING_ATTRIBUTE). */

@@ -549,6 +549,40 @@ export type SyncProtocolHandlers = Record<string, SyncProtocolHandler>;
  */
 export type Pipes = Record<string, (value: any) => any>;
 
+// ── Data pipes (pipes/dataPipes.js): pipes described as data, so they survive structuredClone ──
+
+/** An `Intl` formatter as a pipe (the formatter is built once per descriptor). */
+export interface IntlPipeDescriptor {
+    intl: 'DateTimeFormat' | 'NumberFormat' | 'RelativeTimeFormat' | 'PluralRules' | 'ListFormat';
+    /** Omitted: the runtime's default locale (which can differ between a server or worker and the browser) */
+    locale?: string | string[];
+    options?: Record<string, any>;
+    /** RelativeTimeFormat: the unit the value counts (default `'day'`) */
+    unit?: string;
+    /** PluralRules: the text for each plural category (`other` is the fallback) */
+    cases?: Record<string, string>;
+}
+
+/** A lookup: `String(value)` → a result, else `default`. */
+export interface MapPipeDescriptor {
+    map: Record<string, any>;
+    default?: any;
+}
+
+/** One of the built-ins: parseDate, number, string, trim, upper, lower, length, toFixed, slice, join, default. */
+export interface UsePipeDescriptor {
+    use: string;
+    /** Arguments after the value, e.g. `[2]` for toFixed */
+    args?: any[];
+}
+
+/** Other pipes in sequence, by name: pipes of the same object (functions or descriptors), or built-ins. */
+export interface ChainPipeDescriptor {
+    chain: string[];
+}
+
+export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor;
+
 /**
  * The outer grammar of a protocol-prefixed value string,
  * `‹protocol›://‹key›?.‹path›`, as produced by `parseProtocolRef`.

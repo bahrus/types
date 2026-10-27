@@ -312,12 +312,13 @@ export interface CompileTreeOptions {
 }
 
 /**
- * A tree's map. With a VM type, its keys (and `'*'`) are suggested in editors, but none is
- * required, and any other key is allowed (e.g. one with a trailing comment, `'rocket /* summary *\/'`).
- * Without one (`T = any`), it's any string key.
+ * A tree's map. With a VM type, its keys (and `'*'` and `'?.'`) are suggested in editors, but none is
+ * required, and any other key is allowed (e.g. one with a trailing comment, `'rocket /* summary *\/'`,
+ * or a path, `'?.congress?.house'`). Without one (`T = any`), it's any string key.
+ * `'?.'` renders the whole VM with one specification.
  */
 export type TreeMap<T = any> =
-    & { [K in Extract<keyof T, string> | '*']?: ElementSpecification }
+    & { [K in Extract<keyof T, string> | '*' | '?.']?: ElementSpecification }
     & { [key: string]: ElementSpecification };
 
 /**

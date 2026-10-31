@@ -106,3 +106,62 @@ export interface RouteMatch<Route extends RouteLike = RouteLike> {
     /** The path matched (below the app's base), as given */
     path: string;
 }
+
+/**
+ * What mirror needs from a renderer (o2h's `o2hRenderer()` fits): preparing transforms, and, on the page, reading,
+ * hydrating and (when the worker passed the VM back) rendering a route's fragment.
+ */
+export interface MirrorRenderer<Config = any, Options = any> {
+    prepare: PrepareTransform<Config, Options>;
+    /** The VM the worker embedded in the fragment */
+    embedded(container: Element, config: Config): unknown;
+    /** Hydrate the worker's fragment (finishing what it left pending) */
+    hydrate(container: Element, config: Config, vm: unknown, options: Options | undefined): Promise<{ pending?: number } | void>;
+    /** Render a VM on the page */
+    render(container: Element, config: Config, vm: unknown, options: Options | undefined): Promise<unknown>;
+}
+
+/** What mirror is asked to do. */
+export interface MirrorOptions<Config = any, Options = any> {
+    /** The worker's base URL, e.g. `http://localhost:8787` (or a function, read on each navigation) */
+    worker: string | (() => string);
+    /** The app, as authored (module references allowed) */
+    app: NavigateApp<Config, Options>;
+    /** Where the app's JSON is, for resolving relative module references (default: the document's base URL) */
+    appURL?: string | URL;
+    /** Where each route's fragment goes */
+    into: Element;
+    renderer: MirrorRenderer<Config, Options>;
+    /** The app's base path (default: the document's base URL's path, i.e. the shell's `<base href>`) */
+    base?: string;
+    /** Called after each navigation, rendered or failed */
+    onRender?: (rendered: MirrorRendered) => void;
+}
+
+/** How a navigation went. */
+export interface MirrorRendered {
+    /** The path below the app's base */
+    path: string;
+    /** `worker`: rendered there, hydrated here. `page`: the worker passed the VM back, and the page rendered it. `none`: it failed. */
+    by: 'worker' | 'page' | 'none';
+    /** The route's VM, when there is one */
+    vm?: unknown;
+    /** The route's index in the app, if one matched */
+    route?: number;
+    /** Milliseconds for the worker's response */
+    elapsed: number;
+    /** How many elements the worker left pending */
+    pending: number;
+    /** Why the worker passed the VM back, or why it failed */
+    error?: string;
+}
+
+/** A running mirror. */
+export interface Mirror {
+    /** The first render (the current URL) */
+    ready: Promise<MirrorRendered>;
+    /** Render the current URL again (e.g. after the worker URL changes) */
+    refresh(): Promise<MirrorRendered>;
+    /** Stop intercepting navigations */
+    stop(): void;
+}

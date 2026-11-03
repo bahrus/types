@@ -136,6 +136,23 @@ export interface MirrorOptions<Config = any, Options = any> {
     base?: string;
     /** Called after each navigation, rendered or failed */
     onRender?: (rendered: MirrorRendered) => void;
+    /**
+     * Animate in-app navigations with a view transition (where the browser has them): `true`, or a function of the
+     * navigation returning `false` (no transition), `true`, or more transition types. Off by default. The first
+     * render and `refresh()` aren't animated. The animation itself is the page's CSS (`view-transition-name`,
+     * `:active-view-transition-type(back)`).
+     */
+    transition?: boolean | ((navigation: MirrorTransition) => boolean | string[]);
+}
+
+/** A navigation that may be animated. */
+export interface MirrorTransition {
+    /** The path rendered before (below the app's base) */
+    from: string | undefined;
+    /** The path being rendered */
+    to: string;
+    /** `back`: to an earlier history entry. `forward`: anything else (a link, Forward). Also the transition's first type. */
+    direction: 'forward' | 'back';
 }
 
 /** How a navigation went. */

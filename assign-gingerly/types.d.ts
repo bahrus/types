@@ -581,7 +581,15 @@ export interface ChainPipeDescriptor {
     chain: string[];
 }
 
-export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor;
+/**
+ * A total over an array: each element's `?.` path added up, or with several paths, their product per element
+ * (`['?.quantity', '?.price']`). An element whose path leads nowhere, or isn't a number, adds 0.
+ */
+export interface SumPipeDescriptor {
+    sum: string | string[];
+}
+
+export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor;
 
 /**
  * The outer grammar of a protocol-prefixed value string,

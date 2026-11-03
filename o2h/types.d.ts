@@ -1,4 +1,6 @@
 import type { ElementSpecification } from 'assign-gingerly/types/treeTypes.js';
+import type { PipeDescriptor } from '../assign-gingerly/types.js';
+import type { ModuleReference, NavigateApp } from '../navigate-gingerly/types.js';
 
 /**
  * What o2h renders: a builtIns.tree config (the same JSON the client-side handler takes,
@@ -54,6 +56,19 @@ export interface O2HOptions {
      */
     embed?: boolean | { check?: boolean };
 }
+
+/**
+ * O2HOptions as JSON holds them (a navigate-gingerly app, before its module references are loaded):
+ * pipes as data pipes or module references; managers and protocols as module references.
+ */
+export interface O2HAppOptions extends Omit<O2HOptions, 'pipes' | 'managers' | 'protocols'> {
+    pipes?: Record<string, PipeDescriptor | ModuleReference>;
+    managers?: Record<string, ModuleReference>;
+    protocols?: Record<string, ModuleReference>;
+}
+
+/** A navigate-gingerly app that o2h renders: its configs are builtIns.tree configs, and its options JSON. */
+export type O2HApp = NavigateApp<O2HConfig, O2HAppOptions>;
 
 /** A value `embed` serialized differently from the original (or dropped), and where. */
 export interface O2HNotSerializable {

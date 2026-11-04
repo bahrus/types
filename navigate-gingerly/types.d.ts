@@ -20,6 +20,9 @@ export interface ModuleReference {
  * - **Aligned** (no `sources`): the path is the API's path. `/products/3` fetches `<api>/products/3`, as the
  *   source named `data`.
  * - **Mapped** (`sources`): the route names its sources, with `{name}` filled in from the path's parameters.
+ *
+ * An aligned route may also let named query parameters through (`query`), so the page's URL keeps the API's
+ * structure: `/timeseries/data/X?startyear=2015&endyear=2020` fetches `<api>/timeseries/data/X?startyear=2015&endyear=2020`.
  */
 export interface AppRoute<Config = unknown> {
     /**
@@ -31,6 +34,12 @@ export interface AppRoute<Config = unknown> {
     sources?: Record<string, string>;
     /** Whether the app's layout sources are fetched too (default true) */
     layout?: boolean;
+    /**
+     * Aligned routes: query parameters passed from the page's URL to the API's, by the same names. Only these
+     * (others are dropped), the first value of each, and only when not empty (a GET form's blank field). They're in
+     * the VM too, beside the path's parameters: `?.route?.startyear`.
+     */
+    query?: string[];
     /** How the route's VM (`{ route, ...sources }`) renders: a builtIns.tree config */
     config: Config;
     /** The page's title: literal text, or a path into the VM (`?.data?.title`) */
@@ -53,6 +62,7 @@ export interface InstalledRoute {
     pattern: string;
     sources?: Record<string, string>;
     layout?: boolean;
+    query?: string[];
     title?: string;
     /** The key of its transform in InstalledApp.transforms (routes with the same config share one) */
     transform: string;
@@ -87,7 +97,7 @@ export interface PreparedApp<Transform = unknown> {
 }
 
 /** Any route, authored or installed: what matching needs. */
-export type RouteLike = Pick<AppRoute, 'pattern' | 'sources' | 'layout' | 'title'>;
+export type RouteLike = Pick<AppRoute, 'pattern' | 'sources' | 'layout' | 'query' | 'title'>;
 
 /** An app, authored or installed: what matching and sources need. */
 export interface AppLike<Route extends RouteLike = RouteLike> {
@@ -105,6 +115,8 @@ export interface RouteMatch<Route extends RouteLike = RouteLike> {
     params: Record<string, string>;
     /** The path matched (below the app's base), as given */
     path: string;
+    /** The route's query parameters (its `query` names) found in the path's query string, decoded */
+    query: Record<string, string>;
 }
 
 /**

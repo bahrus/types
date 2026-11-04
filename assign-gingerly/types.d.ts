@@ -589,7 +589,20 @@ export interface SumPipeDescriptor {
     sum: string | string[];
 }
 
-export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor;
+/**
+ * The smallest or largest of an array's values at a `?.` path per element (e.g. to scale a chart). Numbers and
+ * numeric strings count; anything else (a blank, `"-"`) is skipped. No numbers: undefined.
+ */
+export interface MinPipeDescriptor {
+    min: string;
+}
+
+/** See MinPipeDescriptor. */
+export interface MaxPipeDescriptor {
+    max: string;
+}
+
+export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor | MinPipeDescriptor | MaxPipeDescriptor;
 
 /**
  * The outer grammar of a protocol-prefixed value string,

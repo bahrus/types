@@ -1,5 +1,5 @@
 import type { ElementSpecification } from 'assign-gingerly/types/treeTypes.js';
-import type { PipeDescriptor } from '../assign-gingerly/types.js';
+import type { PipeDescriptor, PipeEntries } from '../assign-gingerly/types.js';
 import type { ModuleReference, NavigateApp } from '../navigate-gingerly/types.js';
 
 /**
@@ -24,8 +24,8 @@ export interface O2HManager {
 }
 
 export interface O2HOptions {
-    /** Named unary functions usable as path segments (as for assignFrom) */
-    pipes?: Record<string, (value: any) => any>;
+    /** Named unary functions usable as path segments, or descriptors of them (as for assignFrom) */
+    pipes?: PipeEntries;
     /** Aliases, under the config's own aka */
     aka?: Record<string, string>;
     /** Synchronous protocol handlers (`name://key` values) */

@@ -437,8 +437,8 @@ export interface AssignFromOptions {
    */
   fromStack?: any[];
 
-  /** Named unary functions usable as RHS path segments (see Pipes) */
-  pipes?: Pipes;
+  /** Named unary functions usable as RHS path segments, or descriptors of them (see PipeEntries) */
+  pipes?: PipeEntries;
 
   /**
    * Static HTML by name: for builtIns.tree's `{ snippet: 'name' }` specifications, and for the
@@ -605,6 +605,13 @@ export interface MaxPipeDescriptor {
 export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor | MinPipeDescriptor | MaxPipeDescriptor;
 
 /**
+ * What a `pipes` option takes: functions (see Pipes), descriptors, or both. A descriptor becomes a function when a
+ * path first needs one, through dataPipes, which must be loaded by then: assignFromAsync loads it; otherwise import
+ * pipes/dataPipes.js. Entries are read once per object, so don't change one afterwards.
+ */
+export type PipeEntries = Record<string, ((value: any) => any) | PipeDescriptor>;
+
+/**
  * The outer grammar of a protocol-prefixed value string,
  * `‹protocol›://‹key›?.‹path›`, as produced by `parseProtocolRef`.
  */
@@ -631,8 +638,8 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
   /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
   fromStack?: any[];
 
-  /** Named unary functions usable as path segments (see Pipes) */
-  pipes?: Pipes;
+  /** Named unary functions usable as path segments, or descriptors of them (see PipeEntries) */
+  pipes?: PipeEntries;
 
   /**
    * Optional permission processor for guarding method calls during RHS resolution.
@@ -667,8 +674,8 @@ export interface ResolveValuesOptions extends IAssignGingerlyOptions {
   /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
   fromStack?: any[];
 
-  /** Named unary functions usable as path segments (see Pipes) */
-  pipes?: Pipes;
+  /** Named unary functions usable as path segments, or descriptors of them (see PipeEntries) */
+  pipes?: PipeEntries;
 
   /**
    * Optional permission processor for guarding method calls during RHS resolution.

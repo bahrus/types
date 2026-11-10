@@ -55,22 +55,109 @@ export interface Rule {
 
 export type Fields = {[key: string]: string};
 
+/** What `applyRules` produces:  one array of records per `emits` collection. */
 export type Records = {[collection: string]: Array<Fields>};
 
 export interface PdfResult {
     file: File;
     numPages: number;
     lines: Array<Line>;
-    /** Present when `rules` are specified. */
-    records?: Records;
+    /**
+     * Whatever `rules`, then the `handler`, then `load` listeners produced.
+     * With rules alone, a `Records` object.  A handler can return any shape.
+     */
+    records?: any;
 }
+
+/** A string (matched literally) or a RegExp. */
+export type TextPattern = string | RegExp;
+
+export interface Match {
+    line: Line;
+    match: RegExpMatchArray;
+    /** Approximate horizontal extent of the match, in PDF points. */
+    x0: number;
+    x1: number;
+}
+
+export interface TableOptions {
+    /**
+     * Matched against each line's `text` (may match several times per line, one table each),
+     * or the header cells' texts in order. Named groups end up in `Table.header`.
+     */
+    header: RegExp | Array<string | RegExp>;
+    /** The table ends before the first line (restricted to the table's range) matching this. */
+    until?: TextPattern;
+    /** Names for the columns, in header-cell order. Defaults to the header cells' text. */
+    columns?: Array<string>;
+}
+
+export interface TableColumn {
+    name: string;
+    x0: number;
+    x1: number;
+}
+
+export interface Table {
+    page: number;
+    /** Baseline of the header line. */
+    y: number;
+    /** Named groups of the header match. */
+    header: Fields;
+    columns: Array<TableColumn>;
+    /** Horizontal range claimed by this table (±Infinity at the page edges). */
+    x0: number;
+    x1: number;
+    /** One object per line below the header, keyed by column name. */
+    rows: Array<Fields>;
+    /** `lines[i]` is the line `rows[i]` came from, restricted to this table's cells. */
+    lines: Array<Line>;
+}
+
+export interface ColumnsOptions {
+    /** Dividing x position(s), in PDF points. Detected (assuming two columns) if omitted. */
+    gutter?: number | Array<number>;
+}
+
+export interface ValueAfterOptions {
+    /** Take the value from the cell under the label, on the next line. */
+    below?: boolean;
+}
+
+export interface Helpers {
+    tables(lines: Array<Line>, options: TableOptions): Array<Table>;
+    columnsOf(lines: Array<Line>, options?: ColumnsOptions): Array<Array<Line>>;
+    valueAfter(lines: Array<Line>, label: TextPattern, options?: ValueAfterOptions): string | undefined;
+    between(lines: Array<Line>, start: TextPattern | undefined, end?: TextPattern): Array<Line>;
+    after(lines: Array<Line>, start: TextPattern): Array<Line>;
+    matches(lines: Array<Line>, pattern: TextPattern): Array<Match>;
+    applyRules(lines: Array<Line>, rules: Array<Rule>): Records;
+    num(s: string | undefined | null): number | undefined;
+}
+
+export interface HandlerArgs {
+    file: File;
+    numPages: number;
+    lines: Array<Line>;
+    /** The rules' output, if `rules` are specified. */
+    records: Records | undefined;
+    helpers: Helpers;
+}
+
+/**
+ * Called once per file, after rules. The return value (unless undefined) becomes the
+ * file's `records`.
+ */
+export type Handler = (args: HandlerArgs) => any;
 
 export interface EndUserProps extends ExtractOptions {
     /** Ordered rules that turn lines into records. */
     rules?: Array<Rule>;
+    /** Custom logic that turns lines into records (programmatic only). */
+    handler?: Handler;
     /**
      * Where to write each file's result. `{file.name}` (and other `{file.*}` placeholders)
-     * are substituted per file. Writes `records` when `rules` are specified, `lines` otherwise.
+     * are substituted per file. Writes `records` when there are any, `lines` otherwise.
      */
     writeTo?: USL;
     /** Override the URL of the pdf.js worker module. */

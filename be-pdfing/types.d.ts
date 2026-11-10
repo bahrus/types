@@ -133,6 +133,34 @@ export interface Helpers {
     matches(lines: Array<Line>, pattern: TextPattern): Array<Match>;
     applyRules(lines: Array<Line>, rules: Array<Rule>): Records;
     num(s: string | undefined | null): number | undefined;
+    /** Lines (or columns of lines) as plain text for a prompt. */
+    linesToText(lines: Array<Line> | Array<Array<Line>>, options?: {separator?: string}): string;
+    /** 'unavailable' | 'downloadable' | 'downloading' | 'available' */
+    aiAvailability(options?: {model?: any}): Promise<string>;
+    /** Asks the browser's built-in model for JSON matching `options.schema`. */
+    promptForRecords(input: string | Array<Line> | Array<Array<Line>>, options: PromptForRecordsOptions): Promise<any>;
+    createSession(options?: CreateSessionOptions): Promise<any>;
+}
+
+export interface CreateSessionOptions {
+    /** A `LanguageModel`-compatible object. Defaults to `globalThis.LanguageModel`. */
+    model?: any;
+    systemPrompt?: string;
+    signal?: AbortSignal;
+    /** 0 to 1, while the model downloads. */
+    onDownloadProgress?: (fraction: number) => void;
+    /**
+     * Whether the (multi-GB) model download may be started, if it's not on the device yet.
+     * Default true for `createSession`, false for `promptForRecords`.
+     */
+    allowDownload?: boolean;
+}
+
+export interface PromptForRecordsOptions extends Omit<CreateSessionOptions, 'systemPrompt'> {
+    /** JSON Schema the response must match (passed as `responseConstraint`). */
+    schema: object;
+    /** System prompt:  what to extract, and how. */
+    instructions?: string;
 }
 
 export interface HandlerArgs {

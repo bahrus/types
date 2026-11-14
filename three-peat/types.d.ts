@@ -13,8 +13,11 @@ export interface EndUserProps{
      * If not provided, the host is found by searching upwards
      * for an itemscope-managed element, falling back to the
      * shadow root host.
+     * Programmatically, may also be the element itself, or a WeakRef to it.
+     * Either way it is only ever held weakly:  it is stored as a WeakRef as
+     * soon as the enhancement sees it (reading the property yields the element).
      */
-    src?: string;
+    src?: string | Element | WeakRef<Element>;
 
     /**
      * Specifies how each item's values are distributed into the
@@ -30,8 +33,11 @@ export interface EndUserProps{
      * If not provided, the fragments are appended to the children
      * of the adorned element (or, if the adorned element is a
      * template, to the template's parent element).
+     * Programmatically, may also be the element itself, or a WeakRef to it.
+     * Either way it is only ever held weakly:  it is stored as a WeakRef as
+     * soon as the enhancement sees it (reading the property yields the element).
      */
-    target?: string,
+    target?: string | Element | WeakRef<Element>,
 
     /**
      * Name of the event the host dispatches when the list has changed.

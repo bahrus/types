@@ -181,7 +181,6 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
     | keyof T 
     | pathString 
     | `${pathString} +=`
-    | `${pathString} =!`
     | `${pathString} -=`
   
   /**
@@ -287,10 +286,29 @@ export interface SpawnContext<T = any, TMountContext = any> {
 export type IEnhancementRegistryItem<T = any> = EnhancementConfig<T>;
 
 /**
+ * The `registry` option: registries for one call, with the same property names as the
+ * addenda on CustomElementRegistry. Each kind is looked up here first, then on the
+ * target's `customElementRegistry`, then on `customElements`.
+ * - `enhancementRegistry`: symbol keys and `enh` paths (assignGingerly).
+ * - `itemscopeRegistry`: manager names (the `ish` property, Tree's `{ tag, ish: 'name' }`).
+ * - `featuresRegistry`: accepted for symmetry; nothing consults it per call yet.
+ */
+export interface RegistryOption {
+  enhancementRegistry?: EnhancementRegistry;
+  itemscopeRegistry?: ItemscopeRegistry;
+  featuresRegistry?: FeaturesRegistry;
+}
+
+/**
  * Interface for the options passed to assignGingerly
  */
 export interface IAssignGingerlyOptions {
-  registry?: typeof EnhancementRegistry | EnhancementRegistry;
+  /**
+   * Registries for this call, shaped like a CustomElementRegistry's addenda (so a scoped
+   * `customElementRegistry` can be passed as is). Each kind present here takes precedence;
+   * see RegistryOption.
+   */
+  registry?: RegistryOption;
   bypassChecks?: boolean;
   /**
    * Method names to call during path evaluation (e.g., for `?.method()` calls)
@@ -407,6 +425,28 @@ export interface AssignFromOptions {
   /** Source object to resolve RHS path strings against */
   from: any;
 
+  /**
+   * Enclosing `from`s, outermost first (excluding the current `from`).
+   * `$root` resolves against `fromStack[0]` (or `from` when empty), `$parent`
+   * against `fromStack.at(-1)` (or undefined when empty).
+   *
+   * Nested call sites (builtIns.tree, builtIns.manageTemplateList) push the outer
+   * `from` when they switch to a nested value. Code that nests its own assignFrom
+   * calls can do the same: `{ from: inner, fromStack: [...(fromStack ?? []), from] }`.
+   */
+  fromStack?: any[];
+
+  /** Named unary functions usable as RHS path segments, or descriptors of them (see PipeEntries) */
+  pipes?: PipeEntries;
+
+  /**
+   * Static HTML by name: for builtIns.tree's `{ snippet: 'name' }` specifications, and for the
+   * built-in `snippets://name` protocol, which resolves to the snippet's `<template>` wherever a
+   * handler takes one (e.g. `instantiate`). Author content: checked when first parsed (no
+   * `<script>`, `on*` attributes or `javascript:` URLs).
+   */
+  snippets?: Record<string, string>;
+
   /** Protocol handlers (sync or async) */
   protocols?: ProtocolHandlers;
 
@@ -476,8 +516,8 @@ export interface AssignFromOptions {
    */
   enhance?: Array<{ emc: string; matching?: string; parse?: boolean }>;
 
-  /** Registry for enhancement dependency injection (inherited from IAssignGingerlyOptions) */
-  registry?: any;
+  /** Registries for this call: { enhancementRegistry?, itemscopeRegistry?, featuresRegistry? } (see RegistryOption) */
+  registry?: RegistryOption;
 
   [key: string]: any;
 }
@@ -499,6 +539,76 @@ export type ProtocolHandlers = Record<string, ProtocolHandler>;
 
 /** Map of protocol name to a synchronous handler. */
 export type SyncProtocolHandlers = Record<string, SyncProtocolHandler>;
+
+/**
+ * Named unary functions usable as RHS path segments: `'?.date?.parseDate?.longUtc'`
+ * calls `pipes.parseDate(date)`, then `pipes.longUtc(result)`. A pipe takes
+ * precedence over a property of the same name, and is never called with null/undefined
+ * (path navigation stops there first). Called with `this` undefined — pass bound functions.
+ */
+export type Pipes = Record<string, (value: any) => any>;
+
+// ── Data pipes (pipes/dataPipes.js): pipes described as data, so they survive structuredClone ──
+
+/** An `Intl` formatter as a pipe (the formatter is built once per descriptor). */
+export interface IntlPipeDescriptor {
+    intl: 'DateTimeFormat' | 'NumberFormat' | 'RelativeTimeFormat' | 'PluralRules' | 'ListFormat';
+    /** Omitted: the runtime's default locale (which can differ between a server or worker and the browser) */
+    locale?: string | string[];
+    options?: Record<string, any>;
+    /** RelativeTimeFormat: the unit the value counts (default `'day'`) */
+    unit?: string;
+    /** PluralRules: the text for each plural category (`other` is the fallback) */
+    cases?: Record<string, string>;
+}
+
+/** A lookup: `String(value)` → a result, else `default`. */
+export interface MapPipeDescriptor {
+    map: Record<string, any>;
+    default?: any;
+}
+
+/** One of the built-ins: parseDate, number, string, trim, upper, lower, length, toFixed, slice, join, default. */
+export interface UsePipeDescriptor {
+    use: string;
+    /** Arguments after the value, e.g. `[2]` for toFixed */
+    args?: any[];
+}
+
+/** Other pipes in sequence, by name: pipes of the same object (functions or descriptors), or built-ins. */
+export interface ChainPipeDescriptor {
+    chain: string[];
+}
+
+/**
+ * A total over an array: each element's `?.` path added up, or with several paths, their product per element
+ * (`['?.quantity', '?.price']`). An element whose path leads nowhere, or isn't a number, adds 0.
+ */
+export interface SumPipeDescriptor {
+    sum: string | string[];
+}
+
+/**
+ * The smallest or largest of an array's values at a `?.` path per element (e.g. to scale a chart). Numbers and
+ * numeric strings count; anything else (a blank, `"-"`) is skipped. No numbers: undefined.
+ */
+export interface MinPipeDescriptor {
+    min: string;
+}
+
+/** See MinPipeDescriptor. */
+export interface MaxPipeDescriptor {
+    max: string;
+}
+
+export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor | MinPipeDescriptor | MaxPipeDescriptor;
+
+/**
+ * What a `pipes` option takes: functions (see Pipes), descriptors, or both. A descriptor becomes a function when a
+ * path first needs one, through dataPipes, which must be loaded by then: assignFromAsync loads it; otherwise import
+ * pipes/dataPipes.js. Entries are read once per object, so don't change one afterwards.
+ */
+export type PipeEntries = Record<string, ((value: any) => any) | PipeDescriptor>;
 
 /**
  * The outer grammar of a protocol-prefixed value string,
@@ -523,6 +633,12 @@ export interface GetValuesOptions extends IAssignGingerlyOptions {
    * This is used by assignFrom to resolve values relative to the target object.
    */
   root?: any;
+
+  /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
+  fromStack?: any[];
+
+  /** Named unary functions usable as path segments, or descriptors of them (see PipeEntries) */
+  pipes?: PipeEntries;
 
   /**
    * Optional permission processor for guarding method calls during RHS resolution.
@@ -554,6 +670,12 @@ export interface ResolveValuesOptions extends IAssignGingerlyOptions {
    */
   root?: any;
 
+  /** Enclosing `from`s for `$root` / `$parent` references (see AssignFromOptions.fromStack) */
+  fromStack?: any[];
+
+  /** Named unary functions usable as path segments, or descriptors of them (see PipeEntries) */
+  pipes?: PipeEntries;
+
   /**
    * Optional permission processor for guarding method calls during RHS resolution.
    */
@@ -580,6 +702,8 @@ export declare class EnhancementRegisteredEvent extends Event {
  * Extends EventTarget to dispatch events when configs are registered
  */
 export declare class EnhancementRegistry extends EventTarget {
+  /** Optional configs to register right away (same as `push`) */
+  constructor(items?: EnhancementConfig | EnhancementConfig[]);
   push(items: EnhancementConfig | EnhancementConfig[]): void;
   getItems(): EnhancementConfig[];
   findBySymbol(symbol: symbol | string): EnhancementConfig | undefined;
@@ -592,7 +716,111 @@ export declare class EnhancementRegistry extends EventTarget {
  * Constructor signature for ItemScope Manager classes
  */
 export type ItemscopeManager<T = any> = {
-  new (element: HTMLElement, initVals?: Partial<T>): T;
+  /**
+   * `ctx` is present when the manager is attached by builtIns.tree (it carries `rebind`).
+   */
+  new (element: HTMLElement, initVals?: Partial<T>, ctx?: IshManagerContext): T;
+  /**
+   * Optional explicit registration name, used by builtIns.tree for class headers
+   * (`{ tag, ish: Class }`) in preference to the class's `.name` (which
+   * bundlers/minifiers may rename).
+   */
+  is?: string;
+  /**
+   * Optional hook deciding how a value assigned to `element.ish` is applied.
+   * When present, the manager is constructed without initVals and every assigned
+   * value (any type, including the first) is passed here instead of being merged.
+   * Called synchronously; if it returns a thenable, later values wait for it to
+   * settle so they are applied in order.
+   */
+  onAssigned?(instance: T, value: any, ctx: IshAssignContext): void | PromiseLike<void>;
+}
+
+/**
+ * Context passed to a manager's static `onAssigned` when `element.ish` is set.
+ */
+export interface IshAssignContext {
+  /** The element whose `ish` was set */
+  element: HTMLElement;
+  /** Whether this is the value that constructed the instance */
+  initial: boolean;
+  /** The options in effect */
+  options: IAssignGingerlyOptions | undefined;
+  /** Present when attached by builtIns.tree: re-applies the element's subtree (see IshManagerContext) */
+  rebind?: () => void;
+}
+
+/**
+ * Context given to a manager attached by builtIns.tree: passed as the constructor's
+ * third argument, and merged into `onAssigned`'s context.
+ */
+export interface IshManagerContext {
+  /**
+   * Re-apply the element's own pattern and its children's patterns against the
+   * manager instance. Call it after changing the manager's state outside a tree
+   * rerun (e.g. from a setter). Tree calls it itself after an async `onAssigned` settles.
+   */
+  rebind(): void;
+}
+
+/**
+ * Context passed to a ` =&` sync op (third argument), alongside its resolved args and extra keys.
+ */
+export interface SyncOpContext {
+  /**
+   * What the ` =&` key's left-hand path resolves to (the target itself for `'?. =&'`).
+   * Ops that render into an element (e.g. `microJoin`) use it and return undefined;
+   * ops that compute a value (e.g. `join`) ignore it and return the value to assign.
+   */
+  lhsTarget: any;
+  /** The object holding the LHS path's last segment, and that segment (e.g. an element and `'textContent'`) */
+  lhsParent?: any;
+  lhsKey?: string;
+  /**
+   * The op's arguments *before* resolution (same shape as the resolved args), so an op can
+   * tell a resolved reference (`'?.name'`) from a literal string with the same text.
+   */
+  rawArgs?: any;
+  /** Protocol handlers in effect, for recognizing protocol references in rawArgs */
+  protocols?: SyncProtocolHandlers;
+}
+
+/** A `microJoin` item rendered as an element: from a segment (with `prop`) or a reference (without). */
+export interface MicroJoinElementItem {
+  prop?: string;
+  val: any;
+  text?: any;
+}
+
+/** A `microJoin` item: text, or an element item. */
+export type MicroJoinItem = string | MicroJoinElementItem;
+
+/** What a `microJoin` element item renders as. */
+export interface MicroJoinShape {
+  tag: 'time' | 'data' | 'span';
+  attr?: 'datetime' | 'value';
+  attrValue?: string;
+  text: string;
+}
+
+/** `microJoin`'s rendering plan for one set of resolved args (see planMicroJoin). */
+export interface MicroJoinPlan {
+  /** Text and element items, adjacent text merged and empty text dropped */
+  items: MicroJoinItem[];
+  /** Each element item's shape (undefined for text items) */
+  shapes: (MicroJoinShape | undefined)[];
+  /** Whether every item was present: nothing nullish, no optional group dropped */
+  complete: boolean;
+}
+
+/**
+ * Optional extension to defineIshCore, used by builtIns.tree.
+ */
+export interface IshExtension {
+  /** Passed to the manager's constructor (third argument) and merged into `onAssigned`'s context */
+  ctx?: IshManagerContext;
+  /** Called after an async `onAssigned` (and any values queued behind it) has settled */
+  onSettled?: () => void;
 }
 
 /**
@@ -626,7 +854,10 @@ export interface ItemscopeManagerConfig<T = any> {
  * Extends EventTarget to support lazy registration via events
  */
 export declare class ItemscopeRegistry extends EventTarget {
-  define(name: string, config: ItemscopeManagerConfig): void;
+  /** Optional managers to define right away, by name: a class (shorthand for `{ manager: Class }`) or a config */
+  constructor(managers?: Record<string, ItemscopeManager | ItemscopeManagerConfig>);
+  /** A manager class is shorthand for `{ manager: Class }` */
+  define(name: string, config: ItemscopeManagerConfig | ItemscopeManager): void;
   get(name: string): ItemscopeManagerConfig | undefined;
   whenDefined(name: string): Promise<void>;
 }
@@ -803,6 +1034,28 @@ export interface HandlerConfig {
 }
 
 /**
+ * How builtIns.scope binds the element's scope: an assignFrom call on the element, with
+ * `from` set to the scope's view model (the manager, or else the value). `pattern` is its
+ * pattern; the other keys are its options (`infer`, `withMethods`, `pin`, …).
+ */
+export interface ScopeBinding extends Partial<Omit<AssignFromOptions, 'from' | 'fromStack'>> {
+    pattern?: Record<string, any>;
+}
+
+/**
+ * Configuration for builtIns.scope: bind an existing element's scope (e.g. server-rendered
+ * markup) against a sub-value of `from`, optionally through an itemscope manager.
+ */
+export interface ScopeConfig extends HandlerConfig {
+    do: 'builtIns.scope';
+    /** `value`: what the scope binds to (default: `from[itemprop]`, from the element's itemprop) */
+    get?: Record<string, any>;
+    /** The manager, overriding the itemscope attribute's name: a registered name or a class */
+    ish?: string | ItemscopeManager;
+    bind?: ScopeBinding;
+}
+
+/**
  * Interface for assignFrom handler classes.
  * Handlers are invoked when a LHS key ends with ' =>'.
  */
@@ -815,6 +1068,12 @@ export interface AssignFromHandler {
  */
 export interface AssignFromHandlerConstructor {
     new (config: HandlerConfig): AssignFromHandler;
+    /**
+     * Optional: called before each instantiation, so a handler can load what this config
+     * needs (e.g. builtIns.tree loads its compiler only for `compile` configs). Return a
+     * promise only when something must be awaited; returning nothing keeps the call cheap.
+     */
+    prepare?(config: HandlerConfig): Promise<void> | void;
 }
 
 // =============================================================================
@@ -945,6 +1204,7 @@ export interface ManageTemplateListConfig extends HandlerConfig {
     fromEachItem: FromEachItemConfig;
 }
 
+
 /**
  * Resolved parameters received by ManageTemplateListHandler.assign().
  */
@@ -1013,7 +1273,12 @@ export interface DispatchEventConfig{
 
 
 export interface AddEventListenerConfig extends AssignDispatchVector  {
-  on: string, 
+  on: string,
+  /**
+   * Name of a method on the host (`options.from`) to call with the event, before the
+   * assignment vectors run — e.g. `{ on: 'click', call: 'increaseHeightByOne' }`.
+   */
+  call?: string,
   get?: {
       abortController?: string | AbortController,
       

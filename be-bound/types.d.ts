@@ -30,6 +30,13 @@ export interface BindingRule {
     localProp: string,
     localEvent?: string,
     remoteId?: string,
+    /**
+     * The remote element to bind with, passed by reference -- the element
+     * itself, or a WeakRef to it.  Either way it is only ever held weakly:
+     * an element is replaced by a WeakRef as soon as the enhancement sees it.
+     * Takes precedence over remoteId.
+     */
+    remoteElement?: Element | WeakRef<Element>,
     remoteProp: string,
     remoteEvent?: string,
     //remoteSpecifier?: Specifier,

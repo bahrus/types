@@ -50,11 +50,22 @@ export interface AppRoute<Config = unknown> {
 export interface NavigateApp<Config = unknown, Options = unknown> {
     /** The API that aligned routes (and relative source URLs) are under, e.g. `https://fakestoreapi.com` */
     api?: string;
+    /**
+     * How the app's API takes a key the visitor brings (e.g. `{ param: 'registrationkey' }`). The page sends the key
+     * in a header (API_KEY_HEADER, from mirror's `apiKey`), and the worker adds it, as this parameter, to source URLs
+     * under `api` only. Never stored, and never in the page's URL: no route's `query` may name the parameter.
+     */
+    apiKey?: AppApiKey;
     /** Sources fetched for every route (unless it opts out), e.g. the categories a nav shows. No placeholders. */
     layout?: Record<string, string>;
     routes: AppRoute<Config>[];
     /** Options shared by every route's transform: pipes, managers, style … */
     options?: Options;
+}
+
+/** How an app's API takes a visitor's own key: the query parameter it goes in. */
+export interface AppApiKey {
+    param: string;
 }
 
 /** A route, installed: its config and the app's options are a transform, named by key. */
@@ -71,6 +82,7 @@ export interface InstalledRoute {
 /** An app as a worker stores it: data only, keyed by a hash of its content. */
 export interface InstalledApp<Transform = unknown> {
     api?: string;
+    apiKey?: AppApiKey;
     layout?: Record<string, string>;
     routes: InstalledRoute[];
     transforms: Record<string, Transform>;
@@ -102,6 +114,7 @@ export type RouteLike = Pick<AppRoute, 'pattern' | 'sources' | 'layout' | 'query
 /** An app, authored or installed: what matching and sources need. */
 export interface AppLike<Route extends RouteLike = RouteLike> {
     api?: string;
+    apiKey?: AppApiKey;
     layout?: Record<string, string>;
     routes: Route[];
 }
@@ -148,6 +161,11 @@ export interface MirrorOptions<Config = any, Options = any> {
     base?: string;
     /** Called after each navigation, rendered or failed */
     onRender?: (rendered: MirrorRendered) => void;
+    /**
+     * The visitor's own key for the app's API (or a function, read on each request, e.g. from `localStorage`). Sent
+     * to the worker in a header (API_KEY_HEADER), never in a URL, and only when the app declares `apiKey`.
+     */
+    apiKey?: string | null | (() => string | null | undefined);
     /**
      * Animate in-app navigations with a view transition (where the browser has them): `true`, or a function of the
      * navigation returning `false` (no transition), `true`, or more transition types. Off by default. The first

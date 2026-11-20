@@ -181,7 +181,6 @@ export interface AttrConfig<T = unknown, TParserConfig = unknown> {
     | keyof T 
     | pathString 
     | `${pathString} +=`
-    | `${pathString} =!`
     | `${pathString} -=`
   
   /**

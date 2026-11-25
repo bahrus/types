@@ -1264,6 +1264,13 @@ export interface AssignDispatchVector {
 
 export interface DispatchEventConfig{
     type?: string,
+    /**
+     * What to dispatch at: a path (`?.`, `$parent`, `$root`, `$0`) resolved against the host when the
+     * event fires, before `call` and the assignments run, or an EventTarget.
+     * Default: the element with the listener.
+     */
+    at?: string | EventTarget,
+    /** The event's constructor, or its name ('Event' or 'CustomEvent'), for JSON. Default: CustomEvent. */
     eventCtr?: string | typeof Event | typeof CustomEvent,
     detail?: any,
     bubbles?: boolean,

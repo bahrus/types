@@ -601,7 +601,15 @@ export interface MaxPipeDescriptor {
     max: string;
 }
 
-export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor | MinPipeDescriptor | MaxPipeDescriptor;
+/**
+ * The value at a `?.` path for each item of any iterable object (an array, a Set, a NodeList), as an array. Missing
+ * values (null, undefined) are dropped. Not an iterable object: undefined.
+ */
+export interface PluckPipeDescriptor {
+    pluck: string;
+}
+
+export type PipeDescriptor = IntlPipeDescriptor | MapPipeDescriptor | UsePipeDescriptor | ChainPipeDescriptor | SumPipeDescriptor | MinPipeDescriptor | MaxPipeDescriptor | PluckPipeDescriptor;
 
 /**
  * What a `pipes` option takes: functions (see Pipes), descriptors, or both. A descriptor becomes a function when a

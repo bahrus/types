@@ -1287,7 +1287,12 @@ export interface AddEventListenerConfig extends AssignDispatchVector  {
    */
   call?: string,
   get?: {
+      /** Stops the listener when aborted — with or without a `key`. */
       abortController?: string | AbortController,
+      /** Dedup: a new binding with this key replaces the previous one on the same element. */
+      key?: string,
+      /** 'host': the key replaces only a binding from the same host (`options.from`). Default: from any host. */
+      keyScope?: 'host',
       
       nudge?: boolean,
       options?: AddEventListenerOptions,
